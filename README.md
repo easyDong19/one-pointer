@@ -88,3 +88,8 @@ pnpm exec playwright install chromium
 - `.storybook/`: Storybook 설정
 - `stories/`: 스토리북 예제/문서 스토리
 - `lib/`: 공용 유틸리티
+
+## 문서
+
+- `docs/README.md`: 프로젝트 문서 인덱스
+- `docs/design-system/README.md`: 컬러 디자인 시스템 가이드
