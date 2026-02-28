@@ -1,11 +1,13 @@
 "use client"
 
 import { QueryClientProvider } from "@tanstack/react-query"
-import { useEffect, useMemo } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { buildLoginRedirectPath } from "@/shared/lib/redirect"
 import { getQueryClient } from "@/shared/lib/query-client"
 import { useAuthStore } from "@/entities/auth/model/auth-store"
+
+let didBootstrapAuth = false
 
 export default function Providers({
   children,
@@ -13,9 +15,14 @@ export default function Providers({
   children: React.ReactNode
 }>) {
   const router = useRouter()
-  const queryClient = useMemo(() => getQueryClient(), [])
+  const [queryClient] = useState(() => getQueryClient())
 
   useEffect(() => {
+    if (didBootstrapAuth) {
+      return
+    }
+
+    didBootstrapAuth = true
     void useAuthStore.getState().bootstrap()
   }, [])
 

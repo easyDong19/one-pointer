@@ -5,9 +5,10 @@ import { useForm } from "react-hook-form"
 import { useRouter } from "next/navigation"
 import { ZodError } from "zod/v4"
 import { Button } from "@/shared/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Card, CardContent, CardHeader } from "@/shared/ui/card"
 import { Input } from "@/shared/ui/input"
 import { Label } from "@/shared/ui/label"
+import { Text } from "@/shared/ui/text"
 import { ApiError } from "@/shared/api/http/api-error"
 import { loginRequestSchema, type LoginRequest } from "@/entities/auth/api/auth.schema"
 import { useLoginMutation } from "@/features/auth/sign-in/model/use-login-mutation"
@@ -46,14 +47,22 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
   return (
     <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>로그인</CardTitle>
-        <CardDescription>로그인 성공 시 이전 페이지로 돌아갑니다.</CardDescription>
+      <CardHeader className="gap-2">
+        <Text as="h1" typography="subtitle1-bold">
+          로그인
+        </Text>
+        <Text as="p" typography="body2-regular" className="text-muted-foreground">
+          로그인 성공 시 이전 페이지로 돌아갑니다.
+        </Text>
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="grid gap-5">
           <div className="grid gap-2">
-            <Label htmlFor="email">이메일</Label>
+            <Label htmlFor="email">
+              <Text as="span" typography="body3-medium">
+                이메일
+              </Text>
+            </Label>
             <Input
               id="email"
               type="email"
@@ -61,11 +70,19 @@ export function LoginForm({ nextPath }: LoginFormProps) {
               placeholder="user@example.com"
               {...register("email")}
             />
-            {errors.email ? <p className="text-sm text-destructive">{errors.email.message}</p> : null}
+            {errors.email ? (
+              <Text as="p" typography="caption1-medium" className="text-destructive">
+                {errors.email.message}
+              </Text>
+            ) : null}
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="password">비밀번호</Label>
+            <Label htmlFor="password">
+              <Text as="span" typography="body3-medium">
+                비밀번호
+              </Text>
+            </Label>
             <Input
               id="password"
               type="password"
@@ -73,17 +90,27 @@ export function LoginForm({ nextPath }: LoginFormProps) {
               placeholder="비밀번호를 입력하세요"
               {...register("password")}
             />
-            {errors.password ? <p className="text-sm text-destructive">{errors.password.message}</p> : null}
+            {errors.password ? (
+              <Text as="p" typography="caption1-medium" className="text-destructive">
+                {errors.password.message}
+              </Text>
+            ) : null}
           </div>
 
           {errorMessage ? (
-            <p className="rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <Text
+              as="p"
+              typography="caption1-medium"
+              className="rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2 text-destructive"
+            >
               {errorMessage}
-            </p>
+            </Text>
           ) : null}
 
           <Button type="submit" disabled={isPending} className="w-full">
-            {isPending ? "로그인 중..." : "로그인"}
+            <Text as="span" typography="body3-medium">
+              {isPending ? "로그인 중..." : "로그인"}
+            </Text>
           </Button>
         </form>
       </CardContent>
