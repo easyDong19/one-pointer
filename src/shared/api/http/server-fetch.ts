@@ -1,7 +1,7 @@
 import { unstable_noStore as noStore } from "next/cache"
 import { cookies } from "next/headers"
-import { env } from "@/env"
-import { ApiError } from "@/src/lib/http/api-error"
+import { env } from "@/shared/config/env"
+import { ApiError } from "@/shared/api/http/api-error"
 import {
   buildHeaders,
   buildRequestBody,
@@ -12,7 +12,7 @@ import {
   toApiError,
   type FetchBaseOptions,
   type QueryParams,
-} from "@/src/lib/http/core"
+} from "@/shared/api/http/core"
 
 type ServerFetchOptions<TBody = unknown> = FetchBaseOptions<TBody> &
   Omit<RequestInit, "method" | "body" | "headers"> & {

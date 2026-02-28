@@ -3,9 +3,9 @@
 import { QueryClientProvider } from "@tanstack/react-query"
 import { useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { buildLoginRedirectPath } from "@/src/lib/auth/redirect"
-import { getQueryClient } from "@/src/lib/query-client"
-import { useAuthStore } from "@/src/stores/auth-store"
+import { buildLoginRedirectPath } from "@/shared/lib/redirect"
+import { getQueryClient } from "@/shared/lib/query-client"
+import { useAuthStore } from "@/entities/auth/model/auth-store"
 
 export default function Providers({
   children,

@@ -9,7 +9,7 @@ import {
   withQuery,
   type FetchBaseOptions,
   type QueryParams,
-} from "@/src/lib/http/core"
+} from "@/shared/api/http/core"
 
 type ClientFetchOptions<TBody = unknown> = FetchBaseOptions<TBody> &
   Omit<RequestInit, "method" | "body" | "headers" | "credentials"> & {

@@ -1,4 +1,4 @@
-import { ApiError } from "@/src/lib/http/api-error"
+import { ApiError } from "@/shared/api/http/api-error"
 
 export type QueryValue = string | number | boolean | null | undefined
 export type QueryParams = Record<string, QueryValue | QueryValue[]>

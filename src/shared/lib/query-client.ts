@@ -1,5 +1,5 @@
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query"
-import { syncAuthStateFromError } from "@/src/stores/auth-store"
+import { syncAuthStateFromError } from "@/entities/auth/model/auth-store"
 
 function createQueryClient() {
   return new QueryClient({

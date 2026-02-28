@@ -1,6 +1,6 @@
 import { create } from "zustand"
-import { isApiError } from "@/src/lib/http/api-error"
-import { getMyProfile, type AuthUser } from "@/src/services/auth/auth.service"
+import { isApiError } from "@/shared/api/http/api-error"
+import { getMyProfile, type AuthUser } from "@/entities/auth/api/auth.service"
 
 type AuthStatus = "idle" | "loading" | "authenticated" | "unauthenticated" | "error"
 
