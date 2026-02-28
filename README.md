@@ -31,12 +31,16 @@ pnpm install
 
 ## 환경 변수 설정
 
-현재 코드 기준으로 **필수 환경 변수는 없습니다**.
+프로젝트 루트에 `.env.development`(개발) 또는 `.env.production`(배포) 파일을 만들고 사용하세요.
+`env.ts`에서 타입/검증을 수행합니다.
 
-추후 환경 변수가 필요하면 프로젝트 루트에 `.env.local` 파일을 만들고 사용하세요.
+현재 코드 기준 환경 변수:
+
+- 필수: `BASE_URL` (서버 전용)
+- 선택: `NEXT_PUBLIC_BASE_URL` (클라이언트 노출)
 
 ```bash
-touch .env.local
+touch .env.development
 ```
 
 `NEXT_PUBLIC_`로 시작하는 변수는 클라이언트 코드에서 접근 가능합니다.
@@ -93,3 +97,4 @@ pnpm exec playwright install chromium
 
 - `docs/README.md`: 프로젝트 문서 인덱스
 - `docs/design-system/README.md`: 컬러 디자인 시스템 가이드
+- `docs/http-fetch/README.md`: fetch 기반 API 레이어 사용 가이드
