@@ -7,6 +7,9 @@ export const loginRequestSchema = z.object({
 
 export type LoginRequest = z.infer<typeof loginRequestSchema>
 
+const authUserRoleSchema = z.enum(["USER", "ADMIN", "CLIENT", "EXPERT", "BOTH"])
+const authUserStatusSchema = z.enum(["ACTIVE", "INACTIVE", "SUSPENDED", "DORMANT", "WITHDRAWN"])
+
 export const authUserSchema = z.object({
   id: z.union([z.number(), z.string()]),
   email: z.string().email(),
@@ -14,14 +17,14 @@ export const authUserSchema = z.object({
   nickname: z.string(),
   phone: z.string().optional(),
   profileImageUrl: z.string().url().nullable().optional(),
-  role: z.string(),
-  status: z.string(),
+  role: authUserRoleSchema,
+  status: authUserStatusSchema,
 })
 
 export type AuthUser = z.infer<typeof authUserSchema>
 
 export const loginResponseSchema = z.object({
-  success: z.boolean(),
+  success: z.literal(true),
   message: z.string(),
   data: z.object({
     accessToken: z.string(),
@@ -33,7 +36,7 @@ export const loginResponseSchema = z.object({
 export type LoginResponse = z.infer<typeof loginResponseSchema>
 
 export const myProfileResponseSchema = z.object({
-  success: z.boolean(),
+  success: z.literal(true),
   message: z.string(),
   data: authUserSchema,
 })
