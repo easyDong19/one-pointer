@@ -12,6 +12,8 @@ export const authUserSchema = z.object({
   email: z.string().email(),
   name: z.string(),
   nickname: z.string(),
+  phone: z.string().optional(),
+  profileImageUrl: z.string().url().nullable().optional(),
   role: z.string(),
   status: z.string(),
 })
@@ -29,3 +31,11 @@ export const loginResponseSchema = z.object({
 })
 
 export type LoginResponse = z.infer<typeof loginResponseSchema>
+
+export const myProfileResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: authUserSchema,
+})
+
+export type MyProfileResponse = z.infer<typeof myProfileResponseSchema>

@@ -3,12 +3,14 @@ import {
   authUserSchema,
   loginRequestSchema,
   loginResponseSchema,
+  myProfileResponseSchema,
   type AuthUser,
   type LoginRequest,
   type LoginResponse,
+  type MyProfileResponse,
 } from "@/entities/auth/api/auth.schema"
 
-export type { AuthUser, LoginRequest, LoginResponse }
+export type { AuthUser, LoginRequest, LoginResponse, MyProfileResponse }
 
 export async function login(input: LoginRequest): Promise<LoginResponse> {
   const payload = loginRequestSchema.parse(input)
@@ -24,9 +26,10 @@ export async function login(input: LoginRequest): Promise<LoginResponse> {
 
 export async function getMyProfile(): Promise<AuthUser> {
   const response = await clientFetch<unknown>({
-    path: "/auth/me",
+    path: "/v1/api/user/me",
     method: "GET",
   })
 
-  return authUserSchema.parse(response)
+  const parsed = myProfileResponseSchema.parse(response)
+  return authUserSchema.parse(parsed.data)
 }
