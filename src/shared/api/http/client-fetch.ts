@@ -23,7 +23,7 @@ let refreshLock: Promise<void> | null = null
 const REFRESH_ENDPOINT_PATH = "/v1/api/auth/refresh"
 
 function shouldTryAuthRefresh(status: number): boolean {
-  return status === 401 || status === 403
+  return status === 401
 }
 
 export async function clientFetch<TResponse, TBody = unknown>(

@@ -3,15 +3,17 @@ import { ApiError } from "@/shared/api/http/api-error"
 import {
   loginRequestSchema,
   loginResponseSchema,
+  logoutResponseSchema,
   myProfileResponseSchema,
   type AuthUser,
   type LoginRequest,
   type LoginResponse,
+  type LogoutResponse,
   type MyProfileResponse,
 } from "@/entities/auth/api/auth.schema"
 import type { ZodType } from "zod/v4"
 
-export type { AuthUser, LoginRequest, LoginResponse, MyProfileResponse }
+export type { AuthUser, LoginRequest, LoginResponse, LogoutResponse, MyProfileResponse }
 
 export async function login(input: LoginRequest): Promise<LoginResponse> {
   const path = "/v1/api/auth/login"
@@ -51,6 +53,23 @@ export async function getMyProfile(): Promise<AuthUser> {
   })
 
   return parsed.data
+}
+
+export async function logout(): Promise<LogoutResponse> {
+  const path = "/v1/api/auth/logout"
+  const method = "POST"
+
+  const response = await clientFetch<unknown>({
+    path,
+    method,
+    skipAuthRefresh: true,
+  })
+
+  return parseSchemaOrThrow(logoutResponseSchema, response, {
+    path,
+    method,
+    message: "Invalid logout response payload",
+  })
 }
 
 function parseSchemaOrThrow<T>(

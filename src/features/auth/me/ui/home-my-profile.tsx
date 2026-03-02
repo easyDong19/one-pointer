@@ -3,6 +3,7 @@
 import { Text } from "@/shared/ui/text"
 import { ApiError } from "@/shared/api/http/api-error"
 import { useMyProfileQuery } from "@/features/auth/me/model/use-my-profile-query"
+import { LogoutButton } from "@/features/auth/sign-out/ui/logout-button"
 
 export function HomeMyProfile() {
   const { data, isLoading, error } = useMyProfileQuery()
@@ -25,7 +26,7 @@ export function HomeMyProfile() {
   }
 
   return (
-    <section className="space-y-1">
+    <section className="space-y-3">
       <Text as="h2" typography="subtitle2-bold">
         My Profile
       </Text>
@@ -35,6 +36,7 @@ export function HomeMyProfile() {
       <Text typography="caption1-medium" className="text-muted-foreground">
         role: {data.role} / status: {data.status}
       </Text>
+      <LogoutButton />
     </section>
   )
 }

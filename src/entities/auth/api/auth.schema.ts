@@ -42,3 +42,11 @@ export const myProfileResponseSchema = z.object({
 })
 
 export type MyProfileResponse = z.infer<typeof myProfileResponseSchema>
+
+export const logoutResponseSchema = z.object({
+  success: z.literal(true),
+  message: z.string(),
+  data: z.null(),
+})
+
+export type LogoutResponse = z.infer<typeof logoutResponseSchema>
