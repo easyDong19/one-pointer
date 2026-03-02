@@ -7,8 +7,6 @@ import { buildLoginRedirectPath } from "@/shared/lib/redirect"
 import { getQueryClient } from "@/shared/lib/query-client"
 import { useAuthStore } from "@/entities/auth/model/auth-store"
 
-let didBootstrapAuth = false
-
 export default function Providers({
   children,
 }: Readonly<{
@@ -18,11 +16,6 @@ export default function Providers({
   const [queryClient] = useState(() => getQueryClient())
 
   useEffect(() => {
-    if (didBootstrapAuth) {
-      return
-    }
-
-    didBootstrapAuth = true
     void useAuthStore.getState().bootstrap()
   }, [])
 

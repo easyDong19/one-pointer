@@ -10,6 +10,7 @@ import {
   type FetchBaseOptions,
   type QueryParams,
 } from "@/shared/api/http/core"
+import { refreshAccessToken } from "@/shared/api/http/refresh-token"
 
 type ClientFetchOptions<TBody = unknown> = FetchBaseOptions<TBody> &
   Omit<RequestInit, "method" | "body" | "headers" | "credentials"> & {
@@ -19,6 +20,11 @@ type ClientFetchOptions<TBody = unknown> = FetchBaseOptions<TBody> &
   }
 
 let refreshLock: Promise<void> | null = null
+const REFRESH_ENDPOINT_PATH = "/v1/api/auth/refresh"
+
+function shouldTryAuthRefresh(status: number): boolean {
+  return status === 401 || status === 403
+}
 
 export async function clientFetch<TResponse, TBody = unknown>(
   options: ClientFetchOptions<TBody>,
@@ -34,12 +40,15 @@ export async function clientFetch<TResponse, TBody = unknown>(
   try {
     const response = await fetch(url, requestInit)
 
-    if (response.status === 401 && !options.skipAuthRefresh && finalPath !== "/auth/refresh") {
-      const refreshed = await refreshWithLock(baseUrl)
-      if (refreshed) {
-        const retryResponse = await fetch(url, requestInit)
-        return await parseResponse<TResponse>(retryResponse, finalPath, method)
-      }
+    if (
+      shouldTryAuthRefresh(response.status) &&
+      !options.skipAuthRefresh &&
+      path !== REFRESH_ENDPOINT_PATH
+    ) {
+      await refreshWithLock(baseUrl)
+
+      const retryResponse = await fetch(url, requestInit)
+      return await parseResponse<TResponse>(retryResponse, finalPath, method)
     }
 
     return await parseResponse<TResponse>(response, finalPath, method)
@@ -75,32 +84,12 @@ function buildClientRequestInit(
   return requestInit
 }
 
-async function refreshWithLock(baseUrl?: string): Promise<boolean> {
+async function refreshWithLock(baseUrl?: string): Promise<void> {
   if (!refreshLock) {
-    refreshLock = refreshAccessToken(baseUrl).finally(() => {
+    refreshLock = refreshAccessToken(baseUrl).then(() => undefined).finally(() => {
       refreshLock = null
     })
   }
 
-  try {
-    await refreshLock
-    return true
-  } catch {
-    return false
-  }
-}
-
-async function refreshAccessToken(baseUrl?: string): Promise<void> {
-  const path = "/auth/refresh"
-  const url = buildUrl(baseUrl, path)
-
-  const response = await fetch(url, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      accept: "application/json",
-    },
-  })
-
-  await parseResponse<unknown>(response, path, "POST")
+  await refreshLock
 }
