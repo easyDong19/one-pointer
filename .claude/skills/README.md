@@ -14,6 +14,7 @@
 | [review](./review/SKILL.md) | Review | 채팅 기반 리뷰, 비공개 필터링, 별점, 전문가 답변 |
 | [payment](./payment/SKILL.md) | Payment | 에스크로 결제 (PortOne V2, 온라인 전용) |
 | [notification](./notification/SKILL.md) | Notification | FCM 푸시, 알림 센터, 읽음 처리 |
+| [FE](./FE/SKILL.md) | Frontend Architecture | FSD + Service Layer + Query Hook Layer 표준 패턴 |
 
 ## 공통 사항
 
