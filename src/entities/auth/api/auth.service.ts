@@ -1,5 +1,5 @@
 import { clientFetch } from "@/shared/api/http/client-fetch"
-import { ApiError } from "@/shared/api/http/api-error"
+import { parseSchemaOrThrow } from "@/shared/api/http/parse-schema"
 import {
   loginRequestSchema,
   loginResponseSchema,
@@ -11,7 +11,6 @@ import {
   type LogoutResponse,
   type MyProfileResponse,
 } from "@/entities/auth/api/auth.schema"
-import type { ZodType } from "zod/v4"
 
 export type { AuthUser, LoginRequest, LoginResponse, LogoutResponse, MyProfileResponse }
 
@@ -72,22 +71,3 @@ export async function logout(): Promise<LogoutResponse> {
   })
 }
 
-function parseSchemaOrThrow<T>(
-  schema: ZodType<T>,
-  data: unknown,
-  context: { path: string; method: string; message: string },
-): T {
-  const parsed = schema.safeParse(data)
-
-  if (parsed.success) {
-    return parsed.data
-  }
-
-  throw new ApiError({
-    status: 500,
-    path: context.path,
-    method: context.method,
-    message: context.message,
-    details: parsed.error.flatten(),
-  })
-}
