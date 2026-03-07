@@ -13,6 +13,7 @@ import {
   type FetchBaseOptions,
   type QueryParams,
 } from "@/shared/api/http/core"
+import { refreshAccessTokenOnServer } from "@/shared/api/http/refresh-token"
 
 type ServerFetchOptions<TBody = unknown> = FetchBaseOptions<TBody> &
   Omit<RequestInit, "method" | "body" | "headers"> & {
@@ -22,7 +23,10 @@ type ServerFetchOptions<TBody = unknown> = FetchBaseOptions<TBody> &
     tags?: string[]
     noStore?: boolean
     forwardCookies?: boolean
+    skipAuthRefresh?: boolean
   }
+
+const REFRESH_ENDPOINT_PATH = "/v1/api/auth/refresh"
 
 export async function serverFetch<TResponse, TBody = unknown>(
   options: ServerFetchOptions<TBody>,
@@ -86,6 +90,35 @@ export async function serverFetch<TResponse, TBody = unknown>(
 
   try {
     const response = await fetch(url, requestInit)
+
+    if (
+      response.status === 401 &&
+      !options.skipAuthRefresh &&
+      path !== REFRESH_ENDPOINT_PATH
+    ) {
+      const cookieHeader = await getCookieHeader()
+      await refreshAccessTokenOnServer(cookieHeader, options.baseUrl ?? env.BASE_URL)
+
+      // refresh 후 새 쿠키로 다시 포워딩
+      const retryHeaders = buildHeaders(options.headers)
+      const shouldJson = shouldAttachJsonBody(method, options.body)
+      if (shouldJson && !retryHeaders.has("content-type")) {
+        retryHeaders.set("content-type", "application/json")
+      }
+      const freshCookieHeader = await getCookieHeader()
+      if (freshCookieHeader) {
+        retryHeaders.set("cookie", freshCookieHeader)
+      }
+
+      const retryInit: RequestInit & Record<string, unknown> = {
+        ...requestInit,
+        headers: retryHeaders,
+      }
+
+      const retryResponse = await fetch(url, retryInit)
+      return await parseResponse<TResponse>(retryResponse, finalPath, method)
+    }
+
     return await parseResponse<TResponse>(response, finalPath, method)
   } catch (error) {
     throw toApiError(error, finalPath, method)

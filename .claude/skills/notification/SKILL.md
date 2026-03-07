@@ -1,372 +1,299 @@
 ---
-name: fe-notification
-description: 프론트엔드 알림(Notification) 도메인 가이드. FCM 푸시 알림 수신, 알림 센터 목록/읽음/삭제, FCM 토큰 관리 등 Notification 관련 프론트엔드 구현 시 참고한다.
+name: notification
+description: 알림(Notification) 도메인 프론트엔드 구현 가이드. FCM 웹 푸시, 알림 히스토리 목록/읽음/삭제, 읽지 않은 수 폴링, NotificationType별 라우팅 등 Notification 도메인 관련 프론트엔드 작업 시 사용. /notification 으로 호출하거나 알림·FCM·디바이스토큰 UI를 다룰 때 참고한다.
 ---
 
-# Notification 프론트엔드 가이드
+# Notification 도메인
 
-## 개요
+플랫폼 내 이벤트 발생 시 **FCM 웹 푸시 알림**을 보내고, **알림 히스토리**를 앱 내에서 조회/관리한다.
 
-FCM 푸시 알림 + 앱 내 알림 히스토리.
-- 비즈니스 이벤트 발생 시 FCM 푸시 알림
-- 알림 히스토리 DB 저장 → 앱 내 알림 센터에서 조회
-- 다중 디바이스 지원 (WEB/ANDROID/IOS)
+## 프론트엔드 알림 흐름
 
----
+```
+[1] 로그인 후 FCM 토큰 등록 (PUT /v1/api/user/fcm-token)
+    │
+    ▼
+[2] FCM Web Push 수신 → 브라우저 알림 표시
+    │
+    ▼
+[3] 알림센터 (GET /v1/api/notification) → 목록 렌더링
+    │
+    ▼
+[4] 알림 클릭 → readNotification() + NotificationType별 라우팅
+    │
+    ▼
+[5] 읽지 않은 수 폴링 (GET /v1/api/notification/unread-count)
+```
 
-## TypeScript 타입 정의
+## NotificationType (32종)
+
+### Ticket 관련
+
+| 타입 | 제목 | 메시지 템플릿 | targetType |
+|------|------|--------------|------------|
+| `NEW_TICKET` | 새로운 의뢰 | 새로운 [%s] 의뢰가 올라왔어요! | TICKET |
+| `PROPOSAL_RECEIVED` | 새 제안서 도착 | %s 전문가가 제안서를 보냈어요. | TICKET |
+| `TICKET_MATCHED_CLIENT` | 매칭 완료 | 전문가와 매칭되었어요! 채팅에서 대화를 시작하세요. | TICKET |
+| `TICKET_MATCHED_EXPERT` | 제안 채택 | 제안이 채택되었어요! 채팅에서 대화를 시작하세요. | TICKET |
+| `TICKET_CANCELLED` | 의뢰 취소 | %s 의뢰가 취소되었어요. | TICKET |
+| `TICKET_EXPIRED` | 의뢰 만료 | %s 의뢰 모집이 마감되었어요. | TICKET |
+| `TICKET_AUTO_COMPLETED` | 자동 완료 | 48시간 경과로 거래가 자동 완료되었습니다. | TICKET |
+| `DIRECT_REQUEST_RECEIVED` | 직접 의뢰 수신 | %s님이 '%s' 직접 의뢰를 보냈어요 | TICKET |
+| `DIRECT_REQUEST_EXPIRED` | 직접 의뢰 만료 | 전문가가 48시간 내 응답하지 않아 직접 의뢰가 만료되었어요. | TICKET |
+
+### Delivery 관련
+
+| 타입 | 제목 | 메시지 템플릿 | targetType |
+|------|------|--------------|------------|
+| `DELIVERY_SUBMITTED` | 작업물 전달 | 전문가가 작업물을 전달했어요. 확인해주세요! | TICKET |
+| `DELIVERY_APPROVED` | 작업물 승인 | 의뢰인이 작업물을 승인했어요! 거래가 완료되었습니다. | TICKET |
+| `REVISION_REQUESTED` | 수정 요청 | 의뢰인이 수정을 요청했어요. 확인해주세요. | TICKET |
+| `DELIVERY_RESUBMITTED` | 수정 작업물 전달 | 전문가가 수정된 작업물을 전달했어요. | TICKET |
+| `DELIVERY_AUTO_APPROVED` | 자동 승인 | 24시간 경과로 작업물이 자동 승인되었습니다. | TICKET |
+| `DELIVERY_APPROVE_REMINDER` | 승인 확인 요청 | 작업물이 4시간 뒤 자동 승인됩니다. 확인해주세요! | TICKET |
+
+### Agreement & Payment 관련
+
+| 타입 | 제목 | 메시지 템플릿 | targetType |
+|------|------|--------------|------------|
+| `AGREEMENT_CONFIRMED` | 합의서 확정 | 합의서가 확정되었어요! 결제를 진행해주세요. | TICKET |
+| `ESCROW_PAYMENT_COMPLETED` | 결제 완료 | 결제가 완료되었어요! (%,d원) 전문가님, 서비스를 시작해주세요. | TICKET |
+| `ESCROW_SETTLED` | 정산 완료 | %,d원이 정산되었어요! | TICKET |
+
+### Chat 관련
+
+| 타입 | 제목 | 메시지 템플릿 | targetType |
+|------|------|--------------|------------|
+| `CHAT_REMINDER` | 대화 리마인더 | 24시간 동안 대화가 없어요. 일정을 조율해보세요! | TICKET |
+| `CHAT_MESSAGE` | 새 메시지 | %s님이 메시지를 보냈어요. | TICKET |
+
+### Review 관련
+
+| 타입 | 제목 | 메시지 템플릿 | targetType |
+|------|------|--------------|------------|
+| `REVIEW_PUBLISHED` | 리뷰 공개 | 리뷰가 공개되었어요. | REVIEW |
+| `EXPERT_REPLY` | 전문가 답변 | 전문가가 리뷰에 답변을 남겼어요. | REVIEW |
+
+### Dispute 관련
+
+| 타입 | 제목 | 메시지 템플릿 | targetType |
+|------|------|--------------|------------|
+| `DISPUTE_SUBMITTED_APPLICANT` | 분쟁 신청 완료 | 분쟁 신청이 접수되었어요. | DISPUTE |
+| `DISPUTE_SUBMITTED_RESPONDENT` | 분쟁 발생 | 상대방이 분쟁을 신청했어요. | DISPUTE |
+| `DISPUTE_REJECTED` | 분쟁 반려 | 분쟁 신청이 반려되었습니다. | DISPUTE |
+| `DISPUTE_UNDER_REVIEW` | 분쟁 검토 시작 | 분쟁 조정이 시작되었습니다. 소명을 제출해주세요. | DISPUTE |
+| `DISPUTE_RESPONDENT_STATEMENT` | 소명 제출 | 상대방이 소명을 제출했습니다. | DISPUTE |
+| `DISPUTE_RESOLVED` | 분쟁 해결 | 분쟁이 해결되었습니다. | DISPUTE |
+| `DISPUTE_CLOSED` | 분쟁 종결 | 합의에 이르지 못했습니다. | DISPUTE |
+| `DISPUTE_CANCELLED` | 분쟁 취소 | 분쟁이 취소되었습니다. | DISPUTE |
+
+### Coupon 관련
+
+| 타입 | 제목 | 메시지 템플릿 | targetType |
+|------|------|--------------|------------|
+| `COUPON_EXPIRING` | 쿠폰 만료 임박 | 쿠폰 %d장이 7일 이내에 만료됩니다. | NONE |
+
+## NotificationType → 라우팅 매핑
 
 ```typescript
-// ========== Enums ==========
-
-type NotificationType =
-  // 티켓/매칭
-  | 'NEW_TICKET'
-  | 'PROPOSAL_RECEIVED'
-  | 'TICKET_MATCHED_CLIENT'
-  | 'TICKET_MATCHED_EXPERT'
-  // 작업물
-  | 'DELIVERY_SUBMITTED'
-  | 'DELIVERY_APPROVED'
-  | 'REVISION_REQUESTED'
-  | 'DELIVERY_RESUBMITTED'
-  // 자동 처리
-  | 'TICKET_AUTO_COMPLETED'
-  | 'DELIVERY_AUTO_APPROVED'
-  | 'DELIVERY_APPROVE_REMINDER'
-  // 취소/만료
-  | 'TICKET_CANCELLED'
-  | 'TICKET_EXPIRED'
-  // 리뷰
-  | 'REVIEW_PUBLISHED'
-  | 'EXPERT_REPLY'
-  // 채팅
-  | 'CHAT_REMINDER'
-  // 쿠폰
-  | 'COUPON_EXPIRING'
-  // 결제
-  | 'ESCROW_PAYMENT_COMPLETED'
-  | 'ESCROW_SETTLED';
-
-type DeviceType = 'IOS' | 'ANDROID' | 'WEB';
-
-// ========== Response ==========
-
-interface NotificationResponse {
-  id: number;
-  type: NotificationType;
-  title: string;
-  body: string;
-  referenceId: number | null;   // 관련 엔티티 ID (ticketId 등)
-  isRead: boolean;
-  createdAt: string;
-}
-
-interface NotificationListResponse {
-  content: NotificationResponse[];
-  nextCursor: number | null;
-  hasNext: boolean;
-}
-
-interface UnreadCountResponse {
-  count: number;
+const TARGET_TYPE_MAP: Record<string, string> = {
+  // TICKET targetType → /ticket/{referenceId}
+  NEW_TICKET: "TICKET",
+  PROPOSAL_RECEIVED: "TICKET",
+  TICKET_MATCHED_CLIENT: "TICKET",
+  TICKET_MATCHED_EXPERT: "TICKET",
+  TICKET_CANCELLED: "TICKET",
+  TICKET_EXPIRED: "TICKET",
+  TICKET_AUTO_COMPLETED: "TICKET",
+  DIRECT_REQUEST_RECEIVED: "TICKET",
+  DIRECT_REQUEST_EXPIRED: "TICKET",
+  DELIVERY_SUBMITTED: "TICKET",
+  DELIVERY_APPROVED: "TICKET",
+  REVISION_REQUESTED: "TICKET",
+  DELIVERY_RESUBMITTED: "TICKET",
+  DELIVERY_AUTO_APPROVED: "TICKET",
+  DELIVERY_APPROVE_REMINDER: "TICKET",
+  AGREEMENT_CONFIRMED: "TICKET",
+  ESCROW_PAYMENT_COMPLETED: "TICKET",
+  ESCROW_SETTLED: "TICKET",
+  CHAT_REMINDER: "TICKET",
+  CHAT_MESSAGE: "TICKET",
+  // REVIEW targetType → /review/{referenceId}
+  REVIEW_PUBLISHED: "REVIEW",
+  EXPERT_REPLY: "REVIEW",
+  // DISPUTE targetType → /dispute/{referenceId}
+  DISPUTE_SUBMITTED_APPLICANT: "DISPUTE",
+  DISPUTE_SUBMITTED_RESPONDENT: "DISPUTE",
+  DISPUTE_REJECTED: "DISPUTE",
+  DISPUTE_UNDER_REVIEW: "DISPUTE",
+  DISPUTE_RESPONDENT_STATEMENT: "DISPUTE",
+  DISPUTE_RESOLVED: "DISPUTE",
+  DISPUTE_CLOSED: "DISPUTE",
+  DISPUTE_CANCELLED: "DISPUTE",
+  // NONE → 이동 없음
+  COUPON_EXPIRING: "NONE",
 }
 ```
 
----
+## Enum 정의
+
+| Enum | 값 |
+|------|-----|
+| `NotificationType` | 위 표 참고 (32종) |
+| `NotificationTargetType` | `TICKET`, `REVIEW`, `DISPUTE`, `NONE` |
+| `DeviceType` | `WEB`, `ANDROID`, `IOS` |
 
 ## API 엔드포인트
 
-### 알림 히스토리
+### 알림 관리
 
-| Method | URL | 설명 | 인증 |
-|--------|-----|------|------|
-| GET | `/v1/api/notification` | 알림 목록 (커서 페이지네이션) | JWT |
-| GET | `/v1/api/notification/unread-count` | 안 읽은 알림 수 | JWT |
-| PATCH | `/v1/api/notification/{id}/read` | 단건 읽음 처리 | JWT |
-| PATCH | `/v1/api/notification/read-all` | 전체 읽음 처리 | JWT |
-| DELETE | `/v1/api/notification/{id}` | 알림 삭제 | JWT |
+| Method | URL | 설명 | 인증 | Service 함수 |
+|--------|-----|------|------|--------------|
+| GET | `/v1/api/notification` | 알림 목록 조회 (커서 페이지네이션) | JWT | `getNotifications(params?)` |
+| GET | `/v1/api/notification/unread-count` | 읽지 않은 알림 수 | JWT | `getUnreadNotificationCount()` |
+| PATCH | `/v1/api/notification/{id}/read` | 단건 읽음 처리 | JWT | `readNotification(id)` |
+| PATCH | `/v1/api/notification/read-all` | 전체 읽음 처리 | JWT | `readAllNotifications()` |
+| DELETE | `/v1/api/notification/{id}` | 알림 삭제 | JWT | `deleteNotification(id)` |
 
-### FCM 토큰 관리 (User API)
+### FCM 토큰 관리 (User 도메인)
 
-| Method | URL | 설명 | 인증 |
-|--------|-----|------|------|
-| PUT | `/v1/api/user/fcm-token` | FCM 토큰 등록/갱신 | JWT |
-| DELETE | `/v1/api/user/fcm-token` | FCM 토큰 삭제 (로그아웃) | JWT |
-| PATCH | `/v1/api/user/notification` | 알림 수신 ON/OFF | JWT |
-
----
-
-## 에러 코드
-
-| 코드 | 설명 | UI 처리 |
-|------|------|---------|
-| 40311 | 본인 알림이 아님 | — |
-| 40416 | 알림 없음 | — |
-
----
+| Method | URL | 설명 | 인증 | Service 함수 |
+|--------|-----|------|------|--------------|
+| PUT | `/v1/api/user/fcm-token` | FCM 토큰 등록/갱신 | JWT | `updateFcmToken(input)` |
+| DELETE | `/v1/api/user/fcm-token` | FCM 토큰 삭제 (로그아웃) | JWT | `deleteFcmToken(input)` |
+| PATCH | `/v1/api/user/notification` | 알림 수신 설정 ON/OFF | JWT | `updateNotificationSetting(input)` |
 
 ## 프론트엔드 구현 가이드
 
-### 페이지 구조 (추천)
+### FSD 파일 구조
 
 ```
-/notification                 # 알림 센터 (목록)
-/settings/notification        # 알림 수신 설정
+src/
+├── entities/notification/
+│   ├── api/
+│   │   ├── notification.schema.ts   # zod v4 스키마 (30종 NotificationType enum 포함)
+│   │   └── notification.service.ts  # Service Layer
+│   └── model/
+│       └── notification.query-keys.ts
+│
+├── features/notification/
+│   ├── notification-list/           # 알림센터 목록
+│   │   ├── model/                   # useNotifications infinite query
+│   │   └── ui/                     # NotificationList, NotificationItem
+│   ├── unread-count/               # 읽지 않은 알림 수
+│   │   ├── model/                   # useUnreadCount query (폴링)
+│   │   └── ui/                     # UnreadBadge
+│   └── fcm-setup/                  # FCM 초기화
+│       └── model/                   # useFcmSetup
 ```
 
-### FCM 초기화 (Firebase)
+### Query Keys
 
 ```typescript
-// firebase.ts
-import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
-
-const app = initializeApp(firebaseConfig);
-const messaging = getMessaging(app);
-
-// FCM 토큰 발급 + 서버 등록
-export async function initializeFcm() {
-  const permission = await Notification.requestPermission();
-  if (permission !== 'granted') return;
-
-  const token = await getToken(messaging, {
-    vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
-  });
-
-  // 서버에 토큰 등록
-  await api.put('/v1/api/user/fcm-token', {
-    fcmToken: token,
-    deviceType: 'WEB',
-  });
-
-  return token;
-}
-
-// 포그라운드 메시지 수신
-export function onForegroundMessage(callback: (payload: any) => void) {
-  onMessage(messaging, callback);
+export const notificationQueryKeys = {
+  all: ["notification"] as const,
+  list: (params?: { cursor?: string; size?: number }) =>
+    ["notification", "list", params] as const,
+  unreadCount: ["notification", "unread-count"] as const,
 }
 ```
 
-### Service Worker (firebase-messaging-sw.js)
-
-```javascript
-// public/firebase-messaging-sw.js
-importScripts('https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.x.x/firebase-messaging-compat.js');
-
-firebase.initializeApp({
-  apiKey: '...',
-  projectId: '...',
-  messagingSenderId: '...',
-  appId: '...',
-});
-
-const messaging = firebase.messaging();
-
-// 백그라운드 메시지 수신
-messaging.onBackgroundMessage((payload) => {
-  const { title, body } = payload.notification;
-  self.registration.showNotification(title, {
-    body,
-    icon: '/icon-192.png',
-  });
-});
-```
-
-### 포그라운드 알림 처리
+### 읽지 않은 수 폴링 패턴
 
 ```typescript
-// _app.tsx 또는 layout.tsx
-useEffect(() => {
-  initializeFcm();
-
-  onForegroundMessage((payload) => {
-    const { title, body } = payload.notification;
-
-    // 인앱 토스트 알림
-    showToast({
-      title,
-      description: body,
-      onClick: () => handleNotificationClick(payload.data),
-    });
-
-    // 안 읽은 알림 수 갱신
-    refreshUnreadCount();
-  });
-}, []);
+export function useUnreadNotificationCount() {
+  return useQuery({
+    queryKey: notificationQueryKeys.unreadCount,
+    queryFn: getUnreadNotificationCount,
+    refetchInterval: 30_000,    // 30초 간격 폴링
+    refetchIntervalInBackground: false,
+  })
+}
 ```
 
-### 알림 센터 UI
+### 알림 목록 무한스크롤 패턴
 
 ```typescript
-function NotificationCenter() {
-  const { data, fetchNextPage, hasNextPage } = useInfiniteQuery({
-    queryKey: ['notifications'],
+export function useNotifications() {
+  return useInfiniteQuery({
+    queryKey: notificationQueryKeys.list(),
     queryFn: ({ pageParam }) =>
-      api.get('/v1/api/notification', {
-        params: { cursor: pageParam, size: 20 },
-      }),
-    getNextPageParam: (lastPage) => lastPage.data.data.nextCursor,
-  });
-
-  return (
-    <div>
-      <Header>
-        <h1>알림</h1>
-        <Button onClick={markAllAsRead}>전체 읽음</Button>
-      </Header>
-
-      {data?.pages.flatMap(p => p.data.data.content).map((notification) => (
-        <NotificationItem
-          key={notification.id}
-          notification={notification}
-          onClick={() => handleClick(notification)}
-        />
-      ))}
-
-      {hasNextPage && <LoadMoreButton onClick={fetchNextPage} />}
-    </div>
-  );
+      getNotifications({ cursor: pageParam, size: 20 }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNext ? lastPage.nextCursor : undefined,
+  })
 }
 ```
 
-### 알림 타입별 이동 경로
+### 읽음 + 라우팅 Mutation 패턴
 
 ```typescript
-function handleNotificationClick(notification: NotificationResponse) {
-  // 읽음 처리
-  api.patch(`/v1/api/notification/${notification.id}/read`);
+export function useReadAndNavigate() {
+  const queryClient = useQueryClient()
+  const router = useRouter()
 
-  // 타입별 라우팅
-  switch (notification.type) {
-    case 'NEW_TICKET':
-      router.push(`/ticket/${notification.referenceId}`);
-      break;
-    case 'PROPOSAL_RECEIVED':
-      router.push(`/ticket/${notification.referenceId}/proposals`);
-      break;
-    case 'TICKET_MATCHED_CLIENT':
-    case 'TICKET_MATCHED_EXPERT':
-      // 채팅으로 이동 (referenceId가 ticketId)
-      router.push(`/chat`); // 또는 해당 채팅방으로 직접 이동
-      break;
-    case 'DELIVERY_SUBMITTED':
-    case 'DELIVERY_RESUBMITTED':
-      router.push(`/delivery/ticket/${notification.referenceId}`);
-      break;
-    case 'DELIVERY_APPROVED':
-    case 'DELIVERY_AUTO_APPROVED':
-      router.push(`/ticket/${notification.referenceId}`);
-      break;
-    case 'REVISION_REQUESTED':
-      router.push(`/delivery/ticket/${notification.referenceId}`);
-      break;
-    case 'REVIEW_PUBLISHED':
-      router.push(`/review/${notification.referenceId}`);
-      break;
-    case 'EXPERT_REPLY':
-      router.push(`/review/${notification.referenceId}`);
-      break;
-    case 'CHAT_REMINDER':
-      router.push('/chat');
-      break;
-    case 'COUPON_EXPIRING':
-      router.push('/coupon/balance');
-      break;
-    case 'ESCROW_PAYMENT_COMPLETED':
-    case 'ESCROW_SETTLED':
-      router.push(`/ticket/${notification.referenceId}`);
-      break;
-    default:
-      router.push('/notification');
-  }
+  return useMutation({
+    mutationFn: readNotification,
+    onSuccess: (_, notificationId) => {
+      queryClient.invalidateQueries({ queryKey: notificationQueryKeys.unreadCount })
+      queryClient.invalidateQueries({ queryKey: notificationQueryKeys.list() })
+      // TARGET_TYPE_MAP에 따라 라우팅
+    },
+  })
 }
 ```
 
-### 안 읽은 알림 뱃지
+### FCM Web Push 초기화
 
 ```typescript
-// 헤더의 알림 아이콘에 뱃지 표시
-function NotificationBell() {
-  const { data } = useQuery({
-    queryKey: ['unread-count'],
-    queryFn: () => api.get('/v1/api/notification/unread-count'),
-    refetchInterval: 30000, // 30초마다 갱신
-  });
+// 로그인 후 호출
+async function initFcmToken() {
+  const permission = await Notification.requestPermission()
+  if (permission !== "granted") return
 
-  const count = data?.data?.data?.count ?? 0;
-
-  return (
-    <button onClick={() => router.push('/notification')}>
-      <BellIcon />
-      {count > 0 && <Badge>{count > 99 ? '99+' : count}</Badge>}
-    </button>
-  );
+  const token = await getToken(messaging, { vapidKey: process.env.NEXT_PUBLIC_FCM_VAPID_KEY })
+  await updateFcmToken({
+    fcmToken: token,
+    deviceId: getOrCreateDeviceId(),
+    deviceType: "WEB",
+  })
 }
 ```
 
-### 알림 수신 설정
+### 캐시 무효화 전략
 
-```typescript
-// 마이페이지 > 설정에서
-async function toggleNotification(enabled: boolean) {
-  await api.patch('/v1/api/user/notification', {
-    notificationEnabled: enabled,
-  });
-  showToast(enabled ? '알림이 켜졌습니다' : '알림이 꺼졌습니다');
-}
-```
+| 이벤트 | 무효화 대상 |
+|---|---|
+| 알림 읽음 처리 | `notificationQueryKeys.unreadCount`, `notificationQueryKeys.list()` |
+| 전체 읽음 처리 | `notificationQueryKeys.unreadCount`, `notificationQueryKeys.list()` |
+| 알림 삭제 | `notificationQueryKeys.list()`, `notificationQueryKeys.unreadCount` |
 
-### 로그아웃 시 FCM 토큰 정리
+## 에러 코드
 
-```typescript
-async function logout() {
-  // 1. FCM 토큰 삭제 (서버)
-  const token = await getToken(messaging);
-  if (token) {
-    await api.delete('/v1/api/user/fcm-token', {
-      data: { fcmToken: token },
-    });
-  }
+| 에러 코드 | HTTP | 메시지 | 프론트 처리 |
+|-----------|------|--------|------------|
+| `UNAUTHORIZED_NOTIFICATION_ACCESS` (40311) | 403 | 본인의 알림만 관리할 수 있습니다. | 에러 토스트 |
+| `NOT_EXIST_NOTIFICATION` (40416) | 404 | 존재하지 않는 알림입니다. | 에러 토스트 |
 
-  // 2. JWT 쿠키/토큰 정리
-  clearAuthTokens();
+## 기능 체크리스트
 
-  // 3. 로그인 페이지로 이동
-  router.push('/auth/login');
-}
-```
+### 알림 히스토리
+- [x] 알림 목록 조회 (커서 기반 페이지네이션) — Service 구현 완료
+- [x] 읽지 않은 알림 수 조회 — Service 구현 완료
+- [x] 단건 읽음 처리 — Service 구현 완료
+- [x] 전체 읽음 처리 — Service 구현 완료
+- [x] 알림 삭제 — Service 구현 완료
+- [ ] 알림 목록 UI (무한 스크롤)
+- [ ] 알림 클릭 시 NotificationType별 라우팅
+- [ ] 읽지 않은 수 뱃지 UI (폴링)
 
-### NotificationType 메시지 목록
+### FCM Web Push
+- [ ] FCM 토큰 등록 (로그인 후)
+- [ ] FCM 토큰 삭제 (로그아웃 시)
+- [ ] 브라우저 푸시 알림 표시
+- [ ] Service Worker 등록 (`firebase-messaging-sw.js`)
 
-| 타입 | 제목 | 메시지 |
-|------|------|--------|
-| `NEW_TICKET` | 새로운 의뢰 | 새로운 [%s] 의뢰가 올라왔어요! |
-| `PROPOSAL_RECEIVED` | 새 제안서 도착 | %s 전문가가 제안서를 보냈어요. |
-| `TICKET_MATCHED_CLIENT` | 매칭 완료 | 전문가와 매칭되었어요! 채팅에서 대화를 시작하세요. |
-| `TICKET_MATCHED_EXPERT` | 제안 채택 | 제안이 채택되었어요! 채팅에서 대화를 시작하세요. |
-| `DELIVERY_SUBMITTED` | 작업물 전달 | 전문가가 작업물을 전달했어요. 확인해주세요! |
-| `DELIVERY_APPROVED` | 작업물 승인 | 의뢰인이 작업물을 승인했어요! |
-| `REVISION_REQUESTED` | 수정 요청 | 의뢰인이 수정을 요청했어요. |
-| `DELIVERY_RESUBMITTED` | 수정 작업물 | 전문가가 수정된 작업물을 전달했어요. |
-| `TICKET_AUTO_COMPLETED` | 자동 완료 | 48시간 경과로 거래가 자동 완료되었습니다. |
-| `DELIVERY_AUTO_APPROVED` | 자동 승인 | 24시간 경과로 작업물이 자동 승인되었습니다. |
-| `DELIVERY_APPROVE_REMINDER` | 승인 확인 | 작업물이 4시간 뒤 자동 승인됩니다. 확인해주세요! |
-| `TICKET_CANCELLED` | 의뢰 취소 | %s 의뢰가 취소되었어요. |
-| `TICKET_EXPIRED` | 의뢰 만료 | %s 의뢰 모집이 마감되었어요. |
-| `REVIEW_PUBLISHED` | 리뷰 공개 | 리뷰가 공개되었어요. |
-| `EXPERT_REPLY` | 전문가 답변 | 전문가가 리뷰에 답변을 남겼어요. |
-| `CHAT_REMINDER` | 대화 리마인더 | 24시간 동안 대화가 없어요. |
-| `COUPON_EXPIRING` | 쿠폰 만료 임박 | 쿠폰 N장이 7일 이내에 만료됩니다. |
-| `ESCROW_PAYMENT_COMPLETED` | 결제 완료 | 에스크로 결제가 완료되었습니다. |
-| `ESCROW_SETTLED` | 정산 완료 | 정산이 완료되었습니다. |
+## 데이터 상세
+
+- **[notification-data.md](references/notification-data.md)** — Notification, UserFcmToken 필드 상세

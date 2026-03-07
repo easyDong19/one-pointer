@@ -1,252 +1,240 @@
 ---
-name: fe-payment
-description: 프론트엔드 결제(Payment) 도메인 가이드. 온라인 의뢰 에스크로 결제(PortOne V2 + 토스페이먼츠), 결제 상태 조회 등 Payment 관련 프론트엔드 구현 시 참고한다. 쿠폰 구매 결제는 /fe-coupon 참고.
+name: payment
+description: 결제(Payment) 도메인 프론트엔드 구현 가이드. 온라인 의뢰 에스크로 결제(PortOne V2), 결제 상태 조회, 수수료 구조 등 Payment 도메인 관련 프론트엔드 작업 시 사용. /payment 로 호출하거나 에스크로·결제 UI를 다룰 때 참고한다.
 ---
 
-# Payment 프론트엔드 가이드
+# Payment 도메인
 
-## 개요
-
-**온라인 의뢰 전용** 에스크로 안전결제. 합의서(Agreement) 확정 후 의뢰인이 결제.
-- PG: **PortOne V2** + 토스페이먼츠
-- 에스크로 방식: 결제 금액을 PG가 보관 → 거래 완료 시 전문가에게 정산
-- 오프라인 의뢰: 플랫폼 미개입 (당사자 직접 결제)
+온라인 의뢰의 에스크로 안전결제를 관리한다. 쿠폰 구매 일반결제는 `/coupon` 참고. 오프라인 의뢰는 플랫폼이 결제에 개입하지 않는다.
 
 ## 결제 구분
 
-| 결제 대상 | 방식 | 참고 스킬 |
-|-----------|------|-----------|
-| 쿠폰 구매 | 일반 결제 | `/fe-coupon` |
-| 온라인 의뢰 서비스 대금 | **에스크로 결제** | 이 스킬 |
-| 오프라인 서비스 대금 | 플랫폼 미개입 | — |
+| 결제 대상 | 방식 | 비고 |
+|---|---|---|
+| **쿠폰 구매** | 일반 결제 (즉시) | → `/coupon` 참고 |
+| **온라인 의뢰 서비스 대금** | **에스크로 결제** | 이 스킬에서 다룸 |
+| 오프라인 의뢰 서비스 대금 | 플랫폼 미개입 | 당사자 간 직접 결제 |
 
-## 에스크로 결제 흐름
+## PG 구성
+
+| 항목 | 내용 |
+|---|---|
+| 결제 연동 레이어 | **포트원 V2** (PortOne) |
+| PG사 | 토스페이먼츠 |
+| 결제 수단 | 카드(CARD), 간편결제(EASY_PAY), 계좌이체(TRANSFER) |
+| 에스크로 | `isEscrow: true` 옵션으로 활성화 |
+
+## 에스크로 결제 플로우
 
 ```
-합의서 CONFIRMED → 티켓 PAYMENT_PENDING
+Agreement CONFIRMED → Ticket PAYMENT_PENDING
     │
     ▼
-[프론트] PortOne V2 SDK requestPayment({ isEscrow: true })
-    │ → 결제창 → 결제 완료 → paymentId 수신
+[프론트] PortOne V2 SDK requestPayment({ isEscrow: true }) → paymentId 수신
+    │
     ▼
 [프론트] POST /v1/api/payment/escrow { ticketId, paymentMethod, paymentKey }
     │
     ▼
-[백엔드] 결제 검증 + EscrowPayment 생성
-    → 티켓 PAID → IN_PROGRESS
-    → 채팅 시스템 메시지: "결제 완료"
-    → 양쪽 알림
+[백엔드] 결제 검증 → EscrowPayment 생성 (ESCROW_HELD)
+    → 티켓 PAID → IN_PROGRESS 자동 전이
+    → 채팅 시스템 메시지 + 양쪽 알림
     │
     ▼
 (전문가 서비스 진행 → 작업물 전달 → 의뢰인 승인)
     │
     ▼
-[백엔드] 에스크로 구매확인 → 전문가 정산
+[백엔드] 의뢰인 승인 → 에스크로 구매확인 → CONFIRMED
+    → PG 정산 → 관리자 수동 송금 → SETTLED
 ```
 
----
+## 에스크로 결제 상태 (EscrowPaymentStatus)
 
-## TypeScript 타입 정의
-
-```typescript
-// ========== Enums ==========
-
-type EscrowPaymentStatus =
-  | 'PENDING'
-  | 'ESCROW_HELD'
-  | 'WORK_IN_PROGRESS'
-  | 'DELIVERED'
-  | 'REVISION_REQUESTED'
-  | 'CONFIRMED'
-  | 'AUTO_CONFIRMED'
-  | 'SETTLED'
-  | 'REFUND_REQUESTED'
-  | 'REFUNDED'
-  | 'DISPUTE'
-  | 'CANCELLED'
-  | 'FAILED';
-
-type EscrowPaymentMethod = 'CARD' | 'EASY_PAY' | 'TRANSFER';
-
-// ========== Request/Response ==========
-
-interface EscrowPaymentRequest {
-  ticketId: number;
-  paymentMethod: EscrowPaymentMethod;
-  paymentKey: string;          // PortOne에서 받은 paymentId
-}
-
-interface EscrowPaymentResponse {
-  id: number;
-  orderId: string;
-  ticketId: number;
-  amount: number;
-  paymentMethod: EscrowPaymentMethod;
-  status: EscrowPaymentStatus;
-  paidAt: string;
-}
+```
+PENDING → ESCROW_HELD (결제 완료, 예치)
+              │
+              ├─ WORK_IN_PROGRESS (전문가 작업 중)
+              ├─ DELIVERED (전문가 납품 완료)
+              ├─ REVISION_REQUESTED (의뢰인 수정 요청)
+              │
+              ├→ CONFIRMED (의뢰인 완료 확인) → SETTLED (정산 완료)
+              ├→ AUTO_CONFIRMED (자동 구매확인) → SETTLED
+              ├→ REFUND_REQUESTED → REFUNDED (환불)
+              └→ DISPUTE (분쟁 → CS 중재)
 ```
 
----
+| 상태 | 설명 |
+|---|---|
+| `PENDING` | 결제 대기 |
+| `ESCROW_HELD` | 결제 완료, PG가 금액 예치 중 |
+| `CONFIRMED` | 의뢰인 완료 확인 → 정산 진행 |
+| `AUTO_CONFIRMED` | 납품 후 7일 무응답 → 자동 구매확인 |
+| `SETTLED` | 전문가 계좌 입금 완료 |
+| `REFUNDED` | 환불 완료 |
+| `DISPUTE` | 분쟁 발생 → CS 중재 |
+
+## 에스크로 정책
+
+| 규칙 | 내용 |
+|---|---|
+| 적용 대상 | 온라인 의뢰만 |
+| 수수료 | **0%** (전액 전문가 정산). PG 수수료만 전문가 부담 |
+| 결제 기한 | 합의서 확정 후 24시간 이내 |
+| 자동 구매확인 | 납품 완료 후 **7일** 무응답 시 |
+| 자동 환불 | 합의서 마감일 +3일 초과 + 납품 없음 시 |
+
+## 수수료 부담 구조
+
+| 결제 종류 | 수수료율 | 부담 주체 |
+|---|---|---|
+| 쿠폰 구매 | 3.4% | 플랫폼 |
+| 에스크로 결제 | 0.2%~3.6% | **전문가** (정산 시 차감) |
+| 오프라인 대면 결제 | 0% | 없음 |
+
+## 정산 주기
+
+| 결제 수단 | 정산일 |
+|---|---|
+| 카드 / 간편결제 | 구매확인 후 D+2 영업일 |
+| 계좌이체 | 구매확인 후 D+3~5 영업일 |
+
+전문가에게는 "구매확인 후 약 2~5 영업일 내 입금"으로 안내.
 
 ## API 엔드포인트
 
-| Method | URL | 설명 | 인증 |
-|--------|-----|------|------|
-| POST | `/v1/api/payment/escrow` | 에스크로 결제 | JWT (Client) |
-| GET | `/v1/api/payment/escrow/ticket/{ticketId}` | 결제 정보 조회 | JWT |
-
----
-
-## 에러 코드
-
-| 코드 | 설명 | UI 처리 |
-|------|------|---------|
-| 40035 | PAYMENT_PENDING이 아닌 티켓 | "결제 대기 상태에서만 결제할 수 있습니다" |
-| 40036 | 이미 결제 완료된 티켓 | "이미 결제가 완료된 의뢰입니다" |
-| 40006 | PortOne 상태 오류 | "결제가 완료되지 않았습니다" |
-| 40007 | 결제 금액 불일치 | "결제 금액이 일치하지 않습니다" |
-| 40008 | 중복 결제 키 | "이미 처리된 결제입니다" |
-| 50002 | 결제 검증 실패 | "결제 검증 실패. 고객센터에 문의해주세요" |
-
----
+| Method | URL | 설명 | 인증 | Service 함수 |
+|---|---|---|---|---|
+| POST | `/v1/api/payment/escrow` | 에스크로 결제 | JWT | `payEscrow(input)` |
+| GET | `/v1/api/payment/escrow/ticket/{ticketId}` | 결제 정보 조회 | JWT | `getEscrowPaymentByTicket(ticketId)` |
 
 ## 프론트엔드 구현 가이드
 
-### PortOne V2 SDK 설정
+### FSD 파일 구조
 
-```bash
-npm install @portone/browser-sdk
+```
+src/
+├── entities/payment/
+│   ├── api/
+│   │   ├── payment.schema.ts       # zod v4 스키마
+│   │   └── payment.service.ts      # Service Layer
+│   └── model/
+│       └── payment.query-keys.ts   # Query 키 팩토리
+│
+├── features/payment/
+│   ├── pay-escrow/                 # 에스크로 결제
+│   │   ├── model/                  # usePayEscrow mutation
+│   │   └── ui/                    # EscrowPaymentButton
+│   └── payment-status/            # 결제 상태 조회
+│       ├── model/                  # useEscrowPayment query
+│       └── ui/                    # PaymentStatusCard
 ```
 
+### Query Keys
+
 ```typescript
-// .env.local
+export const paymentQueryKeys = {
+  all: ["payment"] as const,
+  escrowByTicket: (ticketId: number) =>
+    ["payment", "escrow", "ticket", ticketId] as const,
+}
+```
+
+### PortOne V2 에스크로 결제 패턴
+
+```typescript
+import PortOne from "@portone/browser-sdk/v2"
+
+// 에스크로 결제 요청
+const response = await PortOne.requestPayment({
+  storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID!,
+  channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
+  paymentId: crypto.randomUUID(),
+  orderName: `의뢰 결제 - ${ticketTitle}`,
+  totalAmount: agreement.finalPrice,
+  currency: "KRW",
+  payMethod: "CARD",
+  isEscrow: true,         // 에스크로 필수!
+})
+
+if (response?.code) {
+  throw new Error(response.message)
+}
+
+// 백엔드 검증
+await payEscrow({
+  ticketId,
+  paymentMethod: "CARD",
+  paymentKey: response!.paymentId,
+})
+```
+
+### usePayEscrow Mutation 패턴
+
+```typescript
+export function usePayEscrow(ticketId: number) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: payEscrow,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: paymentQueryKeys.escrowByTicket(ticketId) })
+      queryClient.invalidateQueries({ queryKey: ticketQueryKeys.detail(ticketId) })
+    },
+  })
+}
+```
+
+### 결제 상태 조회
+
+```typescript
+export function useEscrowPayment(ticketId: number) {
+  return useQuery({
+    queryKey: paymentQueryKeys.escrowByTicket(ticketId),
+    queryFn: () => getEscrowPaymentByTicket(ticketId),
+    enabled: !!ticketId,
+  })
+}
+```
+
+### 환경변수
+
+```env
 NEXT_PUBLIC_PORTONE_STORE_ID=store-xxx
 NEXT_PUBLIC_PORTONE_CHANNEL_KEY=channel-xxx
 ```
 
-### 에스크로 결제 구현
+## 에러코드
 
-```typescript
-import PortOne from '@portone/browser-sdk/v2';
+| 코드 | ErrorCode | 설명 | 프론트 처리 |
+|---|---|---|---|
+| 40006 | `PAYMENT_NOT_PAID` | PortOne 상태가 PAID가 아님 | "결제 확인 실패" |
+| 40007 | `PAYMENT_AMOUNT_MISMATCH` | 결제 금액 ≠ 합의서 금액 | "결제 금액 불일치" |
+| 40008 | `DUPLICATE_PAYMENT_KEY` | 이미 처리된 paymentKey | "이미 처리된 결제입니다" |
+| 40035 | `TICKET_NOT_PAYMENT_PENDING` | 결제 대기 상태 아님 | 에러 토스트 |
+| 40036 | `ESCROW_PAYMENT_ALREADY_EXISTS` | 이미 결제 완료된 티켓 | "이미 결제가 완료되었습니다" |
+| 40417 | `NOT_EXIST_ESCROW_PAYMENT` | 존재하지 않는 결제 | 에러 토스트 |
+| 50002 | `PAYMENT_VERIFICATION_FAILED` | PortOne API 호출 실패 | "결제 검증 실패. 다시 시도해주세요" |
 
-interface PaymentParams {
-  ticketId: number;
-  amount: number;          // Agreement.finalPrice
-  ticketTitle: string;
-}
+## 알림
 
-async function processEscrowPayment({ ticketId, amount, ticketTitle }: PaymentParams) {
-  // 1. PortOne 결제 요청 (에스크로)
-  const paymentId = `ESCROW-${ticketId}-${Date.now()}`;
+| 이벤트 | 수신자 | NotificationType |
+|---|---|---|
+| 결제 완료 | 양쪽 | `ESCROW_PAYMENT_COMPLETED` |
+| 정산 완료 | 전문가 | `ESCROW_SETTLED` |
 
-  const response = await PortOne.requestPayment({
-    storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID!,
-    channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
-    paymentId,
-    orderName: `원포인트 의뢰: ${ticketTitle}`,
-    totalAmount: amount,
-    currency: 'CURRENCY_KRW',
-    payMethod: 'CARD',
-    isEscrow: true,            // 에스크로 필수!
-  });
+## 환불/분쟁 정책
 
-  // 결제 실패 또는 사용자 취소
-  if (response?.code) {
-    if (response.code === 'USER_CANCEL') {
-      showToast('결제가 취소되었습니다');
-      return null;
-    }
-    throw new Error(response.message);
-  }
+→ **[refund-policy](../refund-policy/SKILL.md)** 참고
 
-  // 2. 백엔드에 결제 검증 요청
-  const result = await api.post('/v1/api/payment/escrow', {
-    ticketId,
-    paymentMethod: 'CARD',
-    paymentKey: response!.paymentId,
-  });
+## 기능 체크리스트
 
-  return result.data.data as EscrowPaymentResponse;
-}
-```
+### 프론트엔드
+- [x] 에스크로 결제 Service (`payEscrow`) — 구현 완료
+- [x] 결제 상태 조회 Service (`getEscrowPaymentByTicket`) — 구현 완료
+- [ ] PortOne V2 SDK 에스크로 결제 UI (`isEscrow: true`)
+- [ ] 결제 상태 표시 UI
+- [ ] Query Hook 구현 (usePayEscrow, useEscrowPayment)
 
-### 결제 페이지 흐름
+## 데이터 상세
 
-```
-1. 합의서 확정 알림 수신 (or 채팅방에서 "결제하기" 버튼)
-2. 결제 상세 확인 화면
-   - 의뢰 제목
-   - 합의 금액: ₩50,000
-   - 결제 수단 선택 (카드/간편결제/계좌이체)
-   - "에스크로 안전결제로 결제 금액이 거래 완료까지 안전하게 보관됩니다"
-3. 결제 버튼 → PortOne 결제창
-4. 결제 성공 → 백엔드 검증 → 완료 화면
-5. 채팅 화면으로 이동
-```
-
-### 결제 상태 조회 & 표시
-
-```typescript
-// 결제 정보 조회
-const payment = await api.get(`/v1/api/payment/escrow/ticket/${ticketId}`);
-
-// 상태별 UI 표시
-function PaymentStatusBadge({ status }: { status: EscrowPaymentStatus }) {
-  const config: Record<EscrowPaymentStatus, { label: string; color: string }> = {
-    PENDING: { label: '결제 대기', color: 'gray' },
-    ESCROW_HELD: { label: '결제 완료 (보관 중)', color: 'blue' },
-    WORK_IN_PROGRESS: { label: '서비스 진행 중', color: 'blue' },
-    DELIVERED: { label: '작업물 전달됨', color: 'yellow' },
-    REVISION_REQUESTED: { label: '수정 요청', color: 'orange' },
-    CONFIRMED: { label: '완료 확인', color: 'green' },
-    AUTO_CONFIRMED: { label: '자동 완료', color: 'green' },
-    SETTLED: { label: '정산 완료', color: 'green' },
-    REFUND_REQUESTED: { label: '환불 요청', color: 'red' },
-    REFUNDED: { label: '환불 완료', color: 'gray' },
-    DISPUTE: { label: '분쟁 처리 중', color: 'red' },
-    CANCELLED: { label: '취소됨', color: 'gray' },
-    FAILED: { label: '결제 실패', color: 'red' },
-  };
-
-  const { label, color } = config[status];
-  return <Badge color={color}>{label}</Badge>;
-}
-```
-
-### 결제 수단별 수수료 안내 (전문가 정산 시 차감)
-
-| 결제 수단 | PG 수수료 | 부담 |
-|-----------|-----------|------|
-| 카드 | ~3.6% | 전문가 |
-| 간편결제 | ~3.6% | 전문가 |
-| 계좌이체 | ~0.2% | 전문가 |
-
-- 플랫폼 중개 수수료: **0%**
-- PG 수수료만 전문가 부담 (정산 시 차감)
-
-### 에스크로 안내 문구 (사용자 노출)
-
-| 시점 | 문구 |
-|------|------|
-| 결제 화면 | "에스크로 안전결제: 결제 금액이 거래 완료까지 안전하게 보관됩니다" |
-| 결제 완료 | "결제가 완료되었습니다. 서비스 완료 후 전문가에게 정산됩니다" |
-| 작업물 승인 시 | "거래가 완료되어 전문가에게 정산이 진행됩니다" |
-
-### 환불 정책 요약 (프론트 표시용)
-
-| 상태 | 환불 |
-|------|------|
-| 결제 후 서비스 시작 전 | 전액 환불 가능 |
-| 서비스 진행 중 | 고객센터 중재 필요 |
-| 작업물 전달 후 | 고객센터 중재 필요 |
-| 완료 확인 / 자동 완료 후 | 환불 불가 |
-| 정산 완료 후 | 환불 불가 |
-
-### 중요 비즈니스 룰
-
-1. **온라인 의뢰만**: 오프라인 의뢰에서는 결제 UI 미표시
-2. **합의서 확정 필수**: PAYMENT_PENDING 상태에서만 결제 가능
-3. **isEscrow: true 필수**: PortOne 호출 시 에스크로 옵션 반드시 활성화
-4. **결제 금액 = Agreement.finalPrice**: 합의서에 확정된 금액과 정확히 일치해야 함
-5. **자동 구매확인**: 작업물 전달 후 7일 무응답 시 자동 정산
+- **[payment-data.md](references/payment-data.md)** — EscrowPayment 엔티티 필드, 수수료 상세, PortOne V2 프론트 연동

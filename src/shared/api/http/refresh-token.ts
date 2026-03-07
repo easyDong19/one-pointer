@@ -19,6 +19,30 @@ export async function refreshAccessToken(baseUrl?: string): Promise<RefreshToken
   })
 
   const data = await parseResponse<unknown>(response, path, method)
+  return parseRefreshResponse(data, path, method)
+}
+
+export async function refreshAccessTokenOnServer(
+  cookieHeader: string,
+  baseUrl?: string,
+): Promise<RefreshTokenResponse> {
+  const path = "/v1/api/auth/refresh"
+  const method = "POST"
+  const url = buildUrl(baseUrl, path)
+
+  const response = await fetch(url, {
+    method,
+    headers: {
+      accept: "application/json",
+      cookie: cookieHeader,
+    },
+  })
+
+  const data = await parseResponse<unknown>(response, path, method)
+  return parseRefreshResponse(data, path, method)
+}
+
+function parseRefreshResponse(data: unknown, path: string, method: string): RefreshTokenResponse {
   const parsed = refreshTokenResponseSchema.safeParse(data)
 
   if (parsed.success) {

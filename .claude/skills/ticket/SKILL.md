@@ -1,419 +1,328 @@
 ---
-name: fe-ticket
-description: 프론트엔드 티켓(의뢰), 제안서(Proposal), 합의서(Agreement) 도메인 가이드. 의뢰 등록, 피드 탐색, 제안서 비교/수락, 합의서 제안/확정, 직접 의뢰 등 Ticket 관련 프론트엔드 구현 시 참고한다.
+name: ticket
+description: 티켓(의뢰) 및 제안서(Proposal) 도메인 프론트엔드 구현 가이드. 1회성 의뢰 생성, 오프라인/온라인 플로우, 제안서 발송, 매칭, 합의서(Agreement) 등 Ticket 도메인 관련 프론트엔드 작업 시 사용. /ticket 으로 호출하거나 티켓·제안서·합의서 UI를 다룰 때 참고한다.
 ---
 
-# Ticket 프론트엔드 가이드
+# Ticket 도메인
 
-## 개요
+1회성 의뢰(티켓)와 제안서(Proposal). 의뢰인이 티켓을 등록하면 전문가가 제안서를 보내 매칭된다.
 
-1회성 의뢰(티켓) → 전문가 제안서 → 매칭 → 채팅 협의 → (온라인만) 합의서 → 서비스 진행.
+## 오프라인 vs 온라인
 
-## 의뢰 유형
+| 구분 | 결제 | 에스크로 | Agreement | 진행 |
+|------|------|----------|-----------|------|
+| **오프라인** | 당사자 간 직접 | 없음 | 없음 | 대면 레슨 |
+| **온라인** | 플랫폼 에스크로 | 있음 | 필수 | 화상/원격 |
 
-| 구분 | 결제 | 에스크로 | 합의서 |
-|------|------|----------|--------|
-| **오프라인** | 당사자 직접 | X | X |
-| **온라인** | 플랫폼 에스크로 | O | O (필수) |
+## 티켓 상태 (TicketStatus)
 
-## 매칭 채널
+```
+[공통]
+DRAFT → OPEN (쿠폰 RESERVED) → IN_REVIEW → MATCHED (쿠폰 CONSUMED) → (채팅 협의)
+
+[오프라인]
+MATCHED → IN_PROGRESS → COMPLETED → (리뷰)
+* 매칭 즉시 IN_PROGRESS 자동 전이
+* Agreement 없음 — 채팅에서 협의 후 바로 진행
+* 의뢰인이 "거래 완료" 버튼을 눌러야 COMPLETED (수동 완료만)
+
+[온라인]
+MATCHED → (채팅 협의) → Agreement 확정 → PAYMENT_PENDING → PAID → IN_PROGRESS → DELIVERED → COMPLETED → (리뷰 + 정산)
+* 수정 요청 횟수: Agreement.maxRevisions (기본 2회)
+
+[실패]
+OPEN/IN_REVIEW → CANCELLED (쿠폰 RETURNED — 재사용 가능, 현금 환불 불가)
+OPEN/IN_REVIEW → EXPIRED (쿠폰 RETURNED — 재사용 가능, 현금 환불 불가)
+```
+
+- MATCHED 상태가 "채팅/협의 중" 역할을 겸함
+- 모집 마감일: 등록일 + **7일**
+- **오프라인**: 매칭 즉시 IN_PROGRESS 자동 전이. 의뢰인이 "거래 완료" 버튼 → COMPLETED
+- **온라인**: Agreement CONFIRMED 시 시스템이 자동으로 PAYMENT_PENDING 전이
+
+## Enum 정의
+
+| Enum | 값 |
+|------|-----|
+| `TicketType` | `OFFLINE`, `ONLINE` |
+| `TicketStatus` | `DRAFT`, `OPEN`, `IN_REVIEW`, `MATCHED`, `PAYMENT_PENDING`, `PAID`, `IN_PROGRESS`, `DELIVERED`, `COMPLETED`, `CANCELLED`, `EXPIRED` |
+| `LevelType` | `BEGINNER`, `INTERMEDIATE`, `ADVANCED` |
+| `DesiredDuration` | `THIRTY_MIN`, `ONE_HOUR`, `ONE_HALF_HOUR`, `TWO_HOUR`, `NEGOTIABLE` |
+| `BudgetType` | `RANGE`, `NEGOTIABLE` |
+| `ProposalStatus` | `PENDING`, `SELECTED`, `COMPLETED`, `REJECTED`, `WITHDRAWN` |
+| `AgreementStatus` | `PROPOSED`, `CONFIRMED`, `REJECTED` |
+| `TicketSourceType` | `TICKET_FEED`, `DIRECT_REQUEST` |
+
+## API 엔드포인트
+
+### Ticket API (`/v1/api/ticket`)
+
+| Method | URL | 설명 | 인증 |
+|--------|-----|------|------|
+| POST | `/v1/api/ticket` | 티켓 등록 (targetExpertId 포함 시 직접 의뢰) | JWT |
+| PUT | `/v1/api/ticket/{ticketId}` | 티켓 수정 (DRAFT/OPEN 상태만) | JWT |
+| GET | `/v1/api/ticket/{id}` | 티켓 상세 조회 | 불필요 |
+| GET | `/v1/api/ticket/my` | 내 티켓 전체 조회 | JWT |
+| GET | `/v1/api/ticket/my/in-progress` | 내 진행중 의뢰 조회 (커서 페이징) | JWT |
+| GET | `/v1/api/ticket/my/completed` | 내 완료 의뢰 조회 (커서 페이징) | JWT |
+| GET | `/v1/api/ticket/feed` | 티켓 피드 조회 (카테고리별, 커서 페이징) | 불필요 |
+| GET | `/v1/api/ticket/search` | 티켓 제목 검색 (커서 페이징) | 불필요 |
+| GET | `/v1/api/ticket/direct-request/received` | 받은 직접 의뢰 목록 (전문가) | JWT |
+| GET | `/v1/api/ticket/direct-request/sent` | 보낸 직접 의뢰 목록 (의뢰인) | JWT |
+| POST | `/v1/api/ticket/proposal/{proposalId}/accept` | 제안서 수락 (매칭 확정) | JWT |
+| POST | `/v1/api/ticket/{ticketId}/cancel` | 티켓 취소 (매칭 전, 쿠폰 반환) | JWT |
+| POST | `/v1/api/ticket/{ticketId}/complete` | 오프라인 의뢰 완료 | JWT |
+
+### Proposal API (`/v1/api/proposal`)
+
+| Method | URL | 설명 | 인증 |
+|--------|-----|------|------|
+| POST | `/v1/api/proposal` | 제안서 보내기 | JWT |
+| GET | `/v1/api/proposal/{id}` | 제안서 상세 조회 (의뢰인용) | JWT |
+| GET | `/v1/api/proposal/my/{id}` | 내 제안서 상세 조회 (전문가용) | JWT |
+| GET | `/v1/api/proposal/my/in-progress` | 내 진행중 제안서 (커서 페이징) | JWT |
+| GET | `/v1/api/proposal/my/completed` | 내 완료 제안서 (커서 페이징) | JWT |
+| GET | `/v1/api/proposal/ticket/{ticketId}` | 티켓별 제안서 목록 (의뢰인용) | JWT |
+| POST | `/v1/api/proposal/{id}/withdraw` | 제안서 철회 (PENDING 상태만) | JWT |
+
+### Agreement API (`/v1/api/agreement`)
+
+| Method | URL | 설명 | 인증 |
+|--------|-----|------|------|
+| POST | `/v1/api/agreement` | 합의서 제안 (의뢰인, 온라인 전용) | JWT |
+| GET | `/v1/api/agreement/ticket/{ticketId}` | 티켓별 합의서 조회 | JWT |
+| PATCH | `/v1/api/agreement/{id}/deadline` | 합의서 마감일 수정 (의뢰인) | JWT |
+| PUT | `/v1/api/agreement/{id}/repropose` | 합의서 재제안 (거절 후, 의뢰인) | JWT |
+| POST | `/v1/api/agreement/{id}/confirm` | 합의서 수락 (전문가) | JWT |
+| POST | `/v1/api/agreement/{id}/reject` | 합의서 거부 (전문가) | JWT |
+
+## 합의서 (Agreement) — 온라인 의뢰 전용
+
+매칭 완료(MATCHED) 후 채팅에서 가격·마감일·작업 범위를 협의하고, 그 결과를 합의서로 확정하는 단계.
+**오프라인 의뢰는 Agreement 없이 채팅 협의 후 바로 진행한다.**
+
+### 흐름
+1. 매칭 확정 → 채팅방 오픈 → 의뢰인·전문가가 조건 협의
+2. **의뢰인**이 합의서 제안 (PROPOSED) — 의뢰인만 제안 가능
+3. 전문가가 수락 (CONFIRMED) 또는 거절 (REJECTED → 재협의)
+4. CONFIRMED 시 시스템이 자동으로 티켓 PAYMENT_PENDING 전이
+
+### 주요 필드
+- `finalPrice` — 최종 합의 금액
+- `workDeadline` — 작업 마감일
+- `scope` — 작업 범위/조건 요약
+- `maxRevisions` — 최대 수정 요청 횟수 (기본값: 2)
+- `deliveryFormat` — 전달물 형식
+
+### 정책
+- **온라인 의뢰 전용** — 오프라인 의뢰에는 사용하지 않음
+- 하나의 티켓에 하나의 합의서만 존재 (1:1)
+- REJECTED 시 기존 합의서를 수정하여 재제안
+- **의뢰인만 제안 가능**
+
+## 직접 의뢰 (Direct Request)
+
+의뢰인이 전문가 프로필을 보고 **직접 견적 요청**을 보내는 매칭 채널.
+
+### 공개 티켓 vs 직접 의뢰
 
 | 항목 | 공개 티켓 | 직접 의뢰 |
 |------|-----------|-----------|
 | `targetExpertId` | null | 전문가 ID |
-| `sourceType` | `TICKET_FEED` | `DIRECT_REQUEST` |
+| `sourceType` | TICKET_FEED | DIRECT_REQUEST |
 | `deadline` | +7일 | +48시간 |
-| 쿠폰 | 일반 쿠폰 | 직접 의뢰 쿠폰 |
-| 피드 노출 | O | X (전문가 1명에게만) |
+| 쿠폰 | usageType = TICKET | usageType = DIRECT_REQUEST |
+| 알림 | 카테고리 전문가 전체 | targetExpert 1명만 |
+| 피드 | 공개 피드 노출 | 피드 미노출 |
 
----
-
-## TypeScript 타입 정의
-
-```typescript
-// ========== Enums ==========
-
-type TicketType = 'OFFLINE' | 'ONLINE';
-type TicketStatus = 'DRAFT' | 'OPEN' | 'IN_REVIEW' | 'MATCHED' | 'PAYMENT_PENDING' | 'PAID' | 'IN_PROGRESS' | 'DELIVERED' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED';
-type TicketSourceType = 'TICKET_FEED' | 'DIRECT_REQUEST';
-type LevelType = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
-type DesiredDuration = 'THIRTY_MIN' | 'ONE_HOUR' | 'ONE_HALF_HOUR' | 'TWO_HOUR' | 'NEGOTIABLE';
-type BudgetType = 'RANGE' | 'NEGOTIABLE';
-type ProposalStatus = 'PENDING' | 'SELECTED' | 'REJECTED' | 'WITHDRAWN';
-type AgreementStatus = 'PROPOSED' | 'CONFIRMED' | 'REJECTED';
-
-// ========== Ticket ==========
-
-interface CreateTicketRequest {
-  ticketType: TicketType;
-  title: string;
-  content: string;
-  level: LevelType;
-  desiredDuration: DesiredDuration;
-  budgetType: BudgetType;
-  budgetMin?: number;         // budgetType이 RANGE일 때 필수
-  budgetMax?: number;
-  region?: string;            // 오프라인 시 필수
-  locationDetail?: string;
-  subCategoryId: number;
-  targetExpertId?: number;    // 직접 의뢰 시 전문가 ID
-  desiredDates: DesiredDateInput[];
-}
-
-interface DesiredDateInput {
-  date: string;               // "2026-03-05" (ISO date)
-  timeSlot: string;           // "14:00-16:00"
-}
-
-interface TicketResponse {
-  id: number;
-  clientId: number;
-  subCategoryId: number;
-  ticketType: TicketType;
-  title: string;
-  content: string;
-  level: LevelType;
-  desiredDuration: DesiredDuration;
-  budgetType: BudgetType;
-  budgetMin: number | null;
-  budgetMax: number | null;
-  region: string | null;
-  locationDetail: string | null;
-  deadline: string;           // ISO datetime
-  status: TicketStatus;
-  sourceType: TicketSourceType;
-  targetExpertId: number | null;
-  matchedAt: string | null;
-  createdAt: string;
-  desiredDates: DesiredDateResponse[];
-}
-
-interface DesiredDateResponse {
-  id: number;
-  date: string;
-  timeSlot: string;
-}
-
-// ========== Ticket Feed ==========
-
-interface TicketFeedResponse {
-  id: number;
-  majorCategoryName: string;
-  subCategoryName: string;
-  ticketType: TicketType;
-  title: string;
-  budgetType: BudgetType;
-  budgetMin: number | null;
-  budgetMax: number | null;
-  desiredDuration: DesiredDuration;
-  region: string | null;
-  locationDetail: string | null;
-  createdAt: string;
-}
-
-interface CursorPageResponse<T> {
-  content: T[];
-  nextCursor: number | string | null;
-  hasNext: boolean;
-}
-
-// ========== My Ticket ==========
-
-interface MyTicketResponse {
-  id: number;
-  ticketType: TicketType;
-  title: string;
-  status: TicketStatus;
-  sourceType: TicketSourceType;
-  subCategoryName: string;
-  proposalCount: number;
-  deadline: string;
-  matchedAt: string | null;
-  createdAt: string;
-}
-
-// ========== Proposal ==========
-
-interface CreateProposalRequest {
-  ticketId: number;
-  price: number;
-  proposedDuration: DesiredDuration;
-  locationProposal?: string;   // 오프라인
-  onlineTool?: string;         // 온라인 ("Zoom", "Google Meet" 등)
-  appeal: string;              // 어필 메시지
-  availableDates: ProposalDateInput[];
-}
-
-interface ProposalDateInput {
-  availableDate: string;       // "2026-03-05"
-  timeSlot: string;            // "14:00~16:00"
-}
-
-interface ProposalDetailResponse {
-  id: number;
-  ticketId: number;
-  expertId: number;
-  price: number;
-  proposedDuration: DesiredDuration;
-  locationProposal: string | null;
-  onlineTool: string | null;
-  appeal: string;
-  status: ProposalStatus;
-  availableDates: ProposalDateResponse[];
-  expertInfo: ProposalExpertInfo;
-  createdAt: string;
-}
-
-interface ProposalDateResponse {
-  id: number;
-  availableDate: string;
-  timeSlot: string;
-}
-
-interface ProposalExpertInfo {
-  expertId: number;
-  nickname: string;
-  profileImageUrl: string | null;
-  introduction: string;
-  careerPeriod: string;
-  grade: string;
-  averageRating: number | null;
-  reviewCount: number;
-  totalMatchCount: number;
-  certifications: { name: string; issuer: string }[];
-  portfolios: { type: string; images: { imageUrl: string }[] }[];
-}
-
-// ========== Agreement (온라인 전용) ==========
-
-interface CreateAgreementRequest {
-  ticketId: number;
-  finalPrice: number;
-  workDeadline: string;       // ISO datetime
-  scope: string;
-  maxRevisions: number;       // 기본 2
-  deliveryFormat: string;
-}
-
-interface AgreementResponse {
-  id: number;
-  ticketId: number;
-  finalPrice: number;
-  workDeadline: string;
-  scope: string;
-  maxRevisions: number;
-  deliveryFormat: string;
-  status: AgreementStatus;
-  proposedBy: number;
-  proposedAt: string;
-  confirmedAt: string | null;
-  createdAt: string;
-}
-```
-
----
-
-## API 엔드포인트
-
-### 티켓
-
-| Method | URL | 설명 | 인증 | 비고 |
-|--------|-----|------|------|------|
-| POST | `/v1/api/ticket` | 티켓 생성 | JWT | targetExpertId 포함 시 직접 의뢰 |
-| GET | `/v1/api/ticket/{id}` | 티켓 상세 조회 | JWT | |
-| GET | `/v1/api/ticket/my` | 내 티켓 목록 | JWT | 커서 페이지네이션 |
-| GET | `/v1/api/ticket/feed` | 티켓 피드 | X | `?subCategoryId=&cursor=&size=20` |
-| GET | `/v1/api/ticket/direct-request/received` | 받은 직접 의뢰 (전문가) | JWT | |
-| GET | `/v1/api/ticket/direct-request/sent` | 보낸 직접 의뢰 (의뢰인) | JWT | |
-
-### 제안서
-
-| Method | URL | 설명 | 인증 |
-|--------|-----|------|------|
-| POST | `/v1/api/proposal` | 제안서 보내기 | JWT (Expert) |
-| GET | `/v1/api/proposal/{id}` | 제안서 상세 | JWT |
-| GET | `/v1/api/proposal/ticket/{ticketId}` | 티켓별 제안서 목록 | JWT |
-| PATCH | `/v1/api/proposal/{id}/accept` | 제안서 수락 (매칭 확정) | JWT (Client) |
-| PATCH | `/v1/api/proposal/{id}/withdraw` | 제안서 철회 | JWT (Expert) |
-| GET | `/v1/api/proposal/my/active` | 진행중인 내 제안서 | JWT (Expert) |
-| GET | `/v1/api/proposal/my/completed` | 완료된 내 제안서 | JWT (Expert) |
-
-### 합의서 (온라인 전용)
-
-| Method | URL | 설명 | 인증 |
-|--------|-----|------|------|
-| POST | `/v1/api/agreement` | 합의서 제안 | JWT (Client만) |
-| GET | `/v1/api/agreement/ticket/{ticketId}` | 합의서 조회 | JWT |
-| PATCH | `/v1/api/agreement/{id}/confirm` | 합의서 수락 (전문가) | JWT (Expert) |
-| PATCH | `/v1/api/agreement/{id}/reject` | 합의서 거절 (전문가) | JWT (Expert) |
-
----
-
-## 티켓 상태 전이 (프론트 관점)
-
-```
-DRAFT → OPEN (등록, 쿠폰 RESERVED)
-  ├── → IN_REVIEW (제안서 1건 이상 도착)
-  │      ├── → MATCHED (의뢰인이 제안서 수락, 쿠폰 CONSUMED)
-  │      │      │
-  │      │   [오프라인]
-  │      │      └── → IN_PROGRESS → COMPLETED (48시간 자동 완료)
-  │      │
-  │      │   [온라인]
-  │      │      └── → PAYMENT_PENDING (합의서 CONFIRMED)
-  │      │             → PAID (에스크로 결제)
-  │      │             → IN_PROGRESS
-  │      │             → DELIVERED (전문가 작업물 전달)
-  │      │             → COMPLETED (의뢰인 승인)
-  │      │
-  │      └── → CANCELLED (의뢰인 취소, 쿠폰 RETURNED)
-  │
-  └── → EXPIRED (마감일 초과, 쿠폰 RETURNED)
-```
-
-### 상태별 UI 표시
-
-| 상태 | 의뢰인 화면 | 전문가 화면 |
-|------|------------|------------|
-| `OPEN` | "모집 중" + 남은 시간 | 피드에서 제안 가능 |
-| `IN_REVIEW` | "제안서 N건 도착" | 제안서 발송 가능 |
-| `MATCHED` | "매칭 완료, 채팅에서 협의하세요" | "채택됨! 채팅을 시작하세요" |
-| `PAYMENT_PENDING` | "결제를 진행해주세요" (온라인) | "결제 대기 중" |
-| `PAID` | "결제 완료" | "서비스를 시작해주세요" |
-| `IN_PROGRESS` | "진행 중" | "진행 중" |
-| `DELIVERED` | "작업물 확인해주세요" (온라인) | "작업물 전달 완료" |
-| `COMPLETED` | "거래 완료" | "거래 완료" |
-| `CANCELLED` | "취소됨 (쿠폰 반환)" | — |
-| `EXPIRED` | "만료됨 (쿠폰 반환)" | — |
-
----
-
-## 에러 코드
-
-| 코드 | 설명 | UI 처리 |
-|------|------|---------|
-| 40002 | 쿠폰 부족 (일반) | 쿠폰 구매 페이지로 안내 |
-| 40086 | 직접 의뢰 쿠폰 부족 | 직접 의뢰 쿠폰 구매 안내 |
-| 40010 | OPEN 상태가 아닌 티켓 | "이미 마감된 의뢰입니다" |
-| 40012 | 자기 티켓에 제안 불가 | "본인의 의뢰에는 제안할 수 없습니다" |
-| 40013 | 이미 제안한 티켓 | "이미 제안서를 보낸 의뢰입니다" |
-| 40017 | 전문가 인증 미완료 | "전문가 인증 완료 후 제안 가능합니다" |
-| 40025 | MATCHED가 아닌 티켓에 합의서 | "매칭 완료 상태에서만 합의서를 제안할 수 있습니다" |
-| 40026 | 이미 합의서 존재 | "이미 합의서가 있습니다" |
-| 40027 | 온라인 의뢰만 합의서 가능 | "온라인 의뢰에서만 합의서를 제안할 수 있습니다" |
-| 40307 | 의뢰인만 합의서 제안 가능 | "의뢰인만 합의서를 제안할 수 있습니다" |
-
----
+### 직접 의뢰 검증 규칙
+- 전문가 인증(APPROVED)된 전문가만 대상 가능
+- 자기 자신에게 불가
+- 동일 전문가에게 동시에 OPEN/IN_REVIEW인 직접 의뢰 1건만
+- 의뢰인당 동시 PENDING 직접 의뢰 최대 5건
+- 48시간 무응답 시 자동 만료 + 쿠폰 반환
 
 ## 프론트엔드 구현 가이드
 
-### 페이지 구조 (추천)
+### FSD 파일 구조
 
 ```
-/ticket
-├── /create                   # 티켓 작성 (다단계 폼)
-├── /feed                     # 티켓 피드 (전문가용)
-├── /[id]                     # 티켓 상세
-│   ├── proposals/            # 제안서 목록 (의뢰인)
-│   └── agreement/            # 합의서 (온라인)
-└── /my                       # 내 티켓 목록 (의뢰인)
-
-/proposal
-├── /create?ticketId=          # 제안서 작성 (전문가)
-├── /[id]                     # 제안서 상세
-└── /my                       # 내 제안서 목록 (전문가)
-
-/direct-request
-├── /sent                     # 보낸 직접 의뢰 (의뢰인)
-└── /received                 # 받은 직접 의뢰 (전문가)
+src/
+├── entities/ticket/
+│   ├── api/
+│   │   ├── ticket.schema.ts        # zod v4 스키마
+│   │   └── ticket.service.ts       # Service Layer
+│   └── model/
+│       └── ticket.query-keys.ts    # Query 키 팩토리
+│
+├── entities/proposal/
+│   ├── api/
+│   │   ├── proposal.schema.ts
+│   │   └── proposal.service.ts
+│   └── model/
+│       └── proposal.query-keys.ts
+│
+├── entities/agreement/
+│   ├── api/
+│   │   ├── agreement.schema.ts
+│   │   └── agreement.service.ts
+│   └── model/
+│       └── agreement.query-keys.ts
+│
+├── features/ticket/
+│   ├── create-ticket/              # 티켓 등록
+│   ├── ticket-detail/              # 티켓 상세
+│   ├── ticket-feed/                # 피드 (전문가)
+│   └── my-tickets/                 # 내 의뢰 목록
+│
+├── features/proposal/
+│   ├── create-proposal/            # 제안서 작성
+│   ├── proposal-detail/            # 제안서 상세
+│   └── my-proposals/               # 내 제안서 목록
+│
+└── features/agreement/
+    ├── create-agreement/           # 합의서 제안
+    └── agreement-detail/           # 합의서 상세/수락/거절
 ```
 
-### 티켓 작성 흐름
+### Service Layer
 
-```
-Step 1: 의뢰 유형 선택 (오프라인/온라인)
-Step 2: 카테고리 선택 (대분류 → 중분류)
-Step 3: 의뢰 내용 작성
-  - 제목, 설명, 레벨, 소요시간, 예산
-  - (오프라인) 지역, 상세 위치
-Step 4: 희망 일시 선택 (1개 이상)
-Step 5: 확인 및 등록 → 쿠폰 1장 예약
+**Ticket:**
 
-주의: "쿠폰 1장이 예약됩니다" 안내 필수
-```
+| 함수 | HTTP | 설명 |
+|------|------|------|
+| `createTicket(input)` | POST `/v1/api/ticket` | 티켓 등록 |
+| `updateTicket(ticketId, input)` | PUT `/v1/api/ticket/{id}` | 티켓 수정 |
+| `getTicket(id)` | GET `/v1/api/ticket/{id}` | 티켓 상세 |
+| `completeOfflineTicket(ticketId)` | POST `.../complete` | 오프라인 완료 |
+| `cancelTicket(ticketId)` | POST `.../cancel` | 취소 |
+| `acceptProposal(proposalId)` | POST `.../accept` | 매칭 확정 |
+| `getTicketFeed(params?)` | GET `.../feed` | 피드 (커서) |
+| `searchTickets(params)` | GET `.../search` | 검색 (커서) |
+| `getMyTickets(params?)` | GET `.../my` | 내 전체 티켓 |
+| `getMyInProgressTickets(params?)` | GET `.../my/in-progress` | 내 진행중 |
+| `getMyCompletedTickets(params?)` | GET `.../my/completed` | 내 완료 |
+| `getSentDirectRequests(params?)` | GET `.../direct-request/sent` | 보낸 직접 의뢰 |
+| `getReceivedDirectRequests(params?)` | GET `.../direct-request/received` | 받은 직접 의뢰 |
 
-### 직접 의뢰 흐름
+**Proposal:**
 
-```
-전문가 프로필 화면 → "직접 의뢰 보내기" 버튼
-→ 티켓 작성 폼 (targetExpertId 자동 설정)
-→ POST /v1/api/ticket (targetExpertId 포함)
-→ 직접 의뢰 쿠폰 1장 예약
+| 함수 | HTTP | 설명 |
+|------|------|------|
+| `createProposal(input)` | POST `/v1/api/proposal` | 제안서 작성 |
+| `withdrawProposal(id)` | POST `.../withdraw` | 제안서 철회 |
+| `getProposal(id)` | GET `/v1/api/proposal/{id}` | 상세 (의뢰인) |
+| `getMyProposal(id)` | GET `.../my/{id}` | 상세 (전문가) |
+| `getProposalsByTicket(ticketId, params?)` | GET `.../ticket/{id}` | 티켓별 목록 |
+| `getMyInProgressProposals(params?)` | GET `.../my/in-progress` | 내 진행중 |
+| `getMyCompletedProposals(params?)` | GET `.../my/completed` | 내 완료 |
 
-주의 사항:
-- 직접 의뢰 쿠폰 잔량 미리 확인 (GET /v1/api/coupon/balance/direct-request)
-- 동일 전문가에게 OPEN/IN_REVIEW 직접 의뢰 1건만 가능
-- 최대 5건 동시 PENDING 가능
-```
+**Agreement:**
 
-### 제안서 수락 (매칭 확정) 흐름
+| 함수 | HTTP | 설명 |
+|------|------|------|
+| `createAgreement(input)` | POST `/v1/api/agreement` | 합의서 제안 |
+| `reproposeAgreement(id, input)` | PUT `.../repropose` | 재제안 |
+| `confirmAgreement(id)` | POST `.../confirm` | 수락 |
+| `rejectAgreement(id)` | POST `.../reject` | 거절 |
+| `updateAgreementDeadline(id, input)` | PATCH `.../deadline` | 마감일 수정 |
+| `getAgreementByTicket(ticketId)` | GET `.../ticket/{id}` | 티켓별 조회 |
 
-```
-의뢰인이 제안서 수락 버튼 클릭
-→ 확인 모달: "쿠폰 1장이 최종 사용됩니다. 매칭 후에는 쿠폰 반환이 불가합니다."
-→ PATCH /v1/api/proposal/{id}/accept
-→ 쿠폰 CONSUMED + 채팅방 자동 생성
-→ 채팅 화면으로 이동
-```
-
-### 합의서 흐름 (온라인 전용)
-
-```
-매칭 후 채팅에서 조건 협의
-→ 의뢰인이 합의서 제안 (POST /v1/api/agreement)
-→ 전문가가 수락(CONFIRMED) 또는 거절(REJECTED)
-→ CONFIRMED 시 자동으로 PAYMENT_PENDING
-→ 의뢰인 에스크로 결제 진행 (→ /payment 스킬 참고)
-→ REJECTED 시 재협의 → 새 합의서 제안
-```
-
-### 무한 스크롤 (피드)
+### Query Keys
 
 ```typescript
-// 티켓 피드 커서 기반 페이지네이션
-const { data } = await api.get('/v1/api/ticket/feed', {
-  params: {
-    subCategoryId: selectedCategory,
-    cursor: lastTicketId,  // 다음 페이지 요청 시 이전 응답의 nextCursor
-    size: 20,
-  },
-});
+// ticket
+export const ticketQueryKeys = {
+  all: ["ticket"] as const,
+  detail: (id: number) => ["ticket", id] as const,
+  feed: (params?) => ["ticket", "feed", params] as const,
+  search: (query, params?) => ["ticket", "search", query, params] as const,
+  my: (params?) => ["ticket", "my", params] as const,
+  myInProgress: (params?) => ["ticket", "my", "in-progress", params] as const,
+  myCompleted: (params?) => ["ticket", "my", "completed", params] as const,
+  directRequestSent: (params?) => ["ticket", "direct-request", "sent", params] as const,
+  directRequestReceived: (params?) => ["ticket", "direct-request", "received", params] as const,
+}
 
-// data.content: TicketFeedResponse[]
-// data.nextCursor: number | null
-// data.hasNext: boolean → 더 불러올 데이터 여부
-```
+// proposal
+export const proposalQueryKeys = {
+  all: ["proposal"] as const,
+  detail: (id: number) => ["proposal", id] as const,
+  byTicket: (ticketId, params?) => ["proposal", "ticket", ticketId, params] as const,
+  myDetail: (id: number) => ["proposal", "my", id] as const,
+  myInProgress: (params?) => ["proposal", "my", "in-progress", params] as const,
+  myCompleted: (params?) => ["proposal", "my", "completed", params] as const,
+}
 
-### 마감 타이머
-
-```typescript
-// 모집 마감까지 남은 시간 계산
-function getTimeRemaining(deadline: string) {
-  const diff = new Date(deadline).getTime() - Date.now();
-  if (diff <= 0) return '마감됨';
-
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-
-  if (days > 0) return `${days}일 ${hours}시간 남음`;
-  return `${hours}시간 남음`;
+// agreement
+export const agreementQueryKeys = {
+  all: ["agreement"] as const,
+  byTicket: (ticketId: number) => ["agreement", "ticket", ticketId] as const,
 }
 ```
 
-### 중요 비즈니스 룰 (프론트 검증)
+### 캐시 무효화 전략
 
-1. **쿠폰 잔량 체크**: 티켓 등록 전 쿠폰 잔량 확인 → 부족 시 구매 안내
-2. **직접 의뢰 쿠폰**: 일반 쿠폰과 별도. `GET /v1/api/coupon/balance/direct-request`로 확인
-3. **매칭 후 쿠폰 환불 불가**: 제안서 수락 시 반드시 안내
-4. **온라인만 합의서**: 오프라인 의뢰에서는 합의서 UI 미표시
-5. **의뢰인만 합의서 제안**: 전문가는 수락/거절만 가능
+| 이벤트 | 무효화 대상 |
+|---|---|
+| 티켓 등록 | `ticketQueryKeys.my()`, `couponQueryKeys.balance` |
+| 티켓 취소 | `ticketQueryKeys.detail(id)`, `ticketQueryKeys.my()`, `couponQueryKeys.balance` |
+| 티켓 완료 | `ticketQueryKeys.detail(id)`, `ticketQueryKeys.myInProgress()`, `ticketQueryKeys.myCompleted()` |
+| 제안서 수락 (매칭) | `ticketQueryKeys.detail(id)`, `proposalQueryKeys.byTicket(ticketId)`, `couponQueryKeys.balance` |
+| 제안서 작성 | `proposalQueryKeys.myInProgress()`, `ticketQueryKeys.detail(ticketId)` |
+| 합의서 제안/수락/거절 | `agreementQueryKeys.byTicket(ticketId)`, `ticketQueryKeys.detail(ticketId)` |
+
+### TicketStatus별 UI 분기
+
+```tsx
+function TicketStatusBadge({ status }: { status: TicketStatus }) {
+  switch (status) {
+    case "OPEN":           return <Badge color="blue">모집중</Badge>
+    case "IN_REVIEW":      return <Badge color="yellow">제안서 검토중</Badge>
+    case "MATCHED":        return <Badge color="green">매칭 완료</Badge>
+    case "PAYMENT_PENDING": return <Badge color="orange">결제 대기</Badge>
+    case "IN_PROGRESS":    return <Badge color="purple">진행중</Badge>
+    case "COMPLETED":      return <Badge color="gray">완료</Badge>
+    case "CANCELLED":      return <Badge color="red">취소됨</Badge>
+    case "EXPIRED":        return <Badge color="red">만료됨</Badge>
+    // ...
+  }
+}
+```
+
+## 기능 체크리스트
+
+### 의뢰인
+- [x] 티켓 작성 — 의뢰 유형(오프/온라인) 선택, 카테고리, 내용, 일시, 예산
+- [x] 직접 의뢰 (targetExpertId 지정하여 티켓 생성)
+- [ ] 임시저장 (DRAFT)
+- [x] 제안서 비교
+- [x] 매칭 확정 (쿠폰 소모 → 채팅 오픈)
+- [x] 완료 확인
+- [x] 취소 (매칭 전 → 쿠폰 반환)
+
+### 전문가
+- [x] 티켓 피드 (분야 + 지역 + 방식 필터)
+- [x] 받은 직접 의뢰 목록 조회
+- [x] 제안서 작성/발송 (무료)
+- [x] 제안서 철회 (매칭 전)
+
+### 시스템
+- [x] 자동 만료 (마감일 초과 → EXPIRED + 쿠폰 RETURNED)
+- [x] 매칭 추천 알림
+
+## 알림
+
+| 이벤트 | 수신자 | 메시지 |
+|--------|--------|--------|
+| 티켓 등록 | 의뢰인 | "의뢰가 등록되었어요! 쿠폰 1장 예약됨" |
+| 신규 티켓 | 전문가 | "새로운 [골프] 의뢰가 올라왔어요!" |
+| 새 제안서 | 의뢰인 | "[닉네임] 전문가가 제안서를 보냈어요." |
+| 매칭 완료 | 전문가 | "제안이 채택되었어요! 채팅에서 대화해보세요." |
+| 매칭 완료 | 의뢰인 | "전문가와 매칭! 쿠폰 1장 사용됨." |
+| 취소 | 의뢰인 | "의뢰가 취소되었어요. 쿠폰 반환됨." |
+| 모집 만료 | 의뢰인 | "모집 기간 만료. 쿠폰이 반환됩니다." |
+
+## 데이터 상세
+
+- **[ticket-data.md](references/ticket-data.md)** — Ticket, TicketDesiredDate, TicketAttachment, Proposal, ProposalAvailableDate 필드 상세
