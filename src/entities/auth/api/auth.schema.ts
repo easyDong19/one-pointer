@@ -68,9 +68,9 @@ export type SignupResponse = AuthTokenResponse
 // ─── 로그아웃 ──────────────────────────────────────────────────────────────────
 
 export const logoutResponseSchema = z.object({
-  success: z.literal(true),
+  success: z.boolean(),
   message: z.string(),
-  data: z.object({}).passthrough(),
+  data: z.unknown(),
 })
 
 export type LogoutResponse = z.infer<typeof logoutResponseSchema>

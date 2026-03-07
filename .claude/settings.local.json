@@ -5,7 +5,9 @@
       "Bash(python3:*)",
       "Bash(find:*)",
       "Bash(cat:*)",
-      "Bash(pnpm tsc:*)"
+      "Bash(pnpm tsc:*)",
+      "Bash(git checkout:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }
