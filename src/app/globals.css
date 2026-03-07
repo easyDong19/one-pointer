@@ -59,13 +59,43 @@
   --color-neutral-700: var(--neutral-700);
   --color-neutral-800: var(--neutral-800);
   --color-neutral-900: var(--neutral-900);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-sm:  0.375rem;
+  --radius-md:  0.5rem;
+  --radius-lg:  0.625rem;
+  --radius-xl:  0.875rem;
+  --radius-2xl: 1.125rem;
+  --radius-3xl: 1.375rem;
+  --radius-4xl: 1.625rem;
+
+  /* ── Spacing (op- prefix → p-op-xs, w-op-xs 등 생성, 충돌 없음) ── */
+  --spacing-op-xs:  0.25rem;
+  --spacing-op-sm:  0.5rem;
+  --spacing-op-md:  0.75rem;
+  --spacing-op-lg:  1rem;
+  --spacing-op-xl:  1.25rem;
+  --spacing-op-2xl: 1.5rem;
+  --spacing-op-3xl: 2rem;
+  --spacing-op-4xl: 2.5rem;
+  --spacing-op-5xl: 3rem;
+
+  /* ── Typography (op- prefix → text-op-body1 등 생성, 충돌 없음) ── */
+  --text-op-h0:        2rem;
+  --text-op-h1:        1.75rem;
+  --text-op-h2:        1.5rem;
+  --text-op-h3:        1.375rem;
+  --text-op-title:     1.25rem;
+  --text-op-subtitle1: 1.125rem;
+  --text-op-subtitle2: 1rem;
+  --text-op-body1:     1rem;
+  --text-op-body2:     0.9375rem;
+  --text-op-body3:     0.875rem;
+  --text-op-caption1:  0.8125rem;
+  --text-op-caption2:  0.75rem;
+  --text-op-caption3:  0.6875rem;
+
+  /* ── Shadow (op- prefix) ── */
+  --shadow-op-xs: 0 0.0625rem 0.0625rem rgba(0,0,0,0.05);
+  --shadow-op-sm: 0 0.0625rem 0.125rem rgba(0,0,0,0.05), 0 0.0625rem 0.1875rem rgba(0,0,0,0.04);
 }
 
 :root {
@@ -170,6 +200,42 @@
   --sidebar-border: #334155;
   --sidebar-ring: #6c5ce7;
 }
+
+/* ── Spacing 축약 유틸리티 ── */
+@utility p-xs { padding: var(--spacing-op-xs); }
+@utility p-sm { padding: var(--spacing-op-sm); }
+@utility p-md { padding: var(--spacing-op-md); }
+@utility p-lg { padding: var(--spacing-op-lg); }
+@utility p-xl { padding: var(--spacing-op-xl); }
+
+/* ── Text size 축약 유틸리티 ── */
+@utility text-body1 { font-size: var(--text-op-body1); }
+@utility text-body2 { font-size: var(--text-op-body2); }
+@utility text-body3 { font-size: var(--text-op-body3); }
+
+/* ── Typography compound 유틸리티 (Text 컴포넌트용) ── */
+@utility caption3-bold   { font-size: var(--text-op-caption3); line-height: 1.36; font-weight: 700; letter-spacing: -0.006875rem; }
+@utility caption2-medium { font-size: var(--text-op-caption2); line-height: 1.36; font-weight: 500; }
+@utility caption2-bold   { font-size: var(--text-op-caption2); line-height: 1.36; font-weight: 700; }
+@utility caption1-medium { font-size: var(--text-op-caption1); line-height: 1.36; font-weight: 500; }
+@utility caption1-bold   { font-size: var(--text-op-caption1); line-height: 1.36; font-weight: 700; }
+@utility body3-regular   { font-size: var(--text-op-body3);    line-height: 1.30; font-weight: 400; }
+@utility body3-medium    { font-size: var(--text-op-body3);    line-height: 1.30; font-weight: 500; }
+@utility body3-bold      { font-size: var(--text-op-body3);    line-height: 1.30; font-weight: 700; }
+@utility body2-regular   { font-size: var(--text-op-body2);    line-height: 1.36; font-weight: 400; }
+@utility body2-medium    { font-size: var(--text-op-body2);    line-height: 1.36; font-weight: 500; }
+@utility body2-bold      { font-size: var(--text-op-body2);    line-height: 1.36; font-weight: 700; }
+@utility body1-regular   { font-size: var(--text-op-body1);    line-height: 1.36; font-weight: 400; }
+@utility body1-medium    { font-size: var(--text-op-body1);    line-height: 1.36; font-weight: 500; }
+@utility body1-bold      { font-size: var(--text-op-body1);    line-height: 1.36; font-weight: 700; }
+@utility subtitle2-medium { font-size: var(--text-op-subtitle1); line-height: 1.36; font-weight: 500; }
+@utility subtitle2-bold   { font-size: var(--text-op-subtitle1); line-height: 1.36; font-weight: 700; }
+@utility subtitle1-bold   { font-size: var(--text-op-title);     line-height: 1.36; font-weight: 700; }
+@utility title-bold  { font-size: var(--text-op-h3);  line-height: 1.36; font-weight: 700; }
+@utility h3-bold     { font-size: var(--text-op-h2);  line-height: 1.36; font-weight: 700; }
+@utility h2-bold     { font-size: var(--text-op-h1);  line-height: 1.36; font-weight: 700; }
+@utility h1-bold     { font-size: var(--text-op-h0);  line-height: 1.36; font-weight: 700; }
+@utility h0-bold     { font-size: 2.5rem;              line-height: 1.36; font-weight: 700; }
 
 @layer base {
   * {
