@@ -246,6 +246,13 @@
 @utility h1-bold     { font-size: var(--text-op-h0);  line-height: 1.36; font-weight: 700; }
 @utility h0-bold     { font-size: 2.5rem;              line-height: 1.36; font-weight: 700; }
 
+/* ── Scrollbar 숨김 유틸리티 ── */
+@utility scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

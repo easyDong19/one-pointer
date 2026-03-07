@@ -3,11 +3,13 @@ import { parseSchemaOrThrow } from "@/shared/api/http/parse-schema"
 import {
   expertListResponseSchema,
   expertDetailResponseSchema,
+  popularExpertListResponseSchema,
   type ExpertListItem,
   type ExpertDetail,
+  type PopularExpertItem,
 } from "./expert.schema"
 
-export type { ExpertListItem, ExpertDetail }
+export type { ExpertListItem, ExpertDetail, PopularExpertItem }
 
 
 export async function getExperts(params?: {
@@ -41,14 +43,14 @@ export async function getExpertDetail(expertProfileId: number): Promise<ExpertDe
   return parsed.data
 }
 
-export async function getPopularExperts(): Promise<ExpertListItem[]> {
+export async function getPopularExperts(): Promise<PopularExpertItem[]> {
   const path = "/v1/api/expert/popular"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method })
-  const parsed = parseSchemaOrThrow(expertListResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(popularExpertListResponseSchema, response, {
     path,
     method,
     message: "Invalid popular experts response payload",
   })
-  return parsed.data.content
+  return parsed.data
 }
