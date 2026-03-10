@@ -12,14 +12,14 @@ import { HomePopularExperts } from "@/app/_components/home-popular-experts"
 import { HomeHowItWorks } from "@/app/_components/home-how-it-works"
 import { HomeFooter } from "@/app/_components/home-footer"
 import { HomeBottomNav } from "@/app/_components/home-bottom-nav"
-import { HomeFabButton } from "@/app/_components/home-fab-button"
 
 export const dynamic = "force-dynamic"
 
 async function fetchSafe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await fn()
-  } catch {
+  } catch (error) {
+    console.error(`[fetchSafe] ${fn.name} failed:`, error)
     return fallback
   }
 }
@@ -31,8 +31,11 @@ export default async function HomePage() {
     fetchSafe<ExpertSummary[]>(getPopularExpertsOnServer, []),
   ])
 
+  console.log(popularTickets)
+  console.log(popularExperts)
+
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    <div className="bg-background flex min-h-dvh flex-col">
       <HomeHeader />
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-5 py-6 pb-24 md:gap-10 md:px-10 md:pb-10 lg:px-16">
@@ -45,7 +48,6 @@ export default async function HomePage() {
 
       <HomeFooter />
       <HomeBottomNav />
-      <HomeFabButton />
     </div>
   )
 }

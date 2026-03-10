@@ -3,11 +3,14 @@ import { z } from "zod/v4"
 export const subCategorySchema = z.object({
   id: z.number(),
   name: z.string(),
+  iconUrl: z.string().nullable().optional(),
+  availableType: z.enum(["OFFLINE", "ONLINE", "BOTH"]).optional(),
 })
 
 export const categorySchema = z.object({
   id: z.number(),
   name: z.string(),
+  iconUrl: z.string().nullable().optional(),
   subCategories: z.array(subCategorySchema),
 })
 

@@ -20,7 +20,7 @@ export const expertSummarySchema = z.object({
   careerPeriod: z.string(),
   categoryNames: z.array(z.string()),
   regions: z.array(z.string()),
-  averageRating: z.number(),
+  averageRating: z.number().nullable(),
   reviewCount: z.number(),
   matchCount: z.number(),
 })

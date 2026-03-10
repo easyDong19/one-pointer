@@ -32,11 +32,13 @@ export function HomePopularTickets({ tickets }: HomePopularTicketsProps) {
         </Text>
       </div>
 
-      {/* 모바일: 가로 스크롤 캐러셀 */}
-      <div className="flex gap-op-md overflow-x-auto pb-2 scrollbar-none md:hidden">
-        {displayTickets.map((ticket) => (
-          <TicketCard key={ticket.id} ticket={ticket} className="w-[200px] shrink-0" />
-        ))}
+      {/* 모바일: 가로 스크롤 */}
+      <div className="-mx-5 px-5 md:mx-0 md:px-0">
+        <div className="flex gap-op-md overflow-x-auto pb-2 scrollbar-none md:hidden">
+          {displayTickets.map((ticket) => (
+            <TicketCard key={ticket.id} ticket={ticket} className="w-[180px] shrink-0" />
+          ))}
+        </div>
       </div>
 
       {/* 데스크탑: 그리드 */}
@@ -61,23 +63,23 @@ function TicketCard({
   return (
     <Link
       href={`/tickets/${ticket.id}`}
-      className={`group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-primary/20 hover:shadow-md ${className}`}
+      className={`border-border bg-card group flex flex-col overflow-hidden rounded-2xl border transition-shadow hover:shadow-md ${className}`}
     >
       {/* 썸네일 */}
-      <div className="relative aspect-[4/3] w-full bg-muted">
+      <div className="bg-muted relative aspect-[4/3] w-full overflow-hidden">
         {ticket.thumbnailUrl ? (
           <img
             src={ticket.thumbnailUrl}
             alt={ticket.title}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <Monitor className="h-10 w-10 text-muted-foreground/40" />
+            <Monitor className="text-muted-foreground/40 h-10 w-10" />
           </div>
         )}
         {ticket.new && (
-          <span className="absolute top-2 left-2 rounded-md bg-destructive px-1.5 py-0.5">
+          <span className="bg-destructive absolute top-2 left-2 rounded-md px-1.5 py-0.5">
             <Text as="span" typography="caption3-bold" className="text-destructive-foreground">
               NEW
             </Text>
@@ -86,7 +88,7 @@ function TicketCard({
       </div>
 
       {/* 내용 */}
-      <div className="flex flex-1 flex-col gap-op-sm p-op-md">
+      <div className="flex flex-1 flex-col gap-1.5 p-op-md">
         {/* 카테고리 + 유형 */}
         <div className="flex items-center gap-1.5">
           <Text as="span" typography="caption2-medium" className="text-muted-foreground">
@@ -100,13 +102,15 @@ function TicketCard({
         </div>
 
         {/* 제목 */}
-        <Text as="h3" typography="body3-bold" className="line-clamp-1 text-foreground">
+        <Text as="h3" typography="body3-bold" className="text-foreground line-clamp-2">
           {ticket.title}
         </Text>
 
         {/* 가격 */}
-        <Text as="span" typography="body3-medium" className="mt-auto text-primary">
-          {ticket.budgetType === "NEGOTIABLE" ? "가격 협의" : formatBudget(ticket.budgetMin, ticket.budgetMax)}
+        <Text as="span" typography="body3-medium" className="text-primary mt-auto pt-1">
+          {ticket.budgetType === "NEGOTIABLE"
+            ? "가격 협의"
+            : formatBudget(ticket.budgetMin, ticket.budgetMax)}
         </Text>
       </div>
     </Link>
