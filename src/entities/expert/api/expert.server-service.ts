@@ -2,16 +2,17 @@ import { serverFetch } from "@/shared/api/http/server-fetch"
 import { parseSchemaOrThrow } from "@/shared/api/http/parse-schema"
 import {
   popularExpertListResponseSchema,
+  type ExpertSummary,
   type PopularExpertItem,
 } from "./expert.schema"
 
-export type { PopularExpertItem }
+export type { ExpertSummary, PopularExpertItem }
 
 /**
  * 서버 컴포넌트 전용: 인기 전문가 목록 조회 (인증 불필요)
- * 응답: { success, message, data: PopularExpertItem[] } (페이지네이션 없음)
+ * 응답: { success, message, data: ExpertSummary[] } (페이지네이션 없음)
  */
-export async function getPopularExpertsOnServer(): Promise<PopularExpertItem[]> {
+export async function getPopularExpertsOnServer(): Promise<ExpertSummary[]> {
   const path = "/v1/api/expert/popular"
   const method = "GET"
   const response = await serverFetch<unknown>({

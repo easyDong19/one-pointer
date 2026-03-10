@@ -4,22 +4,19 @@ import {
   expertListResponseSchema,
   expertDetailResponseSchema,
   popularExpertListResponseSchema,
+  type ExpertSummary,
   type ExpertListItem,
   type ExpertDetail,
   type PopularExpertItem,
+  type ExpertListParams,
 } from "./expert.schema"
 
-export type { ExpertListItem, ExpertDetail, PopularExpertItem }
+export type { ExpertSummary, ExpertListItem, ExpertDetail, PopularExpertItem, ExpertListParams }
 
 
-export async function getExperts(params?: {
-  cursor?: string
-  size?: number
-  subCategoryId?: number
-  activityMethod?: string
-  region?: string
-  query?: string
-}): Promise<{ content: ExpertListItem[]; nextCursor: string | null; hasNext: boolean }> {
+export async function getExperts(
+  params?: ExpertListParams,
+): Promise<{ content: ExpertSummary[]; nextCursor: string | null; hasNext: boolean }> {
   const path = "/v1/api/expert"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
@@ -43,7 +40,7 @@ export async function getExpertDetail(expertProfileId: number): Promise<ExpertDe
   return parsed.data
 }
 
-export async function getPopularExperts(): Promise<PopularExpertItem[]> {
+export async function getPopularExperts(): Promise<ExpertSummary[]> {
   const path = "/v1/api/expert/popular"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method })
@@ -51,6 +48,18 @@ export async function getPopularExperts(): Promise<PopularExpertItem[]> {
     path,
     method,
     message: "Invalid popular experts response payload",
+  })
+  return parsed.data
+}
+
+export async function getPopularExpertsBySubCategory(subCategoryId: number): Promise<ExpertSummary[]> {
+  const path = `/v1/api/expert/popular/subcategory/${subCategoryId}`
+  const method = "GET"
+  const response = await clientFetch<unknown>({ path, method })
+  const parsed = parseSchemaOrThrow(popularExpertListResponseSchema, response, {
+    path,
+    method,
+    message: "Invalid popular experts by subcategory response payload",
   })
   return parsed.data
 }

@@ -1,10 +1,11 @@
 import Link from "next/link"
 import { Star, User } from "lucide-react"
 import { Text } from "@/shared/ui/text"
-import type { PopularExpertItem } from "@/entities/expert/api/expert.schema"
+import type { ExpertSummary, PopularExpertItem } from "@/entities/expert/api/expert.schema"
 
+/** @deprecated ExpertSummary 사용 권장 */
 type HomePopularExpertsProps = {
-  experts: PopularExpertItem[]
+  experts: ExpertSummary[]
 }
 
 const ACTIVITY_METHOD_LABEL: Record<string, string> = {
@@ -61,7 +62,7 @@ function ExpertCard({
   expert,
   className = "",
 }: {
-  expert: PopularExpertItem
+  expert: ExpertSummary
   className?: string
 }) {
   const regions = uniqueRegions(expert.regions)

@@ -102,6 +102,55 @@ export const updateTicketRequestSchema = z.object({
 export type CreateTicketRequest = z.infer<typeof createTicketRequestSchema>
 export type UpdateTicketRequest = z.infer<typeof updateTicketRequestSchema>
 
+// ─── Feed / Popular 전용 스키마 (TicketFeedResponse) ─────────────────────────
+
+export const ticketFeedSortBySchema = z.enum(["LATEST", "BUDGET_HIGH", "DEADLINE_SOON"])
+export type TicketFeedSortBy = z.infer<typeof ticketFeedSortBySchema>
+
+export const ticketFeedItemSchema = z.object({
+  id: z.number(),
+  majorCategoryName: z.string(),
+  subCategoryName: z.string(),
+  ticketType: ticketTypeSchema,
+  title: z.string(),
+  budgetType: budgetTypeSchema,
+  budgetMin: z.number(),
+  budgetMax: z.number(),
+  desiredDuration: ticketDurationSchema,
+  region: z.string(),
+  locationDetail: z.string(),
+  createdAt: z.string(),
+  proposalCount: z.number(),
+  daysUntilDeadline: z.number(),
+  thumbnailUrl: z.string().nullable(),
+  new: z.boolean(),
+})
+
+export type TicketFeedItem = z.infer<typeof ticketFeedItemSchema>
+
+// ─── Feed Params ─────────────────────────────────────────────────────────────
+
+export type TicketFeedParams = {
+  majorCategoryId?: number
+  subCategoryId?: number
+  region?: string
+  ticketType?: "OFFLINE" | "ONLINE"
+  sortBy?: TicketFeedSortBy
+  cursor?: string
+  size?: number
+}
+
+export type TicketSearchParams = {
+  keyword: string
+  majorCategoryId?: number
+  subCategoryId?: number
+  region?: string
+  ticketType?: "OFFLINE" | "ONLINE"
+  sortBy?: TicketFeedSortBy
+  cursor?: string
+  size?: number
+}
+
 // ─── Response Schemas ─────────────────────────────────────────────────────────
 
 const successResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
@@ -121,13 +170,26 @@ export const ticketListResponseSchema = successResponseSchema(
   }),
 )
 
-export const ticketSearchResponseSchema = successResponseSchema(
+export const ticketFeedResponseSchema = successResponseSchema(
   z.object({
-    content: z.array(ticketSummarySchema),
+    content: z.array(ticketFeedItemSchema),
     nextCursor: z.string().nullable(),
     hasNext: z.boolean(),
   }),
 )
 
+export const ticketSearchResponseSchema = successResponseSchema(
+  z.object({
+    content: z.array(ticketFeedItemSchema),
+    nextCursor: z.string().nullable(),
+    hasNext: z.boolean(),
+  }),
+)
+
+export const popularTicketListResponseSchema = successResponseSchema(
+  z.array(ticketFeedItemSchema),
+)
+
 export type TicketDetailResponse = z.infer<typeof ticketDetailResponseSchema>
 export type TicketListResponse = z.infer<typeof ticketListResponseSchema>
+export type TicketFeedResponse = z.infer<typeof ticketFeedResponseSchema>

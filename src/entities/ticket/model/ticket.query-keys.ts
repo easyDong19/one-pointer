@@ -1,10 +1,11 @@
+import type { TicketFeedParams, TicketSearchParams } from "../api/ticket.schema"
+
 export const ticketQueryKeys = {
   all: ["ticket"] as const,
   detail: (id: number) => ["ticket", id] as const,
-  feed: (params?: { cursor?: string; size?: number; subCategoryId?: number }) =>
-    ["ticket", "feed", params] as const,
-  search: (query: string, params?: { cursor?: string; size?: number }) =>
-    ["ticket", "search", query, params] as const,
+  popular: ["ticket", "popular"] as const,
+  feed: (params?: TicketFeedParams) => ["ticket", "feed", params] as const,
+  search: (params?: TicketSearchParams) => ["ticket", "search", params] as const,
   my: (params?: { cursor?: string; size?: number }) => ["ticket", "my", params] as const,
   myInProgress: (params?: { cursor?: string; size?: number }) =>
     ["ticket", "my", "in-progress", params] as const,

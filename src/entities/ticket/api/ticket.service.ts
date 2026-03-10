@@ -5,14 +5,19 @@ import {
   updateTicketRequestSchema,
   ticketDetailResponseSchema,
   ticketListResponseSchema,
+  ticketFeedResponseSchema,
   ticketSearchResponseSchema,
+  popularTicketListResponseSchema,
   type CreateTicketRequest,
   type UpdateTicketRequest,
   type TicketDetail,
   type TicketSummary,
+  type TicketFeedItem,
+  type TicketFeedParams,
+  type TicketSearchParams,
 } from "./ticket.schema"
 
-export type { CreateTicketRequest, UpdateTicketRequest, TicketDetail, TicketSummary }
+export type { CreateTicketRequest, UpdateTicketRequest, TicketDetail, TicketSummary, TicketFeedItem, TicketFeedParams, TicketSearchParams }
 
 
 // ─── Ticket CRUD ──────────────────────────────────────────────────────────────
@@ -84,17 +89,29 @@ export async function acceptProposal(proposalId: number): Promise<void> {
   await clientFetch<unknown>({ path, method })
 }
 
+// ─── Popular Tickets ─────────────────────────────────────────────────────────
+
+export async function getPopularTickets(): Promise<TicketFeedItem[]> {
+  const path = "/v1/api/ticket/popular"
+  const method = "GET"
+  const response = await clientFetch<unknown>({ path, method })
+  const parsed = parseSchemaOrThrow(popularTicketListResponseSchema, response, {
+    path,
+    method,
+    message: "Invalid popular tickets response payload",
+  })
+  return parsed.data
+}
+
 // ─── Ticket Feed & Search ─────────────────────────────────────────────────────
 
-export async function getTicketFeed(params?: {
-  cursor?: string
-  size?: number
-  subCategoryId?: number
-}): Promise<{ content: TicketSummary[]; nextCursor: string | null; hasNext: boolean }> {
+export async function getTicketFeed(
+  params?: TicketFeedParams,
+): Promise<{ content: TicketFeedItem[]; nextCursor: string | null; hasNext: boolean }> {
   const path = "/v1/api/ticket/feed"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
-  const parsed = parseSchemaOrThrow(ticketListResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(ticketFeedResponseSchema, response, {
     path,
     method,
     message: "Invalid ticket feed response payload",
@@ -102,11 +119,9 @@ export async function getTicketFeed(params?: {
   return parsed.data
 }
 
-export async function searchTickets(params: {
-  query: string
-  cursor?: string
-  size?: number
-}): Promise<{ content: TicketSummary[]; nextCursor: string | null; hasNext: boolean }> {
+export async function searchTickets(
+  params: TicketSearchParams,
+): Promise<{ content: TicketFeedItem[]; nextCursor: string | null; hasNext: boolean }> {
   const path = "/v1/api/ticket/search"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })

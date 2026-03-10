@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import Link from "next/link"
@@ -12,6 +13,7 @@ import { SocialLoginButton } from "@/shared/ui/social-login-button"
 import { Text } from "@/shared/ui/text"
 import { ApiError } from "@/shared/api/http/api-error"
 import { loginRequestSchema, type LoginRequest } from "@/entities/auth/api/auth.schema"
+import { getKakaoAuthorizeUrl } from "@/entities/auth/api/auth.service"
 import { useLoginMutation } from "@/features/auth/sign-in/model/use-login-mutation"
 
 type LoginFormProps = {
@@ -21,6 +23,7 @@ type LoginFormProps = {
 export function LoginForm({ nextPath }: LoginFormProps) {
   const router = useRouter()
   const loginMutation = useLoginMutation()
+  const [socialLoading, setSocialLoading] = useState(false)
 
   const {
     register,
@@ -39,8 +42,26 @@ export function LoginForm({ nextPath }: LoginFormProps) {
     }
   })
 
+  const handleKakaoLogin = async () => {
+    try {
+      setSocialLoading(true)
+      const redirectUri = `${window.location.origin}/auth/kakao/callback`
+      const res = await getKakaoAuthorizeUrl(redirectUri)
+      // data: { authorizeUrl: "https://kauth.kakao.com/oauth/authorize?..." }
+      const authorizeUrl = Object.values(res.data)[0]
+      if (authorizeUrl) {
+        // nextPath를 sessionStorage에 저장하여 콜백에서 사용
+        sessionStorage.setItem("auth_next_path", nextPath)
+        window.location.href = authorizeUrl
+      }
+    } catch (error) {
+      setSocialLoading(false)
+      loginMutation.reset()
+    }
+  }
+
   const errorMessage = resolveLoginErrorMessage(loginMutation.error)
-  const isPending = loginMutation.isPending || isSubmitting
+  const isPending = loginMutation.isPending || isSubmitting || socialLoading
 
   return (
     <div className="flex w-full flex-col gap-8">
@@ -136,9 +157,9 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
       {/* 소셜 로그인 */}
       <div className="flex flex-col gap-3">
-        <SocialLoginButton provider="kakao" />
-        <SocialLoginButton provider="google" />
-        <SocialLoginButton provider="apple" />
+        <SocialLoginButton provider="kakao" onClick={handleKakaoLogin} disabled={isPending} />
+        <SocialLoginButton provider="google" disabled={isPending} />
+        <SocialLoginButton provider="apple" disabled={isPending} />
       </div>
 
       {/* 회원가입 링크 */}

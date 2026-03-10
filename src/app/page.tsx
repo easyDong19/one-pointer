@@ -1,15 +1,18 @@
 import type { Category } from "@/entities/category/api/category.schema"
-import type { PopularExpertItem } from "@/entities/expert/api/expert.schema"
+import type { ExpertSummary } from "@/entities/expert/api/expert.schema"
+import type { TicketFeedItem } from "@/entities/ticket/api/ticket.schema"
 import { getCategoriesOnServer } from "@/entities/category/api/category.server-service"
 import { getPopularExpertsOnServer } from "@/entities/expert/api/expert.server-service"
+import { getPopularTicketsOnServer } from "@/entities/ticket/api/ticket.server-service"
 import { HomeHeader } from "@/app/_components/home-header"
-import { HomeHeroBanner } from "@/app/_components/home-hero-banner"
+import { HomeSearchBar } from "@/app/_components/home-search-bar"
 import { HomeCategoryGrid } from "@/app/_components/home-category-grid"
-import { HomeCtaBanner } from "@/app/_components/home-cta-banner"
+import { HomePopularTickets } from "@/app/_components/home-popular-tickets"
 import { HomePopularExperts } from "@/app/_components/home-popular-experts"
 import { HomeHowItWorks } from "@/app/_components/home-how-it-works"
 import { HomeFooter } from "@/app/_components/home-footer"
 import { HomeBottomNav } from "@/app/_components/home-bottom-nav"
+import { HomeFabButton } from "@/app/_components/home-fab-button"
 
 export const dynamic = "force-dynamic"
 
@@ -22,9 +25,10 @@ async function fetchSafe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
 }
 
 export default async function HomePage() {
-  const [categories, popularExperts] = await Promise.all([
+  const [categories, popularTickets, popularExperts] = await Promise.all([
     fetchSafe<Category[]>(getCategoriesOnServer, []),
-    fetchSafe<PopularExpertItem[]>(getPopularExpertsOnServer, []),
+    fetchSafe<TicketFeedItem[]>(getPopularTicketsOnServer, []),
+    fetchSafe<ExpertSummary[]>(getPopularExpertsOnServer, []),
   ])
 
   return (
@@ -32,15 +36,16 @@ export default async function HomePage() {
       <HomeHeader />
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-5 py-6 pb-24 md:gap-10 md:px-10 md:pb-10 lg:px-16">
-        <HomeHeroBanner />
+        <HomeSearchBar />
         <HomeCategoryGrid categories={categories} />
-        <HomeCtaBanner />
+        <HomePopularTickets tickets={popularTickets} />
         <HomePopularExperts experts={popularExperts} />
         <HomeHowItWorks />
       </main>
 
       <HomeFooter />
       <HomeBottomNav />
+      <HomeFabButton />
     </div>
   )
 }

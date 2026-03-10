@@ -11,7 +11,8 @@
       "Bash(npx next build:*)",
       "Bash(ls:*)",
       "Bash(node -e:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npx next lint:*)"
     ]
   }
 }

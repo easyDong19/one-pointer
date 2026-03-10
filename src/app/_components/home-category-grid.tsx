@@ -30,7 +30,7 @@ export function HomeCategoryGrid({ categories }: HomeCategoryGridProps) {
   return (
     <section className="flex flex-col gap-4">
       <Text as="h2" typography="subtitle1-bold" className="text-foreground">
-        전문가 찾기
+        카테고리
       </Text>
 
       {/* 모바일: 대분류만 4열 그리드 (스크린샷 기준) */}
