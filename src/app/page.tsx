@@ -31,9 +31,6 @@ export default async function HomePage() {
     fetchSafe<ExpertSummary[]>(getPopularExpertsOnServer, []),
   ])
 
-  console.log(popularTickets)
-  console.log(popularExperts)
-
   return (
     <div className="bg-background flex min-h-dvh flex-col">
       <HomeHeader />

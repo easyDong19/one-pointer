@@ -24,7 +24,7 @@ export function HomePopularExperts({ experts }: HomePopularExpertsProps) {
   const displayExperts = experts.slice(0, 8)
 
   return (
-    <section className="flex flex-col gap-op-lg">
+    <section className="gap-op-lg flex flex-col">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-xl">🔥</span>
@@ -41,15 +41,19 @@ export function HomePopularExperts({ experts }: HomePopularExpertsProps) {
 
       {/* 모바일: 가로 스크롤 */}
       <div className="-mx-5 px-5 md:mx-0 md:px-0">
-        <div className="flex gap-op-md overflow-x-auto pb-2 scrollbar-none md:hidden">
+        <div className="gap-op-md scrollbar-none flex overflow-x-auto pb-2 md:hidden">
           {displayExperts.map((expert) => (
-            <ExpertCard key={expert.expertProfileId} expert={expert} className="w-[170px] shrink-0" />
+            <ExpertCard
+              key={expert.expertProfileId}
+              expert={expert}
+              className="w-[170px] shrink-0"
+            />
           ))}
         </div>
       </div>
 
       {/* 데스크탑: 그리드 */}
-      <div className="hidden gap-op-md md:grid md:grid-cols-3 lg:grid-cols-4">
+      <div className="gap-op-md hidden md:grid md:grid-cols-3 lg:grid-cols-4">
         {displayExperts.map((expert) => (
           <ExpertCard key={expert.expertProfileId} expert={expert} />
         ))}
@@ -58,22 +62,16 @@ export function HomePopularExperts({ experts }: HomePopularExpertsProps) {
   )
 }
 
-function ExpertCard({
-  expert,
-  className = "",
-}: {
-  expert: ExpertSummary
-  className?: string
-}) {
+function ExpertCard({ expert, className = "" }: { expert: ExpertSummary; className?: string }) {
   const regions = uniqueRegions(expert.regions)
 
   return (
     <Link
       href={`/experts/${expert.expertProfileId}`}
-      className={`border-border bg-card group flex flex-col gap-op-md rounded-2xl border p-op-lg transition-shadow hover:shadow-md ${className}`}
+      className={`border-border bg-card group gap-op-md p-op-lg flex flex-col rounded-2xl border transition-shadow hover:shadow-md ${className}`}
     >
       {/* 프로필 */}
-      <div className="flex items-center gap-op-md">
+      <div className="gap-op-md flex items-center">
         <div className="bg-muted flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full">
           {expert.profileImageUrl ? (
             <img

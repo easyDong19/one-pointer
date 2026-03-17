@@ -12,7 +12,12 @@
       "Bash(ls:*)",
       "Bash(node -e:*)",
       "Bash(curl:*)",
-      "Bash(npx next lint:*)"
+      "Bash(npx next lint:*)",
+      "Bash(pnpm add overlay-kit)",
+      "Bash(pnpm:*)",
+      "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")",
+      "Bash(export PATH=\"/opt/homebrew/bin:/usr/bin:$PATH\")",
+      "Bash(/usr/bin/head -80)"
     ]
   }
 }

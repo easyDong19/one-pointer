@@ -38,7 +38,7 @@ export function HomeCategoryGrid({ categories }: HomeCategoryGridProps) {
           {categories.map((cat) => (
             <Link
               key={cat.id}
-              href={`/experts?majorCategoryId=${cat.id}`}
+              href={`/category/${encodeURIComponent(cat.name)}`}
               className="gap-op-sm flex flex-col items-center"
             >
               <div className="bg-muted flex h-14 w-14 items-center justify-center rounded-2xl">
