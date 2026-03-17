@@ -141,73 +141,76 @@ export function CategoryDetailContent({ categoryName }: { categoryName: string }
 
   return (
     <div className="bg-background flex min-h-dvh flex-col">
-      {/* ── Header ── */}
-      <header className="border-border/50 bg-background/80 sticky top-0 z-50 border-b backdrop-blur-md">
-        <div className="mx-auto flex max-w-3xl items-center px-4 py-3 lg:max-w-5xl">
-          <button
-            onClick={() => router.back()}
-            className="hover:bg-muted -ml-2 flex items-center justify-center rounded-full p-2 transition-colors"
-          >
-            <ChevronLeft className="text-foreground h-5 w-5" />
-          </button>
-          <Text
-            as="h1"
-            typography="subtitle1-bold"
-            className="text-foreground flex-1 text-center"
-          >
-            {category.name}
-          </Text>
-          <div className="w-9" />
-        </div>
-      </header>
-
-      {/* ── Main Tabs (의뢰 / 전문가) ── */}
-      <div className="border-border/50 bg-background sticky top-[53px] z-40 border-b">
-        <div className="mx-auto flex max-w-3xl lg:max-w-5xl">
-          {(["tickets", "experts"] as const).map((tab) => (
+      {/* ── Sticky Header Group ── */}
+      <div className="bg-background/80 sticky top-0 z-50 backdrop-blur-md">
+        {/* Header */}
+        <header className="border-border/50 border-b">
+          <div className="mx-auto flex max-w-3xl items-center px-4 py-2.5 lg:max-w-5xl">
             <button
-              key={tab}
-              onClick={() => actions.setMainTab(tab)}
-              className={cn(
-                "relative flex-1 py-3 text-center transition-colors",
-                state.mainTab === tab ? "text-primary" : "text-muted-foreground",
-              )}
+              onClick={() => router.back()}
+              className="hover:bg-muted -ml-2 flex items-center justify-center rounded-full p-2 transition-colors"
             >
-              <Text as="span" typography="body2-bold">
-                {tab === "tickets" ? "의뢰" : "전문가"}
-              </Text>
-              {state.mainTab === tab && (
-                <span className="bg-primary absolute bottom-0 left-1/2 h-[2px] w-12 -translate-x-1/2 rounded-full" />
-              )}
+              <ChevronLeft className="text-foreground h-5 w-5" />
             </button>
-          ))}
-        </div>
-      </div>
+            <Text
+              as="h1"
+              typography="subtitle1-bold"
+              className="text-foreground flex-1 text-center"
+            >
+              {category.name}
+            </Text>
+            <div className="w-9" />
+          </div>
+        </header>
 
-      {/* ── Sub-category Tabs ── */}
-      <div className="border-border/50 bg-background sticky top-[105px] z-30 border-b">
-        <div className="scrollbar-none mx-auto flex max-w-3xl gap-0 overflow-x-auto lg:max-w-5xl">
-          {allSubCategories.map((sc) => {
-            const isActive = sc.isAll
-              ? state.subCategoryId === undefined
-              : state.subCategoryId === sc.id
-            return (
+        {/* Main Tabs (의뢰 / 전문가) */}
+        <div className="border-border/50 border-b">
+          <div className="mx-auto flex max-w-3xl lg:max-w-5xl">
+            {(["tickets", "experts"] as const).map((tab) => (
               <button
-                key={sc.id}
-                onClick={() => actions.setSubCategory(sc.isAll ? undefined : sc.id)}
+                key={tab}
+                onClick={() => actions.setMainTab(tab)}
                 className={cn(
-                  "shrink-0 px-5 py-3 transition-colors",
-                  isActive
-                    ? "border-foreground text-foreground border-b-2 font-semibold"
-                    : "text-muted-foreground hover:text-foreground",
+                  "relative flex-1 py-2.5 text-center transition-colors",
+                  state.mainTab === tab ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <Text as="span" typography="body3-medium">
-                  {sc.name}
+                <Text as="span" typography="body2-bold">
+                  {tab === "tickets" ? "의뢰" : "전문가"}
                 </Text>
+                {state.mainTab === tab && (
+                  <span className="bg-primary absolute bottom-0 left-1/2 h-[2px] w-12 -translate-x-1/2 rounded-full" />
+                )}
               </button>
-            )
-          })}
+            ))}
+          </div>
+        </div>
+
+        {/* Sub-category Tabs */}
+        <div className="border-border/50 border-b">
+          <div className="scrollbar-none mx-auto flex max-w-3xl gap-0 overflow-x-auto lg:max-w-5xl">
+            {allSubCategories.map((sc) => {
+              const isActive = sc.isAll
+                ? state.subCategoryId === undefined
+                : state.subCategoryId === sc.id
+              return (
+                <button
+                  key={sc.id}
+                  onClick={() => actions.setSubCategory(sc.isAll ? undefined : sc.id)}
+                  className={cn(
+                    "shrink-0 px-5 py-2.5 transition-colors",
+                    isActive
+                      ? "border-foreground text-foreground border-b-2 font-semibold"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <Text as="span" typography="body3-medium">
+                    {sc.name}
+                  </Text>
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
