@@ -29,9 +29,18 @@ export const ticketStatusSchema = z.enum([
 // ─── Sub-schemas ─────────────────────────────────────────────────────────────
 
 export const desiredDateSchema = z.object({
+  id: z.number().optional(),
   date: z.string(),
   timeSlot: z.string(),
 })
+
+export const ticketImageSchema = z.object({
+  id: z.number(),
+  imageUrl: z.string(),
+  displayOrder: z.number(),
+})
+
+export const sourceTypeSchema = z.enum(["TICKET_FEED", "DIRECT_REQUEST"])
 
 export const ticketSummarySchema = z.object({
   id: z.number(),
@@ -46,24 +55,28 @@ export const ticketSummarySchema = z.object({
   region: z.string().nullable().optional(),
   subCategoryId: z.number().optional(),
   subCategoryName: z.string().optional(),
+  categoryName: z.string().optional(),
   createdAt: z.string(),
-  updatedAt: z.string().optional(),
-  directRequest: z.boolean().optional(),
 })
 
 export const ticketDetailSchema = ticketSummarySchema.extend({
-  desiredDuration: ticketDurationSchema.optional(),
+  desiredDuration: z.string().nullable().optional(),
+  estimatedDurationValue: z.number().nullable().optional(),
+  estimatedDurationUnit: z.string().nullable().optional(),
   locationDetail: z.string().nullable().optional(),
+  deadline: z.string().nullable().optional(),
+  sourceType: sourceTypeSchema.optional(),
   desiredDates: z.array(desiredDateSchema).optional(),
   targetExpertId: z.number().nullable().optional(),
-  proposalCount: z.number().optional(),
+  matchedAt: z.string().nullable().optional(),
+  proposalCount: z.number().nullable().optional(),
   clientId: z.number().optional(),
-  clientNickname: z.string().optional(),
-  clientProfileImageUrl: z.string().url().nullable().optional(),
+  images: z.array(ticketImageSchema).optional(),
 })
 
 export type TicketSummary = z.infer<typeof ticketSummarySchema>
 export type TicketDetail = z.infer<typeof ticketDetailSchema>
+export type TicketImage = z.infer<typeof ticketImageSchema>
 
 // ─── Request Schemas ──────────────────────────────────────────────────────────
 
@@ -116,7 +129,7 @@ export const ticketFeedItemSchema = z.object({
   budgetType: budgetTypeSchema,
   budgetMin: z.number(),
   budgetMax: z.number(),
-  desiredDuration: ticketDurationSchema,
+  desiredDuration: z.string(),
   region: z.string().nullable(),
   locationDetail: z.string().nullable(),
   createdAt: z.string(),

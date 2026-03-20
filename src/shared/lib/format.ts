@@ -4,6 +4,32 @@ export function formatBudget(min: number, max: number): string {
   return `${fmt(min)} ~ ${fmt(max)}원`
 }
 
+/** "2026.03.20" 형식 */
+export function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}.${m}.${d}`
+}
+
+/** "2026-03-20" 형식 */
+export function formatDateShort(dateString: string): string {
+  const date = new Date(dateString)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
+}
+
+/** 마감일까지 남은 일수 계산 (D-day) */
+export function getDaysUntilDeadline(deadlineString: string): number {
+  const deadline = new Date(deadlineString)
+  const now = new Date()
+  const diffMs = deadline.getTime() - now.getTime()
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+}
+
 export function formatRelativeTime(dateString: string): string {
   const now = new Date()
   const date = new Date(dateString)
