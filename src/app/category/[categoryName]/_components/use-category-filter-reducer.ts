@@ -69,8 +69,11 @@ function categoryFilterReducer(state: CategoryFilterState, action: Action): Cate
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useCategoryFilterReducer() {
-  const [state, dispatch] = useReducer(categoryFilterReducer, initialState)
+export function useCategoryFilterReducer(initialMainTab?: MainTab) {
+  const [state, dispatch] = useReducer(categoryFilterReducer, {
+    ...initialState,
+    ...(initialMainTab && { mainTab: initialMainTab }),
+  })
 
   const actions = {
     setMainTab: (tab: MainTab) => dispatch({ type: "SET_MAIN_TAB", payload: tab }),

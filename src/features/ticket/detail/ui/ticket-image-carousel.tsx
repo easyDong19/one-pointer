@@ -86,21 +86,11 @@ export function TicketImageCarousel({
 
 function BackButton({ onBack }: { onBack: () => void }) {
   return (
-    <>
-      {/* Mobile */}
-      <button
-        onClick={onBack}
-        className="absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm transition-colors hover:bg-black/50 lg:hidden"
-      >
-        <ChevronLeft className="h-5 w-5 text-white" />
-      </button>
-      {/* Desktop */}
-      <button
-        onClick={onBack}
-        className="hover:bg-muted absolute left-3 top-3 z-10 hidden h-9 w-9 items-center justify-center rounded-full bg-white/80 shadow-sm backdrop-blur-sm transition-colors lg:flex"
-      >
-        <ChevronLeft className="text-foreground h-5 w-5" />
-      </button>
-    </>
+    <button
+      onClick={onBack}
+      className="absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm transition-colors hover:bg-black/50 lg:hidden"
+    >
+      <ChevronLeft className="h-5 w-5 text-white" />
+    </button>
   )
 }

@@ -1,14 +1,15 @@
 "use client"
 
 import { useCallback, useRef } from "react"
-import { useRouter } from "next/navigation"
-import { ChevronLeft, Loader2 } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Loader2 } from "lucide-react"
 import InboxIcon from "@mui/icons-material/Inbox"
 import { Text } from "@/shared/ui/text"
 import { cn } from "@/shared/lib/utils"
 import type { SubCategory } from "@/entities/category/api/category.schema"
 import type { TicketFeedParams } from "@/entities/ticket/api/ticket.schema"
 import type { ExpertListParams } from "@/entities/expert/api/expert.schema"
+import { DetailPageHeader } from "@/shared/ui/detail-page-header"
 import { useCategoryListQuery } from "@/features/category/browse/model/use-category-list-query"
 import { useTicketFeedQuery } from "@/features/ticket/feed/model/use-ticket-feed-query"
 import { useExpertListQuery } from "@/features/expert/browse/model/use-expert-list-query"
@@ -22,7 +23,20 @@ import { ExpertList } from "./expert-list-item"
 
 export function CategoryDetailContent({ categoryName }: { categoryName: string }) {
   const router = useRouter()
-  const [state, actions] = useCategoryFilterReducer()
+  const searchParams = useSearchParams()
+  const initialTab = searchParams.get("tab") === "experts" ? "experts" as const : "tickets" as const
+  const [state, actions] = useCategoryFilterReducer(initialTab)
+
+  const handleMainTabChange = (tab: "tickets" | "experts") => {
+    actions.setMainTab(tab)
+    const params = new URLSearchParams(searchParams.toString())
+    if (tab === "experts") {
+      params.set("tab", "experts")
+    } else {
+      params.delete("tab")
+    }
+    router.replace(`?${params.toString()}`, { scroll: false })
+  }
 
   // ── CSR: 카테고리 목록 패칭 ──
   const { data: categories, isLoading: isCategoryLoading } = useCategoryListQuery()
@@ -145,24 +159,10 @@ export function CategoryDetailContent({ categoryName }: { categoryName: string }
       {/* ── Sticky Header Group ── */}
       <div className="bg-background/80 sticky top-0 z-50 backdrop-blur-md">
         {/* Header */}
-        <header className="border-border/50 border-b">
-          <div className="mx-auto flex max-w-3xl items-center px-4 py-2.5 lg:max-w-5xl">
-            <button
-              onClick={() => router.back()}
-              className="hover:bg-muted -ml-2 flex items-center justify-center rounded-full p-2 transition-colors"
-            >
-              <ChevronLeft className="text-foreground h-5 w-5" />
-            </button>
-            <Text
-              as="h1"
-              typography="subtitle1-bold"
-              className="text-foreground flex-1 text-center"
-            >
-              {category.name}
-            </Text>
-            <div className="w-9" />
-          </div>
-        </header>
+        <DetailPageHeader
+          title={category.name}
+          className="static z-auto border-border/50 lg:flex"
+        />
 
         {/* Main Tabs (의뢰 / 전문가) */}
         <div className="border-border/50 border-b">
@@ -170,7 +170,7 @@ export function CategoryDetailContent({ categoryName }: { categoryName: string }
             {(["tickets", "experts"] as const).map((tab) => (
               <button
                 key={tab}
-                onClick={() => actions.setMainTab(tab)}
+                onClick={() => handleMainTabChange(tab)}
                 className={cn(
                   "relative flex-1 py-2.5 text-center transition-colors",
                   state.mainTab === tab ? "text-primary" : "text-muted-foreground",

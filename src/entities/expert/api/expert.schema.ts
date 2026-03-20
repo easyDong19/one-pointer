@@ -39,24 +39,57 @@ export type PopularExpertItem = ExpertSummary
 
 // ─── ExpertDetail ────────────────────────────────────────────────────────────
 
-export const expertDetailSchema = expertSummarySchema.extend({
-  detailIntroduction: z.string().optional(),
-  availableTimes: z
-    .array(z.object({ dayOfWeek: z.string(), timeSlot: z.string() }))
-    .optional(),
-  certifications: z
-    .array(z.object({ id: z.number().optional(), name: z.string(), issuer: z.string() }))
-    .optional(),
-  portfolios: z
-    .array(
-      z.object({
-        id: z.number().optional(),
-        type: z.string(),
-        imageUrls: z.array(z.string()),
-        description: z.string(),
-      }),
-    )
-    .optional(),
+export const expertCategorySchema = z.object({
+  majorCategoryName: z.string(),
+  majorCategoryIconUrl: z.string().nullable().optional(),
+  subCategoryNames: z.array(z.string()),
+})
+
+export const expertAvailableTimeSchema = z.object({
+  dayOfWeek: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
+})
+
+export const expertCertificationSchema = z.object({
+  id: z.number().optional(),
+  name: z.string(),
+  issuer: z.string(),
+})
+
+export const expertPortfolioSchema = z.object({
+  id: z.number().optional(),
+  type: z.string(),
+  imageUrls: z.array(z.string()),
+  description: z.string(),
+})
+
+export const expertReviewSummarySchema = z.object({
+  averageRating: z.number().nullable(),
+  reviewCount: z.number(),
+  totalMatchCount: z.number(),
+})
+
+export const expertAuthStatusSchema = z.enum(["PENDING", "APPROVED", "REJECTED"])
+
+export const expertDetailSchema = z.object({
+  expertProfileId: z.number(),
+  userId: z.number(),
+  nickname: z.string(),
+  profileImageUrl: z.string().nullable(),
+  introduction: z.string(),
+  detailIntroduction: z.string().nullable().optional(),
+  careerPeriod: z.string(),
+  activityMethod: activityMethodSchema,
+  authStatus: expertAuthStatusSchema.optional(),
+  grade: expertGradeSchema,
+  activeBenefits: z.array(z.string()).optional(),
+  categories: z.array(expertCategorySchema),
+  availableRegions: z.array(z.string()),
+  availableTimes: z.array(expertAvailableTimeSchema).optional(),
+  certifications: z.array(expertCertificationSchema).optional(),
+  portfolios: z.array(expertPortfolioSchema).optional(),
+  reviewSummary: expertReviewSummarySchema.optional(),
 })
 
 export type ExpertDetail = z.infer<typeof expertDetailSchema>
