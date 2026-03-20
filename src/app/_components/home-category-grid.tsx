@@ -1,4 +1,14 @@
 import Link from "next/link"
+import SportsIcon from "@mui/icons-material/FitnessCenter"
+import MusicNoteIcon from "@mui/icons-material/MusicNote"
+import ComputerIcon from "@mui/icons-material/Computer"
+import BrushIcon from "@mui/icons-material/Brush"
+import MenuBookIcon from "@mui/icons-material/MenuBook"
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome"
+import AssignmentIcon from "@mui/icons-material/Assignment"
+import WorkIcon from "@mui/icons-material/Work"
+import SchoolIcon from "@mui/icons-material/School"
+import PushPinIcon from "@mui/icons-material/PushPin"
 import { Text } from "@/shared/ui/text"
 import type { Category } from "@/entities/category/api/category.schema"
 
@@ -7,17 +17,17 @@ import type { Category } from "@/entities/category/api/category.schema"
  * 모바일/데스크탑 동일: 아이콘 + 텍스트 (중분류는 상세 페이지에서 노출)
  */
 
-/** API iconUrl이 없을 때 fallback 이모지 */
-const CATEGORY_FALLBACK_ICONS: Record<string, string> = {
-  스포츠: "🏃",
-  음악: "🎵",
-  IT: "💻",
-  디자인: "🎨",
-  과외: "📚",
-  "취미/자기개발": "✨",
-  "외주/의뢰": "📋",
-  "커리어/취업": "💼",
-  "교육/과외": "📖",
+/** API iconUrl이 없을 때 fallback 아이콘 */
+const CATEGORY_FALLBACK_ICONS: Record<string, React.ReactNode> = {
+  스포츠: <SportsIcon />,
+  음악: <MusicNoteIcon />,
+  IT: <ComputerIcon />,
+  디자인: <BrushIcon />,
+  과외: <MenuBookIcon />,
+  "취미/자기개발": <AutoAwesomeIcon />,
+  "외주/의뢰": <AssignmentIcon />,
+  "커리어/취업": <WorkIcon />,
+  "교육/과외": <SchoolIcon />,
 }
 
 type HomeCategoryGridProps = {
@@ -45,7 +55,7 @@ export function HomeCategoryGrid({ categories }: HomeCategoryGridProps) {
                 {cat.iconUrl ? (
                   <img src={cat.iconUrl} alt={cat.name} className="h-8 w-8 object-contain" />
                 ) : (
-                  <span className="text-2xl">{CATEGORY_FALLBACK_ICONS[cat.name] ?? "📌"}</span>
+                  <span className="text-muted-foreground">{CATEGORY_FALLBACK_ICONS[cat.name] ?? <PushPinIcon />}</span>
                 )}
               </div>
               <Text as="span" typography="caption1-medium" className="text-foreground">

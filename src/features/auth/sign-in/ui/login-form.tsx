@@ -68,7 +68,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       {/* 슬로건: 모바일 중앙 / 데스크탑 좌측 */}
       <div>
         <Text as="h1" typography="h2-bold" className="text-primary text-center md:text-left">
-          다시 만나서 반가워요 👋
+          다시 만나서 반가워요
         </Text>
         <Text as="p" typography="body2-regular" className="text-muted-foreground mt-1 text-center md:text-left">
           계정에 로그인하세요

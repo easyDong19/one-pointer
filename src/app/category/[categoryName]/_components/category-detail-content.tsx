@@ -3,6 +3,7 @@
 import { useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Loader2 } from "lucide-react"
+import InboxIcon from "@mui/icons-material/Inbox"
 import { Text } from "@/shared/ui/text"
 import { cn } from "@/shared/lib/utils"
 import type { SubCategory } from "@/entities/category/api/category.schema"
@@ -281,9 +282,7 @@ function EmptyState({ message }: { message: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-20">
       <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-        <Text as="span" className="text-2xl">
-          📭
-        </Text>
+        <InboxIcon className="text-muted-foreground" style={{ fontSize: 32 }} />
       </div>
       <Text as="p" typography="body2-medium" className="text-muted-foreground">
         {message}

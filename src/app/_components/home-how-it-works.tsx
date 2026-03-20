@@ -1,3 +1,7 @@
+import EditNoteIcon from "@mui/icons-material/EditNote"
+import MailOutlineIcon from "@mui/icons-material/MailOutline"
+import HandshakeIcon from "@mui/icons-material/Handshake"
+import TrackChangesIcon from "@mui/icons-material/TrackChanges"
 import { Text } from "@/shared/ui/text"
 
 const STEPS = [
@@ -5,25 +9,25 @@ const STEPS = [
     step: 1,
     title: "의뢰 등록",
     description: "내용 확인",
-    icon: "📝",
+    icon: <EditNoteIcon fontSize="small" />,
   },
   {
     step: 2,
     title: "제안서 확인",
     description: "전문가 비교",
-    icon: "📨",
+    icon: <MailOutlineIcon fontSize="small" />,
   },
   {
     step: 3,
     title: "전문가 선택",
     description: "비교 후 선택",
-    icon: "🤝",
+    icon: <HandshakeIcon fontSize="small" />,
   },
   {
     step: 4,
     title: "서비스 진행",
     description: "온·오프라인 수업",
-    icon: "🎯",
+    icon: <TrackChangesIcon fontSize="small" />,
   },
 ]
 

@@ -1,6 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import TrackChangesIcon from "@mui/icons-material/TrackChanges"
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline"
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined"
 import { LoginForm } from "@/features/auth/sign-in/ui/login-form"
 import { resolveNextPath } from "@/shared/lib/redirect"
 import { Text } from "@/shared/ui/text"
@@ -42,15 +45,15 @@ export default function LoginPage() {
           {/* 피처 리스트 */}
           <div className="mt-op-lg flex flex-col gap-op-md w-full">
             {[
-              { icon: "🎯", label: "정확한 전문가 매칭" },
-              { icon: "💬", label: "실시간 1:1 채팅" },
-              { icon: "🔒", label: "안전한 에스크로 결제" },
+              { icon: <TrackChangesIcon fontSize="small" />, label: "정확한 전문가 매칭" },
+              { icon: <ChatBubbleOutlineIcon fontSize="small" />, label: "실시간 1:1 채팅" },
+              { icon: <LockOutlinedIcon fontSize="small" />, label: "안전한 에스크로 결제" },
             ].map((item) => (
               <div
                 key={item.label}
                 className="flex items-center gap-op-md rounded-xl bg-white/10 px-op-xl py-op-md text-left backdrop-blur-sm"
               >
-                <span className="text-lg">{item.icon}</span>
+                <span className="text-primary-foreground/90">{item.icon}</span>
                 <Text as="span" typography="body2-medium" className="text-primary-foreground/90">
                   {item.label}
                 </Text>
