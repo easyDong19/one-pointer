@@ -17,7 +17,9 @@
       "Bash(pnpm:*)",
       "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")",
       "Bash(export PATH=\"/opt/homebrew/bin:/usr/bin:$PATH\")",
-      "Bash(/usr/bin/head -80)"
+      "Bash(/usr/bin/head -80)",
+      "Bash(npx shadcn@latest add badge separator carousel -y)",
+      "Bash(npx shadcn@latest add badge separator carousel --overwrite)"
     ]
   }
 }
