@@ -1,9 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import TrackChangesIcon from "@mui/icons-material/TrackChanges"
-import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline"
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined"
+import { Target, MessageCircle, Lock } from "lucide-react"
 import { LoginForm } from "@/features/auth/sign-in/ui/login-form"
 import { resolveNextPath } from "@/shared/lib/redirect"
 import { Text } from "@/shared/ui/text"
@@ -45,9 +43,9 @@ export default function LoginPage() {
           {/* 피처 리스트 */}
           <div className="mt-op-lg flex flex-col gap-op-md w-full">
             {[
-              { icon: <TrackChangesIcon fontSize="small" />, label: "정확한 전문가 매칭" },
-              { icon: <ChatBubbleOutlineIcon fontSize="small" />, label: "실시간 1:1 채팅" },
-              { icon: <LockOutlinedIcon fontSize="small" />, label: "안전한 에스크로 결제" },
+              { icon: <Target size={20} />, label: "정확한 전문가 매칭" },
+              { icon: <MessageCircle size={20} />, label: "실시간 1:1 채팅" },
+              { icon: <Lock size={20} />, label: "안전한 에스크로 결제" },
             ].map((item) => (
               <div
                 key={item.label}

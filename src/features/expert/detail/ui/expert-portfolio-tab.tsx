@@ -2,8 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import BrokenImageOutlinedIcon from "@mui/icons-material/BrokenImageOutlined"
-import PhotoLibraryOutlinedIcon from "@mui/icons-material/PhotoLibraryOutlined"
+import { ImageOff, Images } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import type { ExpertDetail } from "@/entities/expert/api/expert.schema"
 
@@ -13,7 +12,7 @@ export function ExpertPortfolioTab({ expert }: { expert: ExpertDetail }) {
   if (portfolios.length === 0) {
     return (
       <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 py-12">
-        <PhotoLibraryOutlinedIcon className="text-muted-foreground/40" sx={{ fontSize: 48 }} />
+        <Images className="text-muted-foreground/40" size={48} />
         <Text as="p" typography="body2-regular" className="text-muted-foreground">
           등록된 포트폴리오가 없습니다
         </Text>
@@ -60,7 +59,7 @@ function PortfolioImage({
   if (!src || hasError) {
     return (
       <div className="bg-muted flex aspect-video w-full items-center justify-center">
-        <BrokenImageOutlinedIcon className="text-muted-foreground/30" sx={{ fontSize: 48 }} />
+        <ImageOff className="text-muted-foreground/30" size={48} />
       </div>
     )
   }

@@ -1,7 +1,4 @@
-import EditNoteIcon from "@mui/icons-material/EditNote"
-import MailOutlineIcon from "@mui/icons-material/MailOutline"
-import HandshakeIcon from "@mui/icons-material/Handshake"
-import TrackChangesIcon from "@mui/icons-material/TrackChanges"
+import { PenLine, Mail, Handshake, Target } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 
 const STEPS = [
@@ -9,25 +6,25 @@ const STEPS = [
     step: 1,
     title: "의뢰 등록",
     description: "내용 확인",
-    icon: <EditNoteIcon fontSize="small" />,
+    icon: <PenLine size={20} />,
   },
   {
     step: 2,
     title: "제안서 확인",
     description: "전문가 비교",
-    icon: <MailOutlineIcon fontSize="small" />,
+    icon: <Mail size={20} />,
   },
   {
     step: 3,
     title: "전문가 선택",
     description: "비교 후 선택",
-    icon: <HandshakeIcon fontSize="small" />,
+    icon: <Handshake size={20} />,
   },
   {
     step: 4,
     title: "서비스 진행",
     description: "온·오프라인 수업",
-    icon: <TrackChangesIcon fontSize="small" />,
+    icon: <Target size={20} />,
   },
 ]
 

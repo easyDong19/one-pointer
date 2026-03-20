@@ -1,14 +1,5 @@
 import Link from "next/link"
-import SportsIcon from "@mui/icons-material/FitnessCenter"
-import MusicNoteIcon from "@mui/icons-material/MusicNote"
-import ComputerIcon from "@mui/icons-material/Computer"
-import BrushIcon from "@mui/icons-material/Brush"
-import MenuBookIcon from "@mui/icons-material/MenuBook"
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome"
-import AssignmentIcon from "@mui/icons-material/Assignment"
-import WorkIcon from "@mui/icons-material/Work"
-import SchoolIcon from "@mui/icons-material/School"
-import PushPinIcon from "@mui/icons-material/PushPin"
+import { Dumbbell, Music, Monitor, Paintbrush, BookOpen, Sparkles, ClipboardList, Briefcase, GraduationCap, Pin } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import type { Category } from "@/entities/category/api/category.schema"
 
@@ -19,15 +10,15 @@ import type { Category } from "@/entities/category/api/category.schema"
 
 /** API iconUrl이 없을 때 fallback 아이콘 */
 const CATEGORY_FALLBACK_ICONS: Record<string, React.ReactNode> = {
-  스포츠: <SportsIcon />,
-  음악: <MusicNoteIcon />,
-  IT: <ComputerIcon />,
-  디자인: <BrushIcon />,
-  과외: <MenuBookIcon />,
-  "취미/자기개발": <AutoAwesomeIcon />,
-  "외주/의뢰": <AssignmentIcon />,
-  "커리어/취업": <WorkIcon />,
-  "교육/과외": <SchoolIcon />,
+  스포츠: <Dumbbell />,
+  음악: <Music />,
+  IT: <Monitor />,
+  디자인: <Paintbrush />,
+  과외: <BookOpen />,
+  "취미/자기개발": <Sparkles />,
+  "외주/의뢰": <ClipboardList />,
+  "커리어/취업": <Briefcase />,
+  "교육/과외": <GraduationCap />,
 }
 
 type HomeCategoryGridProps = {
@@ -55,7 +46,7 @@ export function HomeCategoryGrid({ categories }: HomeCategoryGridProps) {
                 {cat.iconUrl ? (
                   <img src={cat.iconUrl} alt={cat.name} className="h-8 w-8 object-contain" />
                 ) : (
-                  <span className="text-muted-foreground">{CATEGORY_FALLBACK_ICONS[cat.name] ?? <PushPinIcon />}</span>
+                  <span className="text-muted-foreground">{CATEGORY_FALLBACK_ICONS[cat.name] ?? <Pin />}</span>
                 )}
               </div>
               <Text as="span" typography="caption1-medium" className="text-foreground">

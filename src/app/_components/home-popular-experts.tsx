@@ -1,7 +1,5 @@
 import Link from "next/link"
-import WhatshotIcon from "@mui/icons-material/Whatshot"
-import StarIcon from "@mui/icons-material/Star"
-import PersonIcon from "@mui/icons-material/Person"
+import { Flame, Star, User } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import type { ExpertSummary } from "@/entities/expert/api/expert.schema"
 
@@ -29,7 +27,7 @@ export function HomePopularExperts({ experts }: HomePopularExpertsProps) {
     <section className="gap-op-lg flex flex-col">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <WhatshotIcon className="text-destructive" />
+          <Flame className="text-destructive" />
           <Text as="h2" typography="subtitle1-bold" className="text-foreground">
             인기 전문가
           </Text>
@@ -82,7 +80,7 @@ function ExpertCard({ expert, className = "" }: { expert: ExpertSummary; classNa
               className="h-full w-full object-cover"
             />
           ) : (
-            <PersonIcon className="text-muted-foreground" style={{ fontSize: 20 }} />
+            <User className="text-muted-foreground" size={20} />
           )}
         </div>
         <Text as="span" typography="body2-bold" className="text-foreground line-clamp-1">
@@ -105,7 +103,7 @@ function ExpertCard({ expert, className = "" }: { expert: ExpertSummary; classNa
 
       {/* 별점 */}
       <div className="flex items-center gap-1">
-        <StarIcon className="text-warning" style={{ fontSize: 14 }} />
+        <Star className="text-warning" size={14} />
         <Text as="span" typography="body3-bold" className="text-foreground">
           {expert.averageRating != null ? expert.averageRating.toFixed(1) : "-"}
         </Text>

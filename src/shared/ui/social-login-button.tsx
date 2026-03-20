@@ -1,7 +1,5 @@
 import * as React from "react"
-import ChatBubbleIcon from "@mui/icons-material/ChatBubble"
-import LanguageIcon from "@mui/icons-material/Language"
-import AppleIcon from "@mui/icons-material/Apple"
+import { MessageCircle, Globe, Apple } from "lucide-react"
 import { cn } from "@/shared/lib/utils"
 
 type SocialProvider = "kakao" | "google" | "apple"
@@ -12,17 +10,17 @@ const SOCIAL_CONFIG: Record<
 > = {
   kakao: {
     label: "카카오로 계속하기",
-    icon: <ChatBubbleIcon style={{ fontSize: 18 }} />,
+    icon: <MessageCircle size={18} />,
     className: "bg-(--color-kakao-bg) text-(--color-kakao-fg) hover:brightness-95",
   },
   google: {
     label: "Google로 계속하기",
-    icon: <LanguageIcon style={{ fontSize: 18 }} />,
+    icon: <Globe size={18} />,
     className: "bg-(--color-google-bg) text-(--color-google-fg) border border-(--color-google-border) hover:bg-neutral-50",
   },
   apple: {
     label: "Apple로 계속하기",
-    icon: <AppleIcon style={{ fontSize: 18 }} />,
+    icon: <Apple size={18} />,
     className: "bg-(--color-apple-bg) text-(--color-apple-fg) hover:brightness-110",
   },
 }

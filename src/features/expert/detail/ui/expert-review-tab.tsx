@@ -1,4 +1,4 @@
-import RateReviewOutlinedIcon from "@mui/icons-material/RateReviewOutlined"
+import { MessageSquareText } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import type { ExpertDetail } from "@/entities/expert/api/expert.schema"
 
@@ -12,7 +12,7 @@ export function ExpertReviewTab({ expert }: { expert: ExpertDetail }) {
   if (reviewCount === 0) {
     return (
       <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 py-12">
-        <RateReviewOutlinedIcon className="text-muted-foreground/40" sx={{ fontSize: 48 }} />
+        <MessageSquareText className="text-muted-foreground/40" size={48} />
         <Text as="p" typography="body2-regular" className="text-muted-foreground">
           등록된 리뷰가 없습니다
         </Text>
@@ -22,7 +22,7 @@ export function ExpertReviewTab({ expert }: { expert: ExpertDetail }) {
 
   return (
     <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 px-4 py-12 lg:px-0">
-      <RateReviewOutlinedIcon className="text-muted-foreground/40" sx={{ fontSize: 48 }} />
+      <MessageSquareText className="text-muted-foreground/40" size={48} />
       <Text as="p" typography="body2-regular" className="text-muted-foreground">
         리뷰 {reviewCount}개가 있습니다
       </Text>

@@ -1,6 +1,5 @@
 import Link from "next/link"
-import TrendingUpIcon from "@mui/icons-material/TrendingUp"
-import MonitorIcon from "@mui/icons-material/Monitor"
+import { TrendingUp, Monitor } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import type { TicketFeedItem } from "@/entities/ticket/api/ticket.schema"
 
@@ -27,7 +26,7 @@ export function HomePopularTickets({ tickets }: HomePopularTicketsProps) {
   return (
     <section className="flex flex-col gap-op-lg">
       <div className="flex items-center gap-2">
-        <TrendingUpIcon className="text-primary" />
+        <TrendingUp className="text-primary" />
         <Text as="h2" typography="subtitle1-bold" className="text-foreground">
           인기 있는 의뢰
         </Text>
@@ -76,7 +75,7 @@ function TicketCard({
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <MonitorIcon className="text-muted-foreground/40" style={{ fontSize: 40 }} />
+            <Monitor className="text-muted-foreground/40" size={40} />
           </div>
         )}
         {ticket.new && (

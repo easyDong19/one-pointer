@@ -1,4 +1,4 @@
-import WorkspacePremiumOutlinedIcon from "@mui/icons-material/WorkspacePremiumOutlined"
+import { Award } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import type { ExpertDetail } from "@/entities/expert/api/expert.schema"
 
@@ -8,7 +8,7 @@ export function ExpertCertificationTab({ expert }: { expert: ExpertDetail }) {
   if (certifications.length === 0) {
     return (
       <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 py-12">
-        <WorkspacePremiumOutlinedIcon className="text-muted-foreground/40" sx={{ fontSize: 48 }} />
+        <Award className="text-muted-foreground/40" size={48} />
         <Text as="p" typography="body2-regular" className="text-muted-foreground">
           등록된 자격증이 없습니다
         </Text>
@@ -24,7 +24,7 @@ export function ExpertCertificationTab({ expert }: { expert: ExpertDetail }) {
           className="bg-card border-border flex items-center gap-4 rounded-xl border p-4"
         >
           <div className="bg-muted flex h-11 w-11 items-center justify-center rounded-full">
-            <WorkspacePremiumOutlinedIcon className="text-muted-foreground" sx={{ fontSize: 22 }} />
+            <Award className="text-muted-foreground" size={22} />
           </div>
           <div className="flex flex-col gap-0.5">
             <Text as="p" typography="body2-bold" className="text-foreground">
