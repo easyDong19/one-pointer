@@ -7,6 +7,7 @@ import {
   myProfileResponseSchema,
   signupRequestSchema,
   signupResponseSchema,
+  checkEmailResponseSchema,
   checkNicknameResponseSchema,
   kakaoLoginRequestSchema,
   kakaoLoginResponseSchema,
@@ -24,6 +25,7 @@ import {
   type MyProfileResponse,
   type SignupRequest,
   type SignupResponse,
+  type CheckEmailResponse,
   type CheckNicknameResponse,
   type KakaoLoginRequest,
   type KakaoLoginResponse,
@@ -44,6 +46,7 @@ export type {
   MyProfileResponse,
   SignupRequest,
   SignupResponse,
+  CheckEmailResponse,
   CheckNicknameResponse,
   KakaoLoginRequest,
   KakaoLoginResponse,
@@ -120,6 +123,25 @@ export async function logout(): Promise<LogoutResponse> {
     path,
     method,
     message: "Invalid logout response payload",
+  })
+}
+
+// ─── 이메일 중복 검사 ──────────────────────────────────────────────────────────
+
+export async function checkEmail(email: string): Promise<CheckEmailResponse> {
+  const path = "/v1/api/auth/check-email"
+  const method = "GET"
+
+  const response = await clientFetch<unknown>({
+    path,
+    method,
+    query: { email },
+  })
+
+  return parseSchemaOrThrow(checkEmailResponseSchema, response, {
+    path,
+    method,
+    message: "Invalid check-email response payload",
   })
 }
 

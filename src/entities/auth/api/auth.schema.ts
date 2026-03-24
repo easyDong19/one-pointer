@@ -59,6 +59,35 @@ export const signupRequestSchema = z.object({
   chatReviewAgreed: z.boolean(),
 })
 
+// ─── 회원가입 폼 스키마 (클라이언트 전용) ────────────────────────────────────────
+
+const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/
+
+export const signupFormSchema = z
+  .object({
+    email: z.string().email("유효한 이메일 형식이 아닙니다."),
+    password: z
+      .string()
+      .min(8, "비밀번호는 8자 이상이어야 합니다.")
+      .regex(passwordRegex, "영문, 숫자, 특수문자를 모두 포함해야 합니다."),
+    passwordConfirm: z.string().min(1, "비밀번호를 다시 입력해주세요."),
+    name: z.string().min(1, "이름을 입력해주세요."),
+    nickname: z
+      .string()
+      .min(2, "닉네임은 2자 이상이어야 합니다.")
+      .max(7, "닉네임은 7자 이하이어야 합니다."),
+    termsOfService: z.boolean(),
+    privacyPolicy: z.boolean(),
+    chatReviewAgreed: z.boolean(),
+    marketingConsent: z.boolean(),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: "비밀번호가 일치하지 않습니다.",
+    path: ["passwordConfirm"],
+  })
+
+export type SignupFormData = z.infer<typeof signupFormSchema>
+
 export type SignupRequest = z.infer<typeof signupRequestSchema>
 
 export const signupResponseSchema = authTokenResponseSchema
@@ -74,6 +103,16 @@ export const logoutResponseSchema = z.object({
 })
 
 export type LogoutResponse = z.infer<typeof logoutResponseSchema>
+
+// ─── 이메일 중복 검사 ──────────────────────────────────────────────────────────
+
+export const checkEmailResponseSchema = z.object({
+  success: z.literal(true),
+  message: z.string(),
+  data: z.record(z.string(), z.boolean()),
+})
+
+export type CheckEmailResponse = z.infer<typeof checkEmailResponseSchema>
 
 // ─── 닉네임 중복 검사 ──────────────────────────────────────────────────────────
 
