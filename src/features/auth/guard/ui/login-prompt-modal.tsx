@@ -14,13 +14,17 @@ import { Text } from "@/shared/ui/text"
 type LoginPromptModalProps = {
   isOpen: boolean
   onLogin: () => void
-  onClose: () => void
+  onGoHome: () => void
 }
 
-export function LoginPromptModal({ isOpen, onLogin, onClose }: LoginPromptModalProps) {
+export function LoginPromptModal({ isOpen, onLogin, onGoHome }: LoginPromptModalProps) {
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+    <Dialog open={isOpen}>
+      <DialogContent
+        className="[&>button:last-child]:hidden"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>
             <Text typography="subtitle1-bold">로그인이 필요합니다</Text>
@@ -32,8 +36,8 @@ export function LoginPromptModal({ isOpen, onLogin, onClose }: LoginPromptModalP
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            돌아가기
+          <Button variant="outline" onClick={onGoHome}>
+            홈으로 가기
           </Button>
           <Button onClick={onLogin}>로그인하기</Button>
         </DialogFooter>

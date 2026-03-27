@@ -1,10 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { useAuthStore } from "@/entities/auth/model/auth-store"
 import { buildLoginRedirectPath } from "@/shared/lib/redirect"
-import { openLoginPrompt } from "../lib/open-login-prompt"
+import { LoginPromptModal } from "./login-prompt-modal"
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const status = useAuthStore((s) => s.status)
@@ -28,15 +27,11 @@ function AuthGuardRedirect() {
   const router = useRouter()
   const pathname = usePathname()
 
-  useEffect(() => {
-    openLoginPrompt().then((result) => {
-      if (result === "login") {
-        router.replace(buildLoginRedirectPath(pathname))
-      } else {
-        router.back()
-      }
-    })
-  }, [pathname, router])
-
-  return null
+  return (
+    <LoginPromptModal
+      isOpen={true}
+      onLogin={() => router.replace(buildLoginRedirectPath(pathname))}
+      onGoHome={() => router.replace("/")}
+    />
+  )
 }
