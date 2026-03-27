@@ -114,7 +114,14 @@ export function CategoryDetailContent({ categoryName }: { categoryName: string }
 
       observerRef.current.observe(node)
     },
-    [state.mainTab, ticketQuery, expertQuery],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- use stable primitives instead of query objects to avoid infinite re-render
+    [
+      state.mainTab,
+      ticketQuery.hasNextPage,
+      ticketQuery.isFetchingNextPage,
+      expertQuery.hasNextPage,
+      expertQuery.isFetchingNextPage,
+    ],
   )
 
   // ── Region picker handler ──
