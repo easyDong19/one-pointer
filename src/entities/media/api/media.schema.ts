@@ -8,11 +8,11 @@ const successResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
   })
 
 export const imageUploadResponseSchema = successResponseSchema(
-  z.object({ imageUrl: z.string() }),
+  z.string(),
 )
 
 export const imageBulkUploadResponseSchema = successResponseSchema(
-  z.object({ imageUrls: z.array(z.string()) }),
+  z.array(z.string()),
 )
 
 export const fileUploadResponseSchema = successResponseSchema(
@@ -25,6 +25,6 @@ export const fileBulkUploadResponseSchema = successResponseSchema(
   ),
 )
 
-export type ImageUploadResult = { imageUrl: string }
-export type ImageBulkUploadResult = { imageUrls: string[] }
+export type ImageUploadResult = string
+export type ImageBulkUploadResult = string[]
 export type FileUploadResult = { fileUrl: string; originalFileName: string; fileSize: number }

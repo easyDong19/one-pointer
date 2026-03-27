@@ -131,6 +131,21 @@ export async function getMyReviewSummary(): Promise<{
   return parsed.data
 }
 
+export async function getMyReviews(params?: {
+  cursor?: string
+  size?: number
+}): Promise<{ content: ReviewSummary[]; nextCursor: string | null; hasNext: boolean }> {
+  const path = "/v1/api/review/my-reviews"
+  const method = "GET"
+  const response = await clientFetch<unknown>({ path, method, query: params })
+  const parsed = parseSchemaOrThrow(reviewListResponseSchema, response, {
+    path,
+    method,
+    message: "Invalid my reviews response payload",
+  })
+  return parsed.data
+}
+
 export async function getExpertReviews(
   expertProfileId: number,
   params?: { cursor?: string; size?: number },

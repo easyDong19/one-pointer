@@ -12,9 +12,17 @@ import {
 
 export type { ImageUploadResult, ImageBulkUploadResult, FileUploadResult }
 
+export type ImageDomain =
+  | "PROFILE"
+  | "PORTFOLIO"
+  | "CERTIFICATION"
+  | "TICKET"
+  | "DELIVERY"
+  | "CHAT"
+  | "INQUIRY"
 
-export async function uploadImage(file: File): Promise<ImageUploadResult> {
-  const path = "/v1/api/image/upload"
+export async function uploadImage(file: File, domain: ImageDomain): Promise<ImageUploadResult> {
+  const path = `/v1/api/image/upload?domain=${domain}`
   const method = "POST"
   const formData = new FormData()
   formData.append("file", file)
@@ -27,8 +35,8 @@ export async function uploadImage(file: File): Promise<ImageUploadResult> {
   return parsed.data
 }
 
-export async function uploadImages(files: File[]): Promise<ImageBulkUploadResult> {
-  const path = "/v1/api/image/upload/bulk"
+export async function uploadImages(files: File[], domain: ImageDomain): Promise<ImageBulkUploadResult> {
+  const path = `/v1/api/image/upload/bulk?domain=${domain}`
   const method = "POST"
   const formData = new FormData()
   files.forEach((file) => formData.append("files", file))
