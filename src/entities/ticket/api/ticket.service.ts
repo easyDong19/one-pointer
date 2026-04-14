@@ -12,12 +12,13 @@ import {
   type UpdateTicketRequest,
   type TicketDetail,
   type TicketSummary,
+  type MyTicket,
   type TicketFeedItem,
   type TicketFeedParams,
   type TicketSearchParams,
 } from "./ticket.schema"
 
-export type { CreateTicketRequest, UpdateTicketRequest, TicketDetail, TicketSummary, TicketFeedItem, TicketFeedParams, TicketSearchParams }
+export type { CreateTicketRequest, UpdateTicketRequest, TicketDetail, TicketSummary, MyTicket, TicketFeedItem, TicketFeedParams, TicketSearchParams }
 
 
 // ─── Ticket CRUD ──────────────────────────────────────────────────────────────
@@ -138,7 +139,7 @@ export async function searchTickets(
 export async function getMyTickets(params?: {
   cursor?: string
   size?: number
-}): Promise<{ content: TicketSummary[]; nextCursor: string | null; hasNext: boolean }> {
+}): Promise<{ content: MyTicket[]; nextCursor: string | null; hasNext: boolean }> {
   const path = "/v1/api/ticket/my"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
@@ -153,7 +154,7 @@ export async function getMyTickets(params?: {
 export async function getMyInProgressTickets(params?: {
   cursor?: string
   size?: number
-}): Promise<{ content: TicketSummary[]; nextCursor: string | null; hasNext: boolean }> {
+}): Promise<{ content: MyTicket[]; nextCursor: string | null; hasNext: boolean }> {
   const path = "/v1/api/ticket/my/in-progress"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
@@ -168,7 +169,7 @@ export async function getMyInProgressTickets(params?: {
 export async function getMyCompletedTickets(params?: {
   cursor?: string
   size?: number
-}): Promise<{ content: TicketSummary[]; nextCursor: string | null; hasNext: boolean }> {
+}): Promise<{ content: MyTicket[]; nextCursor: string | null; hasNext: boolean }> {
   const path = "/v1/api/ticket/my/completed"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
@@ -185,7 +186,7 @@ export async function getMyCompletedTickets(params?: {
 export async function getSentDirectRequests(params?: {
   cursor?: string
   size?: number
-}): Promise<{ content: TicketSummary[]; nextCursor: string | null; hasNext: boolean }> {
+}): Promise<{ content: MyTicket[]; nextCursor: string | null; hasNext: boolean }> {
   const path = "/v1/api/ticket/direct-request/sent"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
@@ -200,7 +201,7 @@ export async function getSentDirectRequests(params?: {
 export async function getReceivedDirectRequests(params?: {
   cursor?: string
   size?: number
-}): Promise<{ content: TicketSummary[]; nextCursor: string | null; hasNext: boolean }> {
+}): Promise<{ content: MyTicket[]; nextCursor: string | null; hasNext: boolean }> {
   const path = "/v1/api/ticket/direct-request/received"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
@@ -210,4 +211,22 @@ export async function getReceivedDirectRequests(params?: {
     message: "Invalid received direct requests response payload",
   })
   return parsed.data
+}
+
+export async function reuploadTicket(ticketId: number): Promise<TicketDetail> {
+  const path = `/v1/api/ticket/${ticketId}/reupload`
+  const method = "POST"
+  const response = await clientFetch<unknown>({ path, method })
+  const parsed = parseSchemaOrThrow(ticketDetailResponseSchema, response, {
+    path,
+    method,
+    message: "Invalid reupload ticket response payload",
+  })
+  return parsed.data
+}
+
+export async function rejectDirectRequest(ticketId: number): Promise<void> {
+  const path = `/v1/api/ticket/${ticketId}/direct-request/reject`
+  const method = "POST"
+  await clientFetch<unknown>({ path, method })
 }

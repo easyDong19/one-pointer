@@ -12,6 +12,17 @@ export function parseSchemaOrThrow<T>(
     return parsed.data
   }
 
+  if (process.env.NODE_ENV === "development") {
+    console.error(
+      `[parseSchemaOrThrow] ${context.method} ${context.path}\n` +
+        `  Message: ${context.message}\n` +
+        `  Errors:`,
+      JSON.stringify(parsed.error.flatten(), null, 2),
+      `\n  Received data:`,
+      JSON.stringify(data, null, 2),
+    )
+  }
+
   throw new ApiError({
     status: 500,
     path: context.path,

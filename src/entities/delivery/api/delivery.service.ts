@@ -4,14 +4,16 @@ import {
   submitDeliveryRequestSchema,
   requestRevisionRequestSchema,
   resubmitDeliveryRequestSchema,
+  rejectDeliveryRequestSchema,
   deliveryResponseSchema,
   type SubmitDeliveryRequest,
   type RequestRevisionRequest,
   type ResubmitDeliveryRequest,
+  type RejectDeliveryRequest,
   type Delivery,
 } from "./delivery.schema"
 
-export type { SubmitDeliveryRequest, RequestRevisionRequest, ResubmitDeliveryRequest, Delivery }
+export type { SubmitDeliveryRequest, RequestRevisionRequest, ResubmitDeliveryRequest, RejectDeliveryRequest, Delivery }
 
 
 export async function submitDelivery(input: SubmitDeliveryRequest): Promise<Delivery> {
@@ -105,4 +107,22 @@ export async function getDeliveryByTicket(ticketId: number): Promise<Delivery> {
     message: "Invalid delivery by ticket response payload",
   })
   return parsed.data
+}
+
+export async function rejectDelivery(
+  deliveryId: number,
+  input: RejectDeliveryRequest,
+): Promise<void> {
+  const path = `/v1/api/delivery/${deliveryId}/reject`
+  const method = "POST"
+  const payload = parseSchemaOrThrow(rejectDeliveryRequestSchema, input, {
+    path,
+    method,
+    message: "Invalid reject delivery request payload",
+  })
+  await clientFetch<unknown, RejectDeliveryRequest>({
+    path,
+    method,
+    body: payload,
+  })
 }

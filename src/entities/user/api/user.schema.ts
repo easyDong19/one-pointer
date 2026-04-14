@@ -17,17 +17,20 @@ export const dayOfWeekSchema = z.enum([
 
 // ─── Sub-schemas ─────────────────────────────────────────────────────────────
 
+/** AvailableTimeResponse */
 export const availableTimeSchema = z.object({
   dayOfWeek: z.string(),
   timeSlot: z.string(),
 })
 
+/** CertificationResponse */
 export const certificationSchema = z.object({
   id: z.number().optional(),
   name: z.string(),
   issuer: z.string(),
 })
 
+/** PortfolioResponse */
 export const portfolioSchema = z.object({
   id: z.number().optional(),
   type: z.string(),
@@ -184,6 +187,7 @@ export const portfolioResponseSchema = successResponseSchema(portfolioSchema)
 export const earningsPeriodSchema = z.enum(["DAILY", "WEEKLY", "MONTHLY"])
 export type EarningsPeriod = z.infer<typeof earningsPeriodSchema>
 
+/** EarningDataPoint */
 export const earningsGraphPointSchema = z.object({
   label: z.string(),
   settledAmount: z.number(),
@@ -191,11 +195,21 @@ export const earningsGraphPointSchema = z.object({
   transactionCount: z.number(),
 })
 
+/** BankAccountResponse */
+export const bankAccountResponseSchema = z.object({
+  bankCode: z.string(),
+  accountNumber: z.string(),
+  accountHolder: z.string(),
+})
+
+/** ExpertEarningsResponse */
 export const earningsSummarySchema = z.object({
+  bankAccount: bankAccountResponseSchema.nullable().optional(),
   totalNetEarnings: z.number(),
   settledAmount: z.number(),
   pendingAmount: z.number(),
-  totalFees: z.number(),
+  totalFee: z.number(),
+  totalFees: z.number().optional(),
   earningsGraph: z.array(earningsGraphPointSchema),
   period: z.string(),
   startDate: z.string(),
@@ -217,16 +231,24 @@ export type EarningsRequest = z.infer<typeof earningsRequestSchema>
 export const transactionStatusSchema = z.enum(["ALL", "SETTLED", "PENDING"])
 export type TransactionStatus = z.infer<typeof transactionStatusSchema>
 
+/** ExpertTransactionResponse */
 export const transactionItemSchema = z.object({
-  id: z.number(),
-  ticketId: z.number(),
+  paymentId: z.number(),
   ticketTitle: z.string(),
-  amount: z.number(),
+  clientNickname: z.string(),
+  originalAmount: z.number(),
   fee: z.number(),
   netAmount: z.number(),
   status: z.string(),
+  paidAt: z.string(),
+  confirmedAt: z.string().nullable(),
   settledAt: z.string().nullable(),
-  createdAt: z.string(),
+  estimatedSettlementDate: z.string().nullable(),
+  // legacy FE fields (kept for backward compatibility)
+  id: z.number().optional(),
+  ticketId: z.number().optional(),
+  amount: z.number().optional(),
+  createdAt: z.string().optional(),
 })
 
 export const transactionsResponseSchema = successResponseSchema(
@@ -244,16 +266,27 @@ export const transactionsRequestSchema = z.object({
 
 export type TransactionsRequest = z.infer<typeof transactionsRequestSchema>
 
+/** ExpertDashboardResponse */
 export const expertDashboardSchema = z.object({
+  sentProposalCount: z.number(),
+  inProgressTicketCount: z.number(),
+  averageRating: z.number().nullable(),
+  totalEarnings: z.number(),
+  // legacy FE fields (kept for backward compatibility)
   pendingProposals: z.number().optional(),
   inProgressTickets: z.number().optional(),
   completedTickets: z.number().optional(),
-  averageRating: z.number().nullable().optional(),
 })
 
 export const expertDashboardResponseSchema = successResponseSchema(expertDashboardSchema)
 
+/** ClientDashboardResponse */
 export const clientDashboardSchema = z.object({
+  availableCouponCount: z.number(),
+  inProgressTicketCount: z.number(),
+  completedMatchCount: z.number(),
+  writtenReviewCount: z.number(),
+  // legacy FE fields (kept for backward compatibility)
   openTickets: z.number().optional(),
   inProgressTickets: z.number().optional(),
   completedTickets: z.number().optional(),

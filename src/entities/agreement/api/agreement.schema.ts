@@ -6,18 +6,23 @@ export const agreementStatusSchema = z.enum(["PROPOSED", "CONFIRMED", "REJECTED"
 
 // ─── Sub-schemas ─────────────────────────────────────────────────────────────
 
+/** AgreementResponse */
 export const agreementSchema = z.object({
   id: z.number(),
   ticketId: z.number(),
-  expertProfileId: z.number(),
-  clientId: z.number(),
   finalPrice: z.number(),
   workDeadline: z.string(),
-  scope: z.string().optional(),
-  maxRevisions: z.number().optional(),
-  deliveryFormat: z.string().optional(),
+  scope: z.string(),
+  maxRevisions: z.number(),
+  deliveryFormat: z.string(),
   status: agreementStatusSchema,
+  proposedBy: z.number(),
+  proposedAt: z.string(),
+  confirmedAt: z.string().nullable(),
   createdAt: z.string(),
+  // FE-only fields (not in Swagger but used in frontend)
+  expertProfileId: z.number().optional(),
+  clientId: z.number().optional(),
   updatedAt: z.string().optional(),
 })
 

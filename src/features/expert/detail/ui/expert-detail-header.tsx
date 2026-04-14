@@ -1,7 +1,7 @@
 "use client"
 
 import { Share2 } from "lucide-react"
-import { DetailPageHeader } from "@/shared/ui/detail-page-header"
+import { MobileHeader } from "@/shared/ui/mobile-header"
 
 export function ExpertDetailHeader() {
   const handleShare = async () => {
@@ -13,16 +13,17 @@ export function ExpertDetailHeader() {
   }
 
   return (
-    <DetailPageHeader
-      title="전문가 프로필"
-      rightAction={
+    <MobileHeader>
+      <MobileHeader.BackButton />
+      <MobileHeader.Title>전문가 프로필</MobileHeader.Title>
+      <MobileHeader.Action>
         <button
           onClick={handleShare}
           className="flex h-9 w-9 items-center justify-center"
         >
-          <Share2 className="text-foreground h-5 w-5" />
+          <Share2 className="h-5 w-5 text-foreground" />
         </button>
-      }
-    />
+      </MobileHeader.Action>
+    </MobileHeader>
   )
 }

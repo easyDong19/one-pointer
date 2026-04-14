@@ -3,17 +3,23 @@ import { parseSchemaOrThrow } from "@/shared/api/http/parse-schema"
 import {
   purchaseCouponRequestSchema,
   claimCouponRequestSchema,
+  inAppPurchaseRequestSchema,
   couponPurchaseResponseSchema,
   couponPurchaseListResponseSchema,
   couponBalanceResponseSchema,
   directRequestCouponBalanceResponseSchema,
+  kakaoShareCouponResponseSchema,
+  referralStatusResponseSchema,
   type PurchaseCouponRequest,
   type ClaimCouponRequest,
+  type InAppPurchaseRequest,
   type CouponPurchase,
   type CouponBalance,
+  type KakaoShareCoupon,
+  type ReferralStatus,
 } from "./coupon.schema"
 
-export type { PurchaseCouponRequest, ClaimCouponRequest, CouponPurchase, CouponBalance }
+export type { PurchaseCouponRequest, ClaimCouponRequest, InAppPurchaseRequest, CouponPurchase, CouponBalance, KakaoShareCoupon, ReferralStatus }
 
 
 export async function purchaseCoupon(input: PurchaseCouponRequest): Promise<CouponPurchase> {
@@ -83,6 +89,55 @@ export async function getDirectRequestCouponBalance(): Promise<{ balance: number
     path,
     method,
     message: "Invalid direct request coupon balance response payload",
+  })
+  return parsed.data
+}
+
+// ─── In-App Purchase ─────────────────────────────────────────────────────────
+
+export async function purchaseCouponInApp(input: InAppPurchaseRequest): Promise<CouponPurchase> {
+  const path = "/v1/api/coupon/purchase/in-app"
+  const method = "POST"
+  const payload = parseSchemaOrThrow(inAppPurchaseRequestSchema, input, {
+    path,
+    method,
+    message: "Invalid in-app purchase request payload",
+  })
+  const response = await clientFetch<unknown, InAppPurchaseRequest>({
+    path,
+    method,
+    body: payload,
+  })
+  const parsed = parseSchemaOrThrow(couponPurchaseResponseSchema, response, {
+    path,
+    method,
+    message: "Invalid in-app purchase response payload",
+  })
+  return parsed.data
+}
+
+// ─── Kakao Share & Referral ──────────────────────────────────────────────────
+
+export async function getKakaoShareCouponStatus(): Promise<KakaoShareCoupon> {
+  const path = "/v1/api/coupon/share/kakao/status"
+  const method = "GET"
+  const response = await clientFetch<unknown>({ path, method })
+  const parsed = parseSchemaOrThrow(kakaoShareCouponResponseSchema, response, {
+    path,
+    method,
+    message: "Invalid kakao share coupon status response payload",
+  })
+  return parsed.data
+}
+
+export async function getReferralStatus(): Promise<ReferralStatus> {
+  const path = "/v1/api/coupon/referral/status"
+  const method = "GET"
+  const response = await clientFetch<unknown>({ path, method })
+  const parsed = parseSchemaOrThrow(referralStatusResponseSchema, response, {
+    path,
+    method,
+    message: "Invalid referral status response payload",
   })
   return parsed.data
 }

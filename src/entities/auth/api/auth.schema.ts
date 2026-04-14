@@ -2,13 +2,14 @@ import { z } from "zod/v4"
 
 // ─── 공통 enum ───────────────────────────────────────────────────────────────
 
-const authUserRoleSchema = z.enum(["USER", "ADMIN", "CLIENT", "EXPERT", "BOTH"])
-const authUserStatusSchema = z.enum(["ACTIVE", "INACTIVE", "SUSPENDED", "DORMANT", "WITHDRAWN"])
+const authUserRoleSchema = z.enum(["CLIENT", "EXPERT", "BOTH", "ADMIN", "USER"])
+const authUserStatusSchema = z.enum(["ACTIVE", "DORMANT", "SUSPENDED", "WITHDRAWN", "INACTIVE"])
 
 // ─── 공통 유저 스키마 ──────────────────────────────────────────────────────────
 
+/** AuthResponse */
 export const authUserSchema = z.object({
-  id: z.union([z.number(), z.string()]),
+  id: z.number(),
   email: z.string().email(),
   name: z.string(),
   nickname: z.string(),
@@ -22,6 +23,7 @@ export type AuthUser = z.infer<typeof authUserSchema>
 
 // ─── 공통 토큰 응답 (login / signup / refresh 공유) ────────────────────────────
 
+/** AuthTokenResponse */
 export const authTokenResponseSchema = z.object({
   success: z.literal(true),
   message: z.string(),
@@ -134,21 +136,25 @@ export const kakaoLoginRequestSchema = z.object({
 
 export type KakaoLoginRequest = z.infer<typeof kakaoLoginRequestSchema>
 
+/** KakaoUserInfo */
 export const kakaoUserInfoSchema = z.object({
-  id: z.union([z.number(), z.string()]),
-  email: z.string().email().optional(),
-  name: z.string().optional(),
-  profileImageUrl: z.string().url().nullable().optional(),
+  id: z.number(),
+  email: z.string().email(),
+  name: z.string(),
+  profileImageUrl: z.string().url().nullable(),
 })
 
+/** KakaoLoginResponse */
 export const kakaoLoginResponseSchema = z.object({
   success: z.literal(true),
   message: z.string(),
   data: z.object({
-    accessToken: z.string().optional(),
-    refreshToken: z.string().optional(),
+    accessToken: z.string().nullable(),
+    refreshToken: z.string().nullable(),
+    user: authUserSchema.nullable().optional(),
+    kakaoUserInfo: kakaoUserInfoSchema.nullable(),
+    kakaoAccessToken: z.string().nullable().optional(),
     newUser: z.boolean(),
-    kakaoUserInfo: kakaoUserInfoSchema,
   }),
 })
 
@@ -182,21 +188,25 @@ export const googleLoginRequestSchema = z.object({
 
 export type GoogleLoginRequest = z.infer<typeof googleLoginRequestSchema>
 
+/** GoogleUserInfo */
 export const googleUserInfoSchema = z.object({
   id: z.string(),
-  email: z.string().email().optional(),
-  name: z.string().optional(),
-  profileImageUrl: z.string().url().nullable().optional(),
+  email: z.string().email(),
+  name: z.string(),
+  profileImageUrl: z.string().url().nullable(),
 })
 
+/** GoogleLoginResponse */
 export const googleLoginResponseSchema = z.object({
   success: z.literal(true),
   message: z.string(),
   data: z.object({
-    accessToken: z.string().optional(),
-    refreshToken: z.string().optional(),
+    accessToken: z.string().nullable(),
+    refreshToken: z.string().nullable(),
+    user: authUserSchema.nullable().optional(),
+    googleUserInfo: googleUserInfoSchema.nullable(),
+    googleAccessToken: z.string().nullable().optional(),
     newUser: z.boolean(),
-    googleUserInfo: googleUserInfoSchema,
   }),
 })
 
@@ -219,6 +229,54 @@ export type GoogleSignupRequest = z.infer<typeof googleSignupRequestSchema>
 export const googleSignupResponseSchema = authTokenResponseSchema
 
 export type GoogleSignupResponse = AuthTokenResponse
+
+// ─── 애플 로그인 ───────────────────────────────────────────────────────────────
+
+export const appleLoginRequestSchema = z.object({
+  identityToken: z.string().optional(),
+  authorizationCode: z.string().optional(),
+})
+
+export type AppleLoginRequest = z.infer<typeof appleLoginRequestSchema>
+
+/** AppleUserInfo */
+export const appleUserInfoSchema = z.object({
+  id: z.string(),
+  email: z.string().email(),
+  name: z.string(),
+})
+
+/** AppleLoginResponse */
+export const appleLoginResponseSchema = z.object({
+  success: z.literal(true),
+  message: z.string(),
+  data: z.object({
+    accessToken: z.string().nullable(),
+    refreshToken: z.string().nullable(),
+    user: authUserSchema.nullable().optional(),
+    appleUserInfo: appleUserInfoSchema.nullable(),
+    appleIdentityToken: z.string().nullable().optional(),
+    newUser: z.boolean(),
+  }),
+})
+
+export type AppleLoginResponse = z.infer<typeof appleLoginResponseSchema>
+
+// ─── 애플 신규 가입 ──────────────────────────────────────────────────────────
+
+export const appleSignupRequestSchema = z.object({
+  identityToken: z.string().optional(),
+  authorizationCode: z.string().optional(),
+  nickname: z.string().min(1, "닉네임을 입력해주세요."),
+  chatReviewAgreed: z.boolean(),
+  marketingConsent: z.boolean(),
+})
+
+export type AppleSignupRequest = z.infer<typeof appleSignupRequestSchema>
+
+export const appleSignupResponseSchema = authTokenResponseSchema
+
+export type AppleSignupResponse = AuthTokenResponse
 
 // ─── 소셜 인가 URL ─────────────────────────────────────────────────────────────
 

@@ -19,6 +19,7 @@ export const notificationTypeSchema = z.enum([
   "REVIEW_PUBLISHED",
   "EXPERT_REPLY",
   "CHAT_REMINDER",
+  "CHAT_MESSAGE",
   "COUPON_EXPIRING",
   "AGREEMENT_CONFIRMED",
   "ESCROW_PAYMENT_COMPLETED",
@@ -39,14 +40,18 @@ export type NotificationType = z.infer<typeof notificationTypeSchema>
 
 // ─── Sub-schemas ─────────────────────────────────────────────────────────────
 
+/** NotificationResponse */
 export const notificationSchema = z.object({
   id: z.number(),
-  type: notificationTypeSchema,
+  notificationType: notificationTypeSchema,
   title: z.string(),
-  body: z.string().optional(),
-  isRead: z.boolean(),
-  referenceId: z.number().nullable().optional(),
+  content: z.string(),
+  ticketId: z.number().nullable(),
+  proposalId: z.number().nullable(),
+  reviewId: z.number().nullable(),
+  disputeId: z.number().nullable(),
   createdAt: z.string(),
+  read: z.boolean(),
 })
 
 export const unreadCountSchema = z.object({

@@ -5,12 +5,15 @@ import {
   respondDisputeRequestSchema,
   addEvidenceRequestSchema,
   disputeResponseSchema,
+  disputeDetailResponseSchema,
   disputeListResponseSchema,
   eligibleTransactionListResponseSchema,
   type CreateDisputeRequest,
   type RespondDisputeRequest,
   type AddEvidenceRequest,
   type Dispute,
+  type MyDisputeListItem,
+  type MyDisputeDetail,
   type EligibleTransaction,
 } from "./dispute.schema"
 
@@ -19,6 +22,8 @@ export type {
   RespondDisputeRequest,
   AddEvidenceRequest,
   Dispute,
+  MyDisputeListItem,
+  MyDisputeDetail,
   EligibleTransaction,
 }
 
@@ -104,11 +109,11 @@ export async function cancelDispute(disputeId: number): Promise<Dispute> {
   return parsed.data
 }
 
-export async function getDispute(disputeId: number): Promise<Dispute> {
+export async function getDispute(disputeId: number): Promise<MyDisputeDetail> {
   const path = `/v1/api/disputes/${disputeId}`
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method })
-  const parsed = parseSchemaOrThrow(disputeResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(disputeDetailResponseSchema, response, {
     path,
     method,
     message: "Invalid dispute detail response payload",
@@ -119,7 +124,7 @@ export async function getDispute(disputeId: number): Promise<Dispute> {
 export async function getMyDisputes(params?: {
   cursor?: string
   size?: number
-}): Promise<{ content: Dispute[]; nextCursor: string | null; hasNext: boolean }> {
+}): Promise<{ content: MyDisputeListItem[]; nextCursor: string | null; hasNext: boolean }> {
   const path = "/v1/api/disputes/my"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
@@ -139,6 +144,18 @@ export async function getEligibleDisputeTransactions(): Promise<EligibleTransact
     path,
     method,
     message: "Invalid eligible transactions response payload",
+  })
+  return parsed.data
+}
+
+export async function getDisputeByTicket(ticketId: number): Promise<Dispute> {
+  const path = `/v1/api/disputes/ticket/${ticketId}`
+  const method = "GET"
+  const response = await clientFetch<unknown>({ path, method })
+  const parsed = parseSchemaOrThrow(disputeResponseSchema, response, {
+    path,
+    method,
+    message: "Invalid dispute by ticket response payload",
   })
   return parsed.data
 }

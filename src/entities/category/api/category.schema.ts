@@ -1,16 +1,19 @@
 import { z } from "zod/v4"
 
+/** SubCategoryResponse */
 export const subCategorySchema = z.object({
   id: z.number(),
   name: z.string(),
-  iconUrl: z.string().nullable().optional(),
-  availableType: z.enum(["OFFLINE", "ONLINE", "BOTH"]).optional(),
+  iconUrl: z.string().optional(),
+  availableType: z.string().optional(),
 })
 
+/** CategoryResponse */
 export const categorySchema = z.object({
   id: z.number(),
   name: z.string(),
-  iconUrl: z.string().nullable().optional(),
+  description: z.string().optional(),
+  iconUrl: z.string(),
   subCategories: z.array(subCategorySchema),
 })
 

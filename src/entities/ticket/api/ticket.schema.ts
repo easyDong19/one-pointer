@@ -11,6 +11,7 @@ export const ticketDurationSchema = z.enum([
   "TWO_HOUR",
   "NEGOTIABLE",
 ])
+export const estimatedDurationUnitSchema = z.enum(["MINUTE", "HOUR", "DAY", "WEEK", "MONTH"])
 export const budgetTypeSchema = z.enum(["RANGE", "NEGOTIABLE"])
 export const ticketStatusSchema = z.enum([
   "DRAFT",
@@ -25,58 +26,103 @@ export const ticketStatusSchema = z.enum([
   "CANCELLED",
   "EXPIRED",
 ])
+export const sourceTypeSchema = z.enum(["TICKET_FEED", "DIRECT_REQUEST"])
 
 // ─── Sub-schemas ─────────────────────────────────────────────────────────────
 
+/** DesiredDateResponse */
 export const desiredDateSchema = z.object({
-  id: z.number().optional(),
+  id: z.number(),
   date: z.string(),
   timeSlot: z.string(),
 })
 
+/** TicketImageResponse */
 export const ticketImageSchema = z.object({
   id: z.number(),
   imageUrl: z.string(),
   displayOrder: z.number(),
 })
 
-export const sourceTypeSchema = z.enum(["TICKET_FEED", "DIRECT_REQUEST"])
+// ─── TicketResponse (상세) ──────────────────────────────────────────────────
 
-export const ticketSummarySchema = z.object({
+/** TicketResponse */
+export const ticketDetailSchema = z.object({
   id: z.number(),
-  title: z.string(),
-  content: z.string().optional(),
+  clientId: z.number(),
+  subCategoryId: z.number(),
+  categoryName: z.string(),
+  subCategoryName: z.string(),
   ticketType: ticketTypeSchema,
+  title: z.string(),
+  content: z.string(),
+  level: ticketLevelSchema,
+  desiredDuration: z.string(),
+  estimatedDurationValue: z.number().nullable(),
+  estimatedDurationUnit: estimatedDurationUnitSchema.nullable(),
+  budgetType: budgetTypeSchema,
+  budgetMin: z.number(),
+  budgetMax: z.number(),
+  region: z.string(),
+  locationDetail: z.string().nullable(),
+  deadline: z.string(),
   status: ticketStatusSchema,
-  level: ticketLevelSchema.optional(),
-  budgetMin: z.number().nullable().optional(),
-  budgetMax: z.number().nullable().optional(),
-  budgetType: budgetTypeSchema.optional(),
-  region: z.string().nullable().optional(),
-  subCategoryId: z.number().optional(),
-  subCategoryName: z.string().optional(),
-  categoryName: z.string().optional(),
+  sourceType: sourceTypeSchema,
+  targetExpertId: z.number().nullable(),
+  matchedAt: z.string().nullable(),
   createdAt: z.string(),
+  desiredDates: z.array(desiredDateSchema),
+  images: z.array(ticketImageSchema),
+  proposalCount: z.number(),
 })
 
-export const ticketDetailSchema = ticketSummarySchema.extend({
-  desiredDuration: z.string().nullable().optional(),
-  estimatedDurationValue: z.number().nullable().optional(),
-  estimatedDurationUnit: z.string().nullable().optional(),
-  locationDetail: z.string().nullable().optional(),
-  deadline: z.string().nullable().optional(),
-  sourceType: sourceTypeSchema.optional(),
-  desiredDates: z.array(desiredDateSchema).optional(),
-  targetExpertId: z.number().nullable().optional(),
-  matchedAt: z.string().nullable().optional(),
-  proposalCount: z.number().nullable().optional(),
-  clientId: z.number().optional(),
-  images: z.array(ticketImageSchema).optional(),
+// Keep ticketSummarySchema as a FE convenience subset (used in list views)
+export const ticketSummarySchema = ticketDetailSchema.pick({
+  id: true,
+  title: true,
+  content: true,
+  ticketType: true,
+  status: true,
+  level: true,
+  budgetMin: true,
+  budgetMax: true,
+  budgetType: true,
+  region: true,
+  subCategoryId: true,
+  subCategoryName: true,
+  categoryName: true,
+  createdAt: true,
+}).partial({
+  content: true,
+  level: true,
+  budgetMin: true,
+  budgetMax: true,
+  budgetType: true,
+  region: true,
+  subCategoryId: true,
+  subCategoryName: true,
+  categoryName: true,
 })
 
 export type TicketSummary = z.infer<typeof ticketSummarySchema>
 export type TicketDetail = z.infer<typeof ticketDetailSchema>
 export type TicketImage = z.infer<typeof ticketImageSchema>
+
+// ─── MyTicketResponse ────────────────────────────────────────────────────────
+
+/** MyTicketResponse */
+export const myTicketSchema = z.object({
+  id: z.number(),
+  ticketType: ticketTypeSchema,
+  subCategoryName: z.string(),
+  title: z.string(),
+  proposalCount: z.number(),
+  status: ticketStatusSchema,
+  createdAt: z.string(),
+  thumbnailUrl: z.string().nullable(),
+})
+
+export type MyTicket = z.infer<typeof myTicketSchema>
 
 // ─── Request Schemas ──────────────────────────────────────────────────────────
 
@@ -120,23 +166,24 @@ export type UpdateTicketRequest = z.infer<typeof updateTicketRequestSchema>
 export const ticketFeedSortBySchema = z.enum(["LATEST", "BUDGET_HIGH", "DEADLINE_SOON"])
 export type TicketFeedSortBy = z.infer<typeof ticketFeedSortBySchema>
 
+/** TicketFeedResponse */
 export const ticketFeedItemSchema = z.object({
   id: z.number(),
-  majorCategoryName: z.string(),
-  subCategoryName: z.string(),
-  ticketType: ticketTypeSchema,
-  title: z.string(),
-  budgetType: budgetTypeSchema,
+  majorCategoryName: z.string().nullable(),
+  subCategoryName: z.string().nullable(),
+  ticketType: ticketTypeSchema.nullable(),
+  title: z.string().nullable(),
+  budgetType: budgetTypeSchema.nullable(),
   budgetMin: z.number().nullable(),
   budgetMax: z.number().nullable(),
-  desiredDuration: z.string(),
+  desiredDuration: z.string().nullable(),
   region: z.string().nullable(),
   locationDetail: z.string().nullable(),
-  createdAt: z.string(),
-  proposalCount: z.number(),
-  daysUntilDeadline: z.number(),
+  createdAt: z.string().nullable(),
+  proposalCount: z.number().nullable(),
+  daysUntilDeadline: z.number().nullable(),
   thumbnailUrl: z.string().nullable(),
-  new: z.boolean(),
+  isNew: z.boolean().nullable(),
 })
 
 export type TicketFeedItem = z.infer<typeof ticketFeedItemSchema>
@@ -177,7 +224,7 @@ export const ticketDetailResponseSchema = successResponseSchema(ticketDetailSche
 
 export const ticketListResponseSchema = successResponseSchema(
   z.object({
-    content: z.array(ticketSummarySchema),
+    content: z.array(myTicketSchema),
     nextCursor: z.string().nullable(),
     hasNext: z.boolean(),
   }),

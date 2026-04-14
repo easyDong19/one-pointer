@@ -20,6 +20,7 @@ export type ImageDomain =
   | "DELIVERY"
   | "CHAT"
   | "INQUIRY"
+  | "EXPERT_BANNER"
 
 export async function uploadImage(file: File, domain: ImageDomain): Promise<ImageUploadResult> {
   const path = `/v1/api/image/upload?domain=${domain}`

@@ -45,3 +45,10 @@ export async function markMessagesAsRead(roomId: number): Promise<void> {
   const method = "POST"
   await clientFetch<unknown>({ path, method })
 }
+
+export async function getChatRoomIdByTicket(ticketId: number): Promise<{ roomId: string }> {
+  const path = `/v1/api/chat/rooms/by-ticket/${ticketId}`
+  const method = "GET"
+  const response = await clientFetch<unknown>({ path, method })
+  return response as { roomId: string }
+}
