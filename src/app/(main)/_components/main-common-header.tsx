@@ -1,5 +1,6 @@
 "use client"
 
+import { usePathname } from "next/navigation"
 import { CommonHeader } from "@/shared/ui/common-header"
 import { HeaderSearch } from "@/features/ticket/search/ui/header-search"
 import { HeaderAuthSection } from "./header-auth-section"
@@ -7,12 +8,15 @@ import { HeaderAuthSection } from "./header-auth-section"
 /**
  * `(main)` 그룹 공용 헤더 조립체.
  *
- * - `CommonHeader` primitive 에 로고/네비/검색/Auth 를 슬롯 주입.
- * - 반응형 동작은 primitive 와 `HeaderSearch` 내부에서 처리됨.
+ * - 모바일에서는 홈(`/`) 에서만 노출, 그 외 경로에서는 `MobileHeader` 가 대체.
+ * - 데스크탑에서는 모든 `(main)` 경로에서 노출.
  */
 export function MainCommonHeader() {
+  const pathname = usePathname()
+  const isHome = pathname === "/"
+
   return (
-    <CommonHeader>
+    <CommonHeader className={isHome ? undefined : "hidden md:block"}>
       <CommonHeader.Logo href="/">쪽집게</CommonHeader.Logo>
 
       <CommonHeader.DesktopNav>

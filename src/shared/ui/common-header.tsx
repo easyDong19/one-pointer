@@ -113,7 +113,7 @@ function Slot({ children }: { children: ReactNode }) {
 /* ─── Actions ──────────────────────────────────────────────────────────────── */
 
 function Actions({ children }: { children: ReactNode }) {
-  return <div className="flex shrink-0 items-center gap-2">{children}</div>
+  return <div className="hidden shrink-0 items-center gap-2 md:flex">{children}</div>
 }
 
 /* ─── Export ───────────────────────────────────────────────────────────────── */
