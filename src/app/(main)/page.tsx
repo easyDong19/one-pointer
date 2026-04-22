@@ -4,7 +4,6 @@ import type { TicketFeedItem } from "@/entities/ticket/api/ticket.schema"
 import { getCategoriesOnServer } from "@/entities/category/api/category.server-service"
 import { getPopularExpertsOnServer } from "@/entities/expert/api/expert.server-service"
 import { getPopularTicketsOnServer } from "@/entities/ticket/api/ticket.server-service"
-import { HomeSearchBar } from "@/app/(main)/_components/home-search-bar"
 import { HomeCategoryGrid } from "@/app/(main)/_components/home-category-grid"
 import { HomePopularTickets } from "@/app/(main)/_components/home-popular-tickets"
 import { HomePopularExperts } from "@/app/(main)/_components/home-popular-experts"
@@ -32,7 +31,6 @@ export default async function HomePage() {
   return (
     <div className="bg-background flex min-h-dvh flex-col">
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-5 py-6 pb-24 md:gap-10 md:px-10 md:pb-10 lg:px-16">
-        <HomeSearchBar />
         <HomeCategoryGrid categories={categories} />
         <HomePopularTickets tickets={popularTickets} />
         <HomePopularExperts experts={popularExperts} />
