@@ -6,6 +6,7 @@ import { Text } from "@/shared/ui/text"
 import { Separator } from "@/shared/ui/separator"
 import { useTicketDetailQuery } from "@/features/ticket/detail/model/use-ticket-detail-query"
 import { TicketImageCarousel } from "@/features/ticket/detail/ui/ticket-image-carousel"
+import { TicketDetailHeader } from "@/features/ticket/detail/ui/ticket-detail-header"
 import { TicketHeader } from "@/features/ticket/detail/ui/ticket-header"
 import { TicketDescription } from "@/features/ticket/detail/ui/ticket-description"
 import { TicketInfo } from "@/features/ticket/detail/ui/ticket-info"
@@ -57,14 +58,14 @@ export function TicketDetailContent({ ticketId }: { ticketId: number }) {
 
   return (
     <div className="bg-background min-h-dvh pb-24">
+      {/* Mobile header */}
+      <TicketDetailHeader />
+
       {/* Desktop: 2-column layout */}
       <div className="mx-auto max-w-5xl lg:grid lg:grid-cols-[1fr_400px] lg:items-start lg:gap-8 lg:px-6 lg:py-8">
         {/* Left column / Mobile full width */}
         <div>
-          <TicketImageCarousel
-            images={ticket.images ?? []}
-            onBack={() => router.back()}
-          />
+          <TicketImageCarousel images={ticket.images ?? []} />
 
           <div className="px-4 pt-5 lg:px-0">
             <TicketHeader ticket={ticket} />

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { ChevronLeft } from "lucide-react"
 import {
   Carousel,
   CarouselContent,
@@ -12,13 +11,7 @@ import {
 import { cn } from "@/shared/lib/utils"
 import type { TicketImage } from "@/entities/ticket/api/ticket.schema"
 
-export function TicketImageCarousel({
-  images,
-  onBack,
-}: {
-  images: TicketImage[]
-  onBack: () => void
-}) {
+export function TicketImageCarousel({ images }: { images: TicketImage[] }) {
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
   const [count, setCount] = useState(0)
@@ -39,7 +32,6 @@ export function TicketImageCarousel({
     return (
       <div className="relative">
         <div className="bg-muted aspect-[16/9] w-full lg:rounded-xl" />
-        <BackButton onBack={onBack} />
       </div>
     )
   }
@@ -64,8 +56,6 @@ export function TicketImageCarousel({
         </CarouselContent>
       </Carousel>
 
-      <BackButton onBack={onBack} />
-
       {/* Dot indicators */}
       {count > 1 && (
         <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
@@ -81,16 +71,5 @@ export function TicketImageCarousel({
         </div>
       )}
     </div>
-  )
-}
-
-function BackButton({ onBack }: { onBack: () => void }) {
-  return (
-    <button
-      onClick={onBack}
-      className="absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm transition-colors hover:bg-black/50 lg:hidden"
-    >
-      <ChevronLeft className="h-5 w-5 text-white" />
-    </button>
   )
 }
