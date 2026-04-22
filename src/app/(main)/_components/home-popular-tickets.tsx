@@ -78,7 +78,7 @@ function TicketCard({
             <Monitor className="text-muted-foreground/40" size={40} />
           </div>
         )}
-        {ticket.isNew && (
+        {ticket.new && (
           <span className="bg-destructive absolute top-2 left-2 rounded-md px-1.5 py-0.5">
             <Text as="span" typography="caption3-bold" className="text-destructive-foreground">
               NEW

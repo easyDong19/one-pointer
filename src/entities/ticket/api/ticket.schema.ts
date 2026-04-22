@@ -61,9 +61,9 @@ export const ticketDetailSchema = z.object({
   estimatedDurationValue: z.number().nullable(),
   estimatedDurationUnit: estimatedDurationUnitSchema.nullable(),
   budgetType: budgetTypeSchema,
-  budgetMin: z.number(),
-  budgetMax: z.number(),
-  region: z.string(),
+  budgetMin: z.number().nullable(),
+  budgetMax: z.number().nullable(),
+  region: z.string().nullable(),
   locationDetail: z.string().nullable(),
   deadline: z.string(),
   status: ticketStatusSchema,
@@ -73,7 +73,7 @@ export const ticketDetailSchema = z.object({
   createdAt: z.string(),
   desiredDates: z.array(desiredDateSchema),
   images: z.array(ticketImageSchema),
-  proposalCount: z.number(),
+  proposalCount: z.number().nullable(),
 })
 
 // Keep ticketSummarySchema as a FE convenience subset (used in list views)
@@ -183,7 +183,7 @@ export const ticketFeedItemSchema = z.object({
   proposalCount: z.number().nullable(),
   daysUntilDeadline: z.number().nullable(),
   thumbnailUrl: z.string().nullable(),
-  isNew: z.boolean().nullable(),
+  new: z.boolean().nullable(),
 })
 
 export type TicketFeedItem = z.infer<typeof ticketFeedItemSchema>
