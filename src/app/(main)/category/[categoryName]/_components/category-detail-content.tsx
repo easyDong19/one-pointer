@@ -166,7 +166,7 @@ export function CategoryDetailContent({ categoryName }: { categoryName: string }
       {/* ── Sticky Header Group ── */}
       <div className="bg-background/80 sticky top-0 z-50 backdrop-blur-md">
         {/* Header */}
-        <MobileHeader className="static z-auto border-border/50 md:flex">
+        <MobileHeader className="static z-auto border-border/50">
           <MobileHeader.BackButton />
           <MobileHeader.Title>{category.name}</MobileHeader.Title>
           <MobileHeader.Spacer />
