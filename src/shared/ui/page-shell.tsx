@@ -18,7 +18,7 @@ type Tier = "shell" | "content" | "list" | "form"
 
 const tierClasses: Record<Tier, string> = {
   shell: "max-w-6xl px-5 md:px-10 lg:px-16",
-  content: "max-w-5xl px-4 md:px-6 lg:px-8",
+  content: "max-w-5xl px-4 md:px-0",
   list: "max-w-3xl px-4 md:px-6 lg:max-w-5xl lg:px-8",
   form: "max-w-lg px-4",
 }
