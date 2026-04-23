@@ -28,7 +28,7 @@ const TierContext = createContext<Tier>("shell")
 function PageShellRoot({ tier, children }: { tier: Tier; children: ReactNode }) {
   return (
     <TierContext.Provider value={tier}>
-      <div className="bg-background flex min-h-dvh flex-col overflow-x-hidden pb-24 md:pt-14 md:pb-0">
+      <div className="bg-background flex min-h-dvh flex-col overflow-x-hidden pb-16 md:pt-14 md:pb-0">
         {children}
       </div>
     </TierContext.Provider>
@@ -44,7 +44,7 @@ function PageShellRoot({ tier, children }: { tier: Tier; children: ReactNode }) 
  * 자식의 뷰포트별 가시성에는 관여하지 않는다 (MobileHeader 의 md:hidden 등은 자식이 책임).
  */
 function Header({ children }: { children: ReactNode }) {
-  return <div className="sticky top-0 z-40 md:top-14">{children}</div>
+  return <div className="sticky top-0 z-40">{children}</div>
 }
 
 /**
@@ -100,8 +100,4 @@ export const PageShell = Object.assign(PageShellRoot, {
  * 클라이언트 참조 serialization 이슈로 undefined 가 될 수 있다.
  * 서버 컴포넌트에서는 아래 named export 를 사용한다.
  */
-export {
-  Header as PageShellHeader,
-  Content as PageShellContent,
-  Footer as PageShellFooter,
-}
+export { Header as PageShellHeader, Content as PageShellContent, Footer as PageShellFooter }

@@ -25,7 +25,7 @@ function CommonHeaderRoot({
   return (
     <header
       className={cn(
-        "border-border/50 bg-background/80 fixed top-0 right-0 left-0 z-50 border-b backdrop-blur-md",
+        "border-border/50 bg-background/80 sticky top-0 z-50 border-b backdrop-blur-md md:fixed md:top-0 md:right-0 md:left-0",
         className,
       )}
     >
