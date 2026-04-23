@@ -4,7 +4,7 @@ import { Text } from "@/shared/ui/text"
 import { cn } from "@/shared/lib/utils"
 import { formatBudget, formatRelativeTime } from "@/shared/lib/format"
 import type { TicketFeedItem } from "@/entities/ticket/api/ticket.schema"
-import { TICKET_TYPE_LABEL } from "./category-detail.constants"
+import { TICKET_TYPE_LABEL } from "@/entities/category/lib/category.constants"
 
 export function TicketList({
   tickets,

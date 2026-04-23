@@ -45,4 +45,3 @@ export const ACTIVITY_METHOD_FILTER = [
   { value: "ONLINE" as const, label: "온라인" },
   { value: "BOTH" as const, label: "온·오프라인" },
 ]
-

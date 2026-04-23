@@ -1,139 +1,31 @@
 "use client"
 
-import { useCallback, useRef } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
-import { Inbox } from "lucide-react"
 import { Text } from "@/shared/ui/text"
-import { cn } from "@/shared/lib/utils"
-import type { SubCategory } from "@/entities/category/api/category.schema"
-import type { TicketFeedParams } from "@/entities/ticket/api/ticket.schema"
-import type { ExpertListParams } from "@/entities/expert/api/expert.schema"
 import { MobileHeader } from "@/shared/ui/mobile-header"
-import { useCategoryListQuery } from "@/features/category/browse/model/use-category-list-query"
-import { useTicketFeedQuery } from "@/features/ticket/feed/model/use-ticket-feed-query"
-import { useExpertListQuery } from "@/features/expert/browse/model/use-expert-list-query"
-import { openRegionPicker } from "@/features/region/select/lib/open-region-picker"
-import { useCategoryFilterReducer } from "./use-category-filter-reducer"
-import { TicketFilterBar, ExpertFilterBar } from "./category-filters"
-import { TicketList } from "./ticket-list-item"
-import { ExpertList } from "./expert-list-item"
-
-// ─── Main Component ───────────────────────────────────────────────────────────
+import { useCategoryDetail } from "@/features/category/browse/model/use-category-detail"
+import { CategoryMainTabs } from "@/features/category/browse/ui/category-main-tabs"
+import { CategorySubTabs } from "@/features/category/browse/ui/category-sub-tabs"
+import { TicketFilterBar, ExpertFilterBar } from "@/features/category/browse/ui/category-filters"
+import { CategoryContentList } from "@/features/category/browse/ui/category-content-list"
 
 export function CategoryDetailContent({ categoryName }: { categoryName: string }) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const initialTab = searchParams.get("tab") === "experts" ? "experts" as const : "tickets" as const
-  const [state, actions] = useCategoryFilterReducer(initialTab)
-
-  const handleMainTabChange = (tab: "tickets" | "experts") => {
-    actions.setMainTab(tab)
-    const params = new URLSearchParams(searchParams.toString())
-    if (tab === "experts") {
-      params.set("tab", "experts")
-    } else {
-      params.delete("tab")
-    }
-    router.replace(`?${params.toString()}`, { scroll: false })
-  }
-
-  // ── CSR: 카테고리 목록 패칭 ──
-  const { data: categories, isLoading: isCategoryLoading } = useCategoryListQuery()
-  const category = categories?.find((c) => c.name === categoryName)
-
-  // Sub-category list (전체 + 하위 카테고리)
-  const allSubCategories: (SubCategory & { isAll: boolean })[] = category
-    ? [
-        { id: -1, name: "전체", isAll: true },
-        ...category.subCategories.map((sc) => ({ ...sc, isAll: false })),
-      ]
-    : []
-
-  // ── Query params ──
-
-  const ticketFeedParams: TicketFeedParams = {
-    ...(category && { majorCategoryId: category.id }),
-    ...(state.subCategoryId && { subCategoryId: state.subCategoryId }),
-    ...(state.ticketType && { ticketType: state.ticketType }),
-    ...(state.region && { region: state.region }),
-    sortBy: state.ticketSort,
-    size: 20,
-  }
-
-  const expertListParams: ExpertListParams = {
-    ...(category && { majorCategoryId: category.id }),
-    ...(state.subCategoryId && { subCategoryId: state.subCategoryId }),
-    ...(state.minRating && { minRating: state.minRating }),
-    ...(state.activityMethod && { method: state.activityMethod }),
-    ...(state.region && { region: state.region }),
-    sortBy: state.expertSort,
-    size: 20,
-  }
-
-  // ── Queries ──
-
-  const ticketQuery = useTicketFeedQuery(
-    ticketFeedParams,
-    state.mainTab === "tickets" && !!category,
-  )
-  const expertQuery = useExpertListQuery(
-    expertListParams,
-    state.mainTab === "experts" && !!category,
-  )
-
-  const tickets = ticketQuery.data?.pages.flatMap((p) => p.content) ?? []
-  const experts = expertQuery.data?.pages.flatMap((p) => p.content) ?? []
-
-  // ── Infinite scroll ──
-
-  const observerRef = useRef<IntersectionObserver | null>(null)
-  const loadMoreRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (observerRef.current) observerRef.current.disconnect()
-      if (!node) return
-
-      observerRef.current = new IntersectionObserver((entries) => {
-        if (entries[0]?.isIntersecting) {
-          if (
-            state.mainTab === "tickets" &&
-            ticketQuery.hasNextPage &&
-            !ticketQuery.isFetchingNextPage
-          ) {
-            ticketQuery.fetchNextPage()
-          }
-          if (
-            state.mainTab === "experts" &&
-            expertQuery.hasNextPage &&
-            !expertQuery.isFetchingNextPage
-          ) {
-            expertQuery.fetchNextPage()
-          }
-        }
-      })
-
-      observerRef.current.observe(node)
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- use stable primitives instead of query objects to avoid infinite re-render
-    [
-      state.mainTab,
-      ticketQuery.hasNextPage,
-      ticketQuery.isFetchingNextPage,
-      expertQuery.hasNextPage,
-      expertQuery.isFetchingNextPage,
-    ],
-  )
-
-  // ── Region picker handler ──
-
-  const handleRegionClick = async () => {
-    const result = await openRegionPicker(state.region)
-    if (result !== null) {
-      actions.setRegion(result)
-    }
-  }
-
-  // ── Loading state (카테고리 패칭 중) ──
+  const {
+    state,
+    actions,
+    category,
+    isCategoryLoading,
+    allSubCategories,
+    tickets,
+    experts,
+    ticketQuery,
+    expertQuery,
+    loadMoreRef,
+    handleMainTabChange,
+    handleRegionClick,
+  } = useCategoryDetail(categoryName)
 
   if (isCategoryLoading) {
     return (
@@ -159,73 +51,27 @@ export function CategoryDetailContent({ categoryName }: { categoryName: string }
     )
   }
 
-  // ── Render ──
-
   return (
     <div className="bg-background flex min-h-dvh flex-col">
       {/* ── Sticky Header Group ── */}
-      <div className="bg-background/80 sticky top-0 z-50 backdrop-blur-md">
-        {/* Header */}
+      <div className="bg-background/80 sticky top-0 z-40 backdrop-blur-md md:top-14">
         <MobileHeader className="static z-auto border-border/50">
           <MobileHeader.BackButton />
           <MobileHeader.Title>{category.name}</MobileHeader.Title>
           <MobileHeader.Spacer />
         </MobileHeader>
 
-        {/* Main Tabs (의뢰 / 전문가) */}
-        <div className="border-border/50 border-b">
-          <div className="mx-auto flex max-w-3xl lg:max-w-5xl">
-            {(["tickets", "experts"] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => handleMainTabChange(tab)}
-                className={cn(
-                  "relative flex-1 py-2.5 text-center transition-colors",
-                  state.mainTab === tab ? "text-primary" : "text-muted-foreground",
-                )}
-              >
-                <Text as="span" typography="body2-bold">
-                  {tab === "tickets" ? "의뢰" : "전문가"}
-                </Text>
-                {state.mainTab === tab && (
-                  <span className="bg-primary absolute bottom-0 left-1/2 h-[2px] w-12 -translate-x-1/2 rounded-full" />
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Sub-category Tabs */}
-        <div className="border-border/50 border-b">
-          <div className="scrollbar-none mx-auto flex max-w-3xl gap-0 overflow-x-auto lg:max-w-5xl">
-            {allSubCategories.map((sc) => {
-              const isActive = sc.isAll
-                ? state.subCategoryId === undefined
-                : state.subCategoryId === sc.id
-              return (
-                <button
-                  key={sc.id}
-                  onClick={() => actions.setSubCategory(sc.isAll ? undefined : sc.id)}
-                  className={cn(
-                    "shrink-0 px-5 py-2.5 transition-colors",
-                    isActive
-                      ? "border-foreground text-foreground border-b-2 font-semibold"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <Text as="span" typography="body3-medium">
-                    {sc.name}
-                  </Text>
-                </button>
-              )
-            })}
-          </div>
-        </div>
+        <CategoryMainTabs activeTab={state.mainTab} onTabChange={handleMainTabChange} />
+        <CategorySubTabs
+          subCategories={allSubCategories}
+          activeSubCategoryId={state.subCategoryId}
+          onSubCategoryChange={actions.setSubCategory}
+        />
       </div>
 
       {/* ── Filter Bar ── */}
       <div className="border-border/50 bg-background border-b">
-        <div className="scrollbar-none mx-auto flex max-w-3xl items-center gap-2 overflow-x-auto px-4 py-2.5 lg:max-w-5xl">
+        <div className="scrollbar-none mx-auto flex max-w-3xl items-center gap-2 overflow-x-auto px-4 py-2.5 md:px-6 lg:max-w-5xl lg:px-8">
           {state.mainTab === "tickets" ? (
             <TicketFilterBar
               ticketType={state.ticketType}
@@ -255,46 +101,15 @@ export function CategoryDetailContent({ categoryName }: { categoryName: string }
       </div>
 
       {/* ── Content List ── */}
-      <main className="mx-auto w-full max-w-3xl flex-1 lg:max-w-5xl">
-        {state.mainTab === "tickets" ? (
-          <TicketList tickets={tickets} isLoading={ticketQuery.isLoading} />
-        ) : (
-          <ExpertList experts={experts} isLoading={expertQuery.isLoading} />
-        )}
-
-        {/* Infinite scroll sentinel */}
-        <div ref={loadMoreRef} className="h-px" />
-
-        {/* Loading indicator */}
-        {(ticketQuery.isFetchingNextPage || expertQuery.isFetchingNextPage) && (
-          <div className="flex justify-center py-6">
-            <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent" />
-          </div>
-        )}
-
-        {/* Empty state */}
-        {state.mainTab === "tickets" && !ticketQuery.isLoading && tickets.length === 0 && (
-          <EmptyState message="등록된 의뢰가 없습니다" />
-        )}
-        {state.mainTab === "experts" && !expertQuery.isLoading && experts.length === 0 && (
-          <EmptyState message="등록된 전문가가 없습니다" />
-        )}
-      </main>
-    </div>
-  )
-}
-
-// ─── Empty State ──────────────────────────────────────────────────────────────
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-20">
-      <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-        <Inbox className="text-muted-foreground" size={32} />
-      </div>
-      <Text as="p" typography="body2-medium" className="text-muted-foreground">
-        {message}
-      </Text>
+      <CategoryContentList
+        mainTab={state.mainTab}
+        tickets={tickets}
+        experts={experts}
+        isTicketLoading={ticketQuery.isLoading}
+        isExpertLoading={expertQuery.isLoading}
+        isFetchingNextPage={ticketQuery.isFetchingNextPage || expertQuery.isFetchingNextPage}
+        loadMoreRef={loadMoreRef}
+      />
     </div>
   )
 }

@@ -3,7 +3,7 @@
 import { useCallback, useRef } from "react"
 import { Inbox, Search } from "lucide-react"
 import { Text } from "@/shared/ui/text"
-import { TicketList } from "@/app/(main)/category/[categoryName]/_components/ticket-list-item"
+import { TicketList } from "@/features/category/browse/ui/ticket-list-item"
 import { useTicketSearchQuery } from "@/features/ticket/search/model/use-ticket-search-query"
 import { openRegionPicker } from "@/features/region/select/lib/open-region-picker"
 import { useSearchFilterState } from "./use-search-filter-state"
@@ -67,7 +67,7 @@ export function SearchContent() {
     <div className="bg-background flex min-h-dvh flex-col">
       {/* 검색어 표시 바 */}
       <div className="border-border/50 border-b">
-        <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-3 lg:max-w-5xl">
+        <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-3 md:px-6 lg:max-w-5xl lg:px-8">
           <Search className="text-muted-foreground h-4 w-4 shrink-0" />
           <Text
             as="h1"

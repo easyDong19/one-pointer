@@ -15,7 +15,7 @@ import {
   TICKET_TYPE_FILTER,
   RATING_FILTER,
   ACTIVITY_METHOD_FILTER,
-} from "./category-detail.constants"
+} from "@/entities/category/lib/category.constants"
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 

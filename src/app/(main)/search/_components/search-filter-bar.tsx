@@ -4,12 +4,12 @@ import { MapPin } from "lucide-react"
 import {
   FilterChip,
   FilterDropdown,
-} from "@/app/(main)/category/[categoryName]/_components/category-filters"
+} from "@/features/category/browse/ui/category-filters"
 import {
   TICKET_TYPE_LABEL,
   TICKET_SORT_OPTIONS,
   TICKET_TYPE_FILTER,
-} from "@/app/(main)/category/[categoryName]/_components/category-detail.constants"
+} from "@/entities/category/lib/category.constants"
 import type {
   SearchFilterActions,
   SearchFilterState,
@@ -30,7 +30,7 @@ type Props = {
 export function SearchFilterBar({ state, actions, onRegionClick }: Props) {
   return (
     <div className="border-border/50 bg-background border-b">
-      <div className="scrollbar-none mx-auto flex max-w-3xl items-center gap-2 overflow-x-auto px-4 py-2.5 lg:max-w-5xl">
+      <div className="scrollbar-none mx-auto flex max-w-3xl items-center gap-2 overflow-x-auto px-4 py-2.5 md:px-6 lg:max-w-5xl lg:px-8">
         <FilterChip
           icon={<MapPin className="h-3.5 w-3.5" />}
           label={state.region ?? "지역"}
