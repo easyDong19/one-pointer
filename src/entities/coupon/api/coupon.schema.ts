@@ -28,7 +28,7 @@ export const couponPaymentMethodSchema = z.enum([
   "APPLE_IAP",
   "GOOGLE_IAP",
 ])
-export const couponPurchaseStatusSchema = z.enum(["PAID", "REFUNDED", "FAILED"])
+export const couponPurchaseStatusSchema = z.enum(["PAID", "REFUNDED", "PARTIAL_REFUNDED", "FAILED"])
 
 // ─── Sub-schemas ─────────────────────────────────────────────────────────────
 

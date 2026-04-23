@@ -20,7 +20,8 @@ export const dayOfWeekSchema = z.enum([
 /** AvailableTimeResponse */
 export const availableTimeSchema = z.object({
   dayOfWeek: z.string(),
-  timeSlot: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
 })
 
 /** CertificationResponse */
@@ -95,6 +96,7 @@ export const expertRegisterRequestSchema = z.object({
   detailIntroduction: z.string().optional(),
   careerPeriod: z.string().optional(),
   activityMethod: activityMethodSchema,
+  bannerImageUrl: z.string().optional(),
   certifications: z
     .array(z.object({ name: z.string(), issuer: z.string() }))
     .optional(),
@@ -108,7 +110,7 @@ export const expertRegisterRequestSchema = z.object({
     )
     .optional(),
   availableTimes: z
-    .array(z.object({ dayOfWeek: z.string(), timeSlot: z.string() }))
+    .array(z.object({ dayOfWeek: z.string(), startTime: z.string(), endTime: z.string() }))
     .optional(),
   availableRegions: z.array(z.string()).optional(),
   subCategoryIds: z.array(z.number()),
@@ -122,7 +124,12 @@ export const updateExpertProfileRequestSchema = z.object({
   detailIntroduction: z.string().optional(),
   careerPeriod: z.string().optional(),
   activityMethod: activityMethodSchema.optional(),
+  bannerImageUrl: z.string().optional(),
   subCategoryIds: z.array(z.number()).optional(),
+  availableTimes: z
+    .array(z.object({ dayOfWeek: z.string(), startTime: z.string(), endTime: z.string() }))
+    .optional(),
+  availableRegions: z.array(z.string()).optional(),
 })
 
 export const addPortfolioRequestSchema = z.object({
@@ -143,7 +150,7 @@ export const updateBankAccountRequestSchema = z.object({
 })
 
 export const updateAvailabilityRequestSchema = z.object({
-  availableTimes: z.array(z.object({ dayOfWeek: z.string(), timeSlot: z.string() })),
+  availableTimes: z.array(z.object({ dayOfWeek: z.string(), startTime: z.string(), endTime: z.string() })),
   availableRegions: z.array(z.string()),
 })
 
