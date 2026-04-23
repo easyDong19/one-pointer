@@ -28,7 +28,7 @@ const TierContext = createContext<Tier>("shell")
 function PageShellRoot({ tier, children }: { tier: Tier; children: ReactNode }) {
   return (
     <TierContext.Provider value={tier}>
-      <div className="bg-background flex min-h-dvh flex-col overflow-x-hidden pb-24">
+      <div className="bg-background flex min-h-dvh flex-col overflow-x-hidden pb-24 md:pt-14 md:pb-0">
         {children}
       </div>
     </TierContext.Provider>
