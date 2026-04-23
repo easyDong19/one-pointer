@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import { MobileHeader } from "@/shared/ui/mobile-header"
+import { PageShell } from "@/shared/ui/page-shell"
 import { useCategoryDetail } from "@/features/category/browse/model/use-category-detail"
 import { CategoryMainTabs } from "@/features/category/browse/ui/category-main-tabs"
 import { CategorySubTabs } from "@/features/category/browse/ui/category-sub-tabs"
@@ -52,64 +53,66 @@ export function CategoryDetailContent({ categoryName }: { categoryName: string }
   }
 
   return (
-    <div className="bg-background flex min-h-dvh flex-col">
-      {/* ── Sticky Header Group ── */}
-      <div className="bg-background/80 sticky top-0 z-40 backdrop-blur-md md:top-14">
-        <MobileHeader className="static z-auto border-border/50">
-          <MobileHeader.BackButton />
-          <MobileHeader.Title>{category.name}</MobileHeader.Title>
-          <MobileHeader.Spacer />
-        </MobileHeader>
+    <PageShell tier="list">
+      <PageShell.Header>
+        <div className="bg-background/80 backdrop-blur-md">
+          <MobileHeader className="static z-auto border-border/50">
+            <MobileHeader.BackButton />
+            <MobileHeader.Title>{category.name}</MobileHeader.Title>
+            <MobileHeader.Spacer />
+          </MobileHeader>
 
-        <CategoryMainTabs activeTab={state.mainTab} onTabChange={handleMainTabChange} />
-        <CategorySubTabs
-          subCategories={allSubCategories}
-          activeSubCategoryId={state.subCategoryId}
-          onSubCategoryChange={actions.setSubCategory}
-        />
-      </div>
-
-      {/* ── Filter Bar ── */}
-      <div className="border-border/50 bg-background border-b">
-        <div className="scrollbar-none mx-auto flex max-w-3xl items-center gap-2 overflow-x-auto px-4 py-2.5 md:px-6 lg:max-w-5xl lg:px-8">
-          {state.mainTab === "tickets" ? (
-            <TicketFilterBar
-              ticketType={state.ticketType}
-              ticketSort={state.ticketSort}
-              region={state.region}
-              onTicketTypeChange={actions.setTicketType}
-              onTicketSortChange={(val) =>
-                actions.setTicketSort(val as typeof state.ticketSort)
-              }
-              onRegionClick={handleRegionClick}
-            />
-          ) : (
-            <ExpertFilterBar
-              minRating={state.minRating}
-              activityMethod={state.activityMethod}
-              expertSort={state.expertSort}
-              region={state.region}
-              onMinRatingChange={actions.setMinRating}
-              onActivityMethodChange={actions.setActivityMethod}
-              onExpertSortChange={(val) =>
-                actions.setExpertSort(val as typeof state.expertSort)
-              }
-              onRegionClick={handleRegionClick}
-            />
-          )}
+          <CategoryMainTabs activeTab={state.mainTab} onTabChange={handleMainTabChange} />
+          <CategorySubTabs
+            subCategories={allSubCategories}
+            activeSubCategoryId={state.subCategoryId}
+            onSubCategoryChange={actions.setSubCategory}
+          />
         </div>
-      </div>
+      </PageShell.Header>
 
-      {/* ── Content List ── */}
-      <CategoryContentList
-        mainTab={state.mainTab}
-        tickets={tickets}
-        experts={experts}
-        isTicketLoading={ticketQuery.isLoading}
-        isExpertLoading={expertQuery.isLoading}
-        isFetchingNextPage={ticketQuery.isFetchingNextPage || expertQuery.isFetchingNextPage}
-        loadMoreRef={loadMoreRef}
-      />
-    </div>
+      <PageShell.Content spacing="none">
+        {/* Filter Bar: tier 내 풀-블리드 bg (-mx 로 Content padding 탈출) */}
+        <div className="border-border/50 -mx-4 border-b bg-background md:-mx-6 lg:-mx-8">
+          <div className="scrollbar-none flex items-center gap-2 overflow-x-auto px-4 py-2.5 md:px-6 lg:px-8">
+            {state.mainTab === "tickets" ? (
+              <TicketFilterBar
+                ticketType={state.ticketType}
+                ticketSort={state.ticketSort}
+                region={state.region}
+                onTicketTypeChange={actions.setTicketType}
+                onTicketSortChange={(val) =>
+                  actions.setTicketSort(val as typeof state.ticketSort)
+                }
+                onRegionClick={handleRegionClick}
+              />
+            ) : (
+              <ExpertFilterBar
+                minRating={state.minRating}
+                activityMethod={state.activityMethod}
+                expertSort={state.expertSort}
+                region={state.region}
+                onMinRatingChange={actions.setMinRating}
+                onActivityMethodChange={actions.setActivityMethod}
+                onExpertSortChange={(val) =>
+                  actions.setExpertSort(val as typeof state.expertSort)
+                }
+                onRegionClick={handleRegionClick}
+              />
+            )}
+          </div>
+        </div>
+
+        <CategoryContentList
+          mainTab={state.mainTab}
+          tickets={tickets}
+          experts={experts}
+          isTicketLoading={ticketQuery.isLoading}
+          isExpertLoading={expertQuery.isLoading}
+          isFetchingNextPage={ticketQuery.isFetchingNextPage || expertQuery.isFetchingNextPage}
+          loadMoreRef={loadMoreRef}
+        />
+      </PageShell.Content>
+    </PageShell>
   )
 }

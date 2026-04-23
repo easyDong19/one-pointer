@@ -3,6 +3,7 @@
 import { Loader2 } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import { Separator } from "@/shared/ui/separator"
+import { PageShell } from "@/shared/ui/page-shell"
 import { useExpertDetailQuery } from "@/features/expert/detail/model/use-expert-detail-query"
 import { ExpertDetailHeader } from "@/features/expert/detail/ui/expert-detail-header"
 import { ExpertProfileCard } from "@/features/expert/detail/ui/expert-profile-card"
@@ -46,35 +47,36 @@ export function ExpertDetailContent({ expertProfileId }: { expertProfileId: numb
   }
 
   return (
-    <div className="bg-background min-h-dvh pb-24">
-      {/* Mobile header */}
-      <ExpertDetailHeader />
+    <PageShell tier="content">
+      <PageShell.Header>
+        <ExpertDetailHeader />
+      </PageShell.Header>
 
-      {/* Desktop: 2-column / Mobile: 1-column */}
-      <div className="mx-auto max-w-5xl lg:grid lg:grid-cols-[1fr_380px] lg:items-start lg:gap-8 lg:px-6 lg:py-8">
-        {/* Left: Main content */}
-        <div>
-          <div className="px-4 pt-5 lg:px-0 lg:pt-0">
-            <ExpertProfileCard expert={expert} />
+      <PageShell.Content spacing="none">
+        <div className="lg:grid lg:grid-cols-[1fr_380px] lg:items-start lg:gap-8 lg:py-8">
+          <div>
+            <div className="pt-5 lg:pt-0">
+              <ExpertProfileCard expert={expert} />
+            </div>
+
+            <div className="py-4">
+              <ExpertStatsBar expert={expert} />
+            </div>
+
+            <Separator className="lg:hidden" />
+
+            <ExpertTabContent expert={expert} />
           </div>
 
-          <div className="px-4 py-4 lg:px-0">
-            <ExpertStatsBar expert={expert} />
+          <div className="hidden lg:block">
+            <ExpertDesktopSidebar expert={expert} />
           </div>
-
-          <Separator className="lg:hidden" />
-
-          <ExpertTabContent expert={expert} />
         </div>
+      </PageShell.Content>
 
-        {/* Right: Desktop sidebar */}
-        <div className="hidden lg:block">
-          <ExpertDesktopSidebar expert={expert} />
-        </div>
-      </div>
-
-      {/* Mobile: Bottom CTA */}
-      <ExpertMobileBottomBar />
-    </div>
+      <PageShell.Footer>
+        <ExpertMobileBottomBar />
+      </PageShell.Footer>
+    </PageShell>
   )
 }

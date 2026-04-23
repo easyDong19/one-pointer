@@ -3,6 +3,7 @@
 import { useCallback, useRef } from "react"
 import { Inbox, Search } from "lucide-react"
 import { Text } from "@/shared/ui/text"
+import { PageShell } from "@/shared/ui/page-shell"
 import { TicketList } from "@/features/category/browse/ui/ticket-list-item"
 import { useTicketSearchQuery } from "@/features/ticket/search/model/use-ticket-search-query"
 import { openRegionPicker } from "@/features/region/select/lib/open-region-picker"
@@ -64,40 +65,30 @@ export function SearchContent() {
   const hasKeyword = state.keyword.trim().length > 0
 
   return (
-    <div className="bg-background flex min-h-dvh flex-col">
-      {/* 검색어 표시 바 */}
-      <div className="border-border/50 border-b">
-        <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-3 md:px-6 lg:max-w-5xl lg:px-8">
-          <Search className="text-muted-foreground h-4 w-4 shrink-0" />
-          <Text
-            as="h1"
-            typography="body2-bold"
-            className="text-foreground truncate"
-          >
-            {hasKeyword ? `"${state.keyword}" 검색 결과` : "검색어를 입력하세요"}
-          </Text>
-          {hasKeyword && !query.isLoading && (
-            <Text
-              as="span"
-              typography="caption1-medium"
-              className="text-muted-foreground ml-auto shrink-0"
-            >
-              {totalLoaded}
-              {query.hasNextPage ? "+" : ""}건
+    <PageShell tier="list">
+      <PageShell.Content spacing="none">
+        {/* 검색어 표시 바: tier 내 풀-블리드 bg */}
+        <div className="border-border/50 -mx-4 border-b md:-mx-6 lg:-mx-8">
+          <div className="flex items-center gap-2 px-4 py-3 md:px-6 lg:px-8">
+            <Search className="text-muted-foreground h-4 w-4 shrink-0" />
+            <Text as="h1" typography="body2-bold" className="text-foreground truncate">
+              {hasKeyword ? `"${state.keyword}" 검색 결과` : "검색어를 입력하세요"}
             </Text>
-          )}
+            {hasKeyword && !query.isLoading && (
+              <Text
+                as="span"
+                typography="caption1-medium"
+                className="text-muted-foreground ml-auto shrink-0"
+              >
+                {totalLoaded}
+                {query.hasNextPage ? "+" : ""}건
+              </Text>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* 필터 바 */}
-      <SearchFilterBar
-        state={state}
-        actions={actions}
-        onRegionClick={handleRegionClick}
-      />
+        <SearchFilterBar state={state} actions={actions} onRegionClick={handleRegionClick} />
 
-      {/* 결과 */}
-      <main className="mx-auto w-full max-w-3xl flex-1 lg:max-w-5xl">
         {!hasKeyword ? (
           <EmptyState
             message="검색어를 입력해주세요"
@@ -109,7 +100,6 @@ export function SearchContent() {
           <>
             <TicketList tickets={tickets} isLoading={query.isLoading} />
 
-            {/* infinite scroll sentinel */}
             <div ref={loadMoreRef} className="h-px" />
 
             {query.isFetchingNextPage && (
@@ -126,8 +116,8 @@ export function SearchContent() {
             )}
           </>
         )}
-      </main>
-    </div>
+      </PageShell.Content>
+    </PageShell>
   )
 }
 
@@ -139,19 +129,11 @@ function EmptyState({ message, sub }: { message: string; sub?: string }) {
       <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
         <Inbox className="text-muted-foreground" size={32} />
       </div>
-      <Text
-        as="p"
-        typography="body2-medium"
-        className="text-foreground"
-      >
+      <Text as="p" typography="body2-medium" className="text-foreground">
         {message}
       </Text>
       {sub && (
-        <Text
-          as="p"
-          typography="caption1-medium"
-          className="text-muted-foreground mt-1"
-        >
+        <Text as="p" typography="caption1-medium" className="text-muted-foreground mt-1">
           {sub}
         </Text>
       )}

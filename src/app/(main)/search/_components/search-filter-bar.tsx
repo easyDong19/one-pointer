@@ -29,8 +29,8 @@ type Props = {
  */
 export function SearchFilterBar({ state, actions, onRegionClick }: Props) {
   return (
-    <div className="border-border/50 bg-background border-b">
-      <div className="scrollbar-none mx-auto flex max-w-3xl items-center gap-2 overflow-x-auto px-4 py-2.5 md:px-6 lg:max-w-5xl lg:px-8">
+    <div className="border-border/50 -mx-4 border-b bg-background md:-mx-6 lg:-mx-8">
+      <div className="scrollbar-none flex items-center gap-2 overflow-x-auto px-4 py-2.5 md:px-6 lg:px-8">
         <FilterChip
           icon={<MapPin className="h-3.5 w-3.5" />}
           label={state.region ?? "지역"}

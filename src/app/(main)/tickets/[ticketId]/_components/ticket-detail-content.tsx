@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import { Separator } from "@/shared/ui/separator"
+import { PageShell } from "@/shared/ui/page-shell"
 import { useTicketDetailQuery } from "@/features/ticket/detail/model/use-ticket-detail-query"
 import { TicketImageCarousel } from "@/features/ticket/detail/ui/ticket-image-carousel"
 import { TicketDetailHeader } from "@/features/ticket/detail/ui/ticket-detail-header"
@@ -57,33 +58,39 @@ export function TicketDetailContent({ ticketId }: { ticketId: number }) {
   }
 
   return (
-    <div className="bg-background min-h-dvh pb-24">
-      {/* Mobile header */}
-      <TicketDetailHeader />
+    <PageShell tier="content">
+      <PageShell.Header>
+        <TicketDetailHeader />
+      </PageShell.Header>
 
-      {/* Desktop: 2-column layout */}
-      <div className="mx-auto max-w-5xl lg:grid lg:grid-cols-[1fr_400px] lg:items-start lg:gap-8 lg:px-6 lg:py-8">
-        {/* Left column / Mobile full width */}
-        <div>
-          <TicketImageCarousel images={ticket.images ?? []} />
+      <PageShell.Content spacing="none">
+        <div className="lg:grid lg:grid-cols-[1fr_400px] lg:items-start lg:gap-8 lg:py-8">
+          {/* Left / Mobile full width */}
+          <div>
+            {/* 캐러셀은 모바일/태블릿에서 tier 내 풀-블리드 */}
+            <div className="-mx-4 md:-mx-6 lg:mx-0">
+              <TicketImageCarousel images={ticket.images ?? []} />
+            </div>
 
-          <div className="px-4 pt-5 lg:px-0">
-            <TicketHeader ticket={ticket} />
-            <Separator className="my-5" />
-            <TicketDescription ticket={ticket} />
-            <Separator className="my-5" />
-            <TicketInfo ticket={ticket} />
+            <div className="pt-5 lg:pt-0">
+              <TicketHeader ticket={ticket} />
+              <Separator className="my-5" />
+              <TicketDescription ticket={ticket} />
+              <Separator className="my-5" />
+              <TicketInfo ticket={ticket} />
+            </div>
+          </div>
+
+          {/* Desktop sidebar */}
+          <div className="hidden lg:block">
+            <TicketDesktopSidebar ticket={ticket} />
           </div>
         </div>
+      </PageShell.Content>
 
-        {/* Desktop: Right sidebar */}
-        <div className="hidden lg:block">
-          <TicketDesktopSidebar ticket={ticket} />
-        </div>
-      </div>
-
-      {/* Mobile: Bottom fixed button */}
-      <TicketMobileBottomBar ticket={ticket} />
-    </div>
+      <PageShell.Footer>
+        <TicketMobileBottomBar ticket={ticket} />
+      </PageShell.Footer>
+    </PageShell>
   )
 }
