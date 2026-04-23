@@ -7,7 +7,6 @@ import { getPopularTicketsOnServer } from "@/entities/ticket/api/ticket.server-s
 import { HomeCategoryGrid } from "@/app/(main)/_components/home-category-grid"
 import { HomePopularTickets } from "@/app/(main)/_components/home-popular-tickets"
 import { HomePopularExperts } from "@/app/(main)/_components/home-popular-experts"
-import { HomeHowItWorks } from "@/app/(main)/_components/home-how-it-works"
 import { HomeFooter } from "@/app/(main)/_components/home-footer"
 
 export const dynamic = "force-dynamic"
@@ -34,7 +33,6 @@ export default async function HomePage() {
         <HomeCategoryGrid categories={categories} />
         <HomePopularTickets tickets={popularTickets} />
         <HomePopularExperts experts={popularExperts} />
-        <HomeHowItWorks />
       </main>
 
       <HomeFooter />

@@ -9,21 +9,8 @@ import { Text } from "@/shared/ui/text"
  * CommonHeader — `(main)` 레이아웃 공용 반응형 헤더 primitive.
  *
  * - 도메인 지식 없음. 레이아웃/슬롯 시맨틱만 제공.
- * - 단일 컴포넌트에서 뷰포트별 레이아웃을 CSS 로 분기.
- *   - DesktopNav: `hidden md:flex` — 모바일 완전 제거
- *   - Slot/Actions/Logo: 항상 렌더, 자식이 자체 반응형 처리
- *
- * 사용 예:
- * ```tsx
- * <CommonHeader>
- *   <CommonHeader.Logo href="/">쪽집게</CommonHeader.Logo>
- *   <CommonHeader.DesktopNav>
- *     <CommonHeader.NavLink href="/experts">전문가 찾기</CommonHeader.NavLink>
- *   </CommonHeader.DesktopNav>
- *   <CommonHeader.Slot><HeaderSearch /></CommonHeader.Slot>
- *   <CommonHeader.Actions>{actions}</CommonHeader.Actions>
- * </CommonHeader>
- * ```
+ * - Slot: 데스크탑 좌측(로고 옆) / 모바일 우측 정렬
+ * - Actions: 데스크탑 전용 (`hidden md:flex`). 모바일에서는 렌더되지 않음.
  */
 
 /* ─── Root ─────────────────────────────────────────────────────────────────── */
@@ -72,12 +59,6 @@ function Logo({
   )
 }
 
-/* ─── DesktopNav ──────────────────────────────────────────────────────────── */
-
-function DesktopNav({ children }: { children: ReactNode }) {
-  return <nav className="hidden shrink-0 items-center gap-6 md:flex">{children}</nav>
-}
-
 /* ─── NavLink ──────────────────────────────────────────────────────────────── */
 
 function NavLink({
@@ -107,7 +88,7 @@ function NavLink({
  * 우측 가까이 정렬된다. 레이아웃 뉘앙스는 자식이 결정한다.
  */
 function Slot({ children }: { children: ReactNode }) {
-  return <div className="flex flex-1 items-center justify-end md:justify-center">{children}</div>
+  return <div className="flex flex-1 items-center justify-end md:justify-start">{children}</div>
 }
 
 /* ─── Actions ──────────────────────────────────────────────────────────────── */
@@ -120,7 +101,6 @@ function Actions({ children }: { children: ReactNode }) {
 
 export const CommonHeader = Object.assign(CommonHeaderRoot, {
   Logo,
-  DesktopNav,
   NavLink,
   Slot,
   Actions,

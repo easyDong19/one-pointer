@@ -32,11 +32,6 @@ export function HomePopularExperts({ experts }: HomePopularExpertsProps) {
             인기 전문가
           </Text>
         </div>
-        <Link href="/experts" className="hidden md:block">
-          <Text as="span" typography="body3-medium" className="text-primary hover:underline">
-            전체보기 &rarr;
-          </Text>
-        </Link>
       </div>
 
       {/* 모바일: 가로 스크롤 */}

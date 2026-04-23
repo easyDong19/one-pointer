@@ -2,11 +2,12 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, MessageSquare, Smile } from "lucide-react"
+import { Home, MessageSquare, Smile, SquarePen } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 
 const NAV_ITEMS = [
   { href: "/", icon: Home, label: "홈" },
+  { href: "/tickets/new", icon: SquarePen, label: "의뢰 등록" },
   { href: "/chat", icon: MessageSquare, label: "채팅" },
   { href: "/mypage", icon: Smile, label: "마이페이지" },
 ] as const

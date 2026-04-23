@@ -19,19 +19,14 @@ export function MainCommonHeader() {
     <CommonHeader className={isHome ? undefined : "hidden md:block"}>
       <CommonHeader.Logo href="/">쪽집게</CommonHeader.Logo>
 
-      <CommonHeader.DesktopNav>
-        <CommonHeader.NavLink href="/experts">전문가 찾기</CommonHeader.NavLink>
-        <CommonHeader.NavLink href="/tickets/new">의뢰 등록</CommonHeader.NavLink>
-        <CommonHeader.NavLink href="/about">서비스 소개</CommonHeader.NavLink>
-      </CommonHeader.DesktopNav>
-
       <CommonHeader.Slot>
-        <div className="flex w-full max-w-md justify-end md:max-w-sm md:justify-center">
+        <div className="flex w-full max-w-md justify-end md:max-w-sm md:justify-start">
           <HeaderSearch />
         </div>
       </CommonHeader.Slot>
 
       <CommonHeader.Actions>
+        <CommonHeader.NavLink href="/tickets/new">의뢰 등록</CommonHeader.NavLink>
         <HeaderAuthSection />
       </CommonHeader.Actions>
     </CommonHeader>
