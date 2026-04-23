@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useRef, useState, type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { ArrowLeft, Search, Trash2 } from "lucide-react"
 import {
   Dialog,
@@ -15,20 +15,31 @@ import { cn } from "@/shared/lib/utils"
 import { useSearchHistory } from "../model/use-search-history"
 import { SearchHistoryList } from "./search-history-list"
 
+type Props = {
+  /** 커스텀 트리거. 기본값은 Search 아이콘 버튼 (CommonHeader 용). */
+  trigger?: ReactNode
+  /** 모달 오픈 시 Input 에 prefill 할 키워드. 기본 "". */
+  initialKeyword?: string
+}
+
 /**
- * 모바일 헤더 검색 — Search 아이콘 버튼 → 풀스크린 Dialog.
+ * 모바일 헤더 검색 — 트리거 → 풀스크린 Dialog.
  *
- * - 아이콘 탭 시 풀사이즈 모달 open (`h-dvh w-screen`)
- * - Input autofocus
- * - Enter / 검색 아이콘 탭 시 /search?keyword=... 이동 + 모달 닫힘 + 히스토리 저장
- * - IME 조합 중 Enter 무시
+ * - 기본 트리거는 Search 아이콘 버튼. `/search` 페이지에서는 키워드 바 자체를 트리거로 주입.
+ * - `initialKeyword` 를 넘기면 모달 오픈 시 Input 에 prefill.
+ * - Enter / 검색 아이콘 탭 시 /search?keyword=... 이동 + 모달 닫힘 + 히스토리 저장.
+ * - IME 조합 중 Enter 무시.
  */
-export function HeaderSearchModal() {
+export function HeaderSearchModal({ trigger, initialKeyword = "" }: Props = {}) {
   const router = useRouter()
   const { history, add, remove, clear } = useSearchHistory()
   const [open, setOpen] = useState(false)
-  const [keyword, setKeyword] = useState("")
+  const [keyword, setKeyword] = useState(initialKeyword)
   const isComposingRef = useRef(false)
+
+  useEffect(() => {
+    if (open) setKeyword(initialKeyword)
+  }, [open, initialKeyword])
 
   const navigate = (kw: string) => {
     const trimmed = kw.trim()
@@ -48,13 +59,15 @@ export function HeaderSearchModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button
-          type="button"
-          aria-label="검색 열기"
-          className="text-foreground hover:bg-muted flex h-9 w-9 items-center justify-center rounded-full transition-colors"
-        >
-          <Search className="h-5 w-5" />
-        </button>
+        {trigger ?? (
+          <button
+            type="button"
+            aria-label="검색 열기"
+            className="text-foreground hover:bg-muted flex h-9 w-9 items-center justify-center rounded-full transition-colors"
+          >
+            <Search className="h-5 w-5" />
+          </button>
+        )}
       </DialogTrigger>
 
       <DialogContent

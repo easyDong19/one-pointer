@@ -5,6 +5,7 @@ import { Inbox, Search } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import { PageShell } from "@/shared/ui/page-shell"
 import { TicketList } from "@/features/category/browse/ui/ticket-list-item"
+import { HeaderSearchModal } from "@/features/ticket/search/ui/header-search-modal"
 import { useTicketSearchQuery } from "@/features/ticket/search/model/use-ticket-search-query"
 import { openRegionPicker } from "@/features/region/select/lib/open-region-picker"
 import { useSearchFilterState } from "./use-search-filter-state"
@@ -69,7 +70,35 @@ export function SearchContent() {
       <PageShell.Content spacing="none">
         {/* 검색어 표시 바: tier 내 풀-블리드 bg */}
         <div className="border-border/50 -mx-4 border-b md:-mx-6 lg:-mx-8">
-          <div className="flex items-center gap-2 px-4 py-3 md:px-6 lg:px-8">
+          {/* 모바일: 버튼 → HeaderSearchModal 트리거로 재검색 */}
+          <HeaderSearchModal
+            initialKeyword={state.keyword}
+            trigger={
+              <button
+                type="button"
+                aria-label="검색어 수정"
+                className="hover:bg-muted/50 flex w-full items-center gap-2 px-4 py-3 text-left transition-colors md:hidden"
+              >
+                <Search className="text-muted-foreground h-4 w-4 shrink-0" />
+                <Text as="span" typography="body2-bold" className="text-foreground truncate">
+                  {hasKeyword ? `"${state.keyword}" 검색 결과` : "검색어를 입력하세요"}
+                </Text>
+                {hasKeyword && !query.isLoading && (
+                  <Text
+                    as="span"
+                    typography="caption1-medium"
+                    className="text-muted-foreground ml-auto shrink-0"
+                  >
+                    {totalLoaded}
+                    {query.hasNextPage ? "+" : ""}건
+                  </Text>
+                )}
+              </button>
+            }
+          />
+
+          {/* 데스크탑: 단순 헤딩 (CommonHeader Popover 가 항상 접근 가능) */}
+          <div className="hidden items-center gap-2 px-4 py-3 md:flex md:px-6 lg:px-8">
             <Search className="text-muted-foreground h-4 w-4 shrink-0" />
             <Text as="h1" typography="body2-bold" className="text-foreground truncate">
               {hasKeyword ? `"${state.keyword}" 검색 결과` : "검색어를 입력하세요"}

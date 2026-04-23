@@ -126,11 +126,11 @@ export function useSearchFilterState(): [SearchFilterState, SearchFilterActions]
   // state → URL
   useEffect(() => {
     const qs = stateToQueryString(state)
-    const currentQs = searchParams.toString()
+    const currentQs = new URLSearchParams(window.location.search).toString()
     if (qs === currentQs) return
     const url = qs ? `${pathname}?${qs}` : pathname
     router.replace(url, { scroll: false })
-  }, [state, searchParams, pathname, router])
+  }, [state, pathname, router])
 
   // URL → state (뒤로가기/외부 네비게이션 대응)
   useEffect(() => {
