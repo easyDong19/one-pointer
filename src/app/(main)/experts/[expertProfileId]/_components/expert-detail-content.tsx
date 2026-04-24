@@ -6,6 +6,7 @@ import { Separator } from "@/shared/ui/separator"
 import { PageShell } from "@/shared/ui/page-shell"
 import { useExpertDetailQuery } from "@/features/expert/detail/model/use-expert-detail-query"
 import { ExpertDetailHeader } from "@/features/expert/detail/ui/expert-detail-header"
+import { ExpertProfileHero } from "@/features/expert/detail/ui/expert-profile-hero"
 import { ExpertProfileCard } from "@/features/expert/detail/ui/expert-profile-card"
 import { ExpertStatsBar } from "@/features/expert/detail/ui/expert-stats-bar"
 import { ExpertTabContent } from "@/features/expert/detail/ui/expert-tab-content"
@@ -55,7 +56,8 @@ export function ExpertDetailContent({ expertProfileId }: { expertProfileId: numb
       <PageShell.Content spacing="none">
         <div className="lg:grid lg:grid-cols-[1fr_380px] lg:items-start lg:gap-8 lg:py-8">
           <div>
-            <div className="pt-5 lg:pt-0">
+            <ExpertProfileHero expert={expert} className="" />
+            <div className="mt-5 lg:mt-6">
               <ExpertProfileCard expert={expert} />
             </div>
 
