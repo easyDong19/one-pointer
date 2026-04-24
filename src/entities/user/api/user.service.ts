@@ -14,8 +14,6 @@ import {
   myExpertProfileResponseSchema,
   expertDetailResponseSchema,
   expertProfileExistsResponseSchema,
-  earningsSummaryResponseSchema,
-  transactionsResponseSchema,
   expertDashboardResponseSchema,
   clientDashboardResponseSchema,
   type UpdateProfileRequest,
@@ -29,10 +27,6 @@ import {
   type UpdateAvailabilityRequest,
   type UpdateNotificationRequest,
   type MyExpertProfile,
-  type EarningsRequest,
-  type EarningsSummary,
-  type TransactionItem,
-  type TransactionsRequest,
   type ExpertDashboard,
   type ClientDashboard,
 } from "./user.schema"
@@ -51,10 +45,6 @@ export type {
   UpdateAvailabilityRequest,
   UpdateNotificationRequest,
   MyExpertProfile,
-  EarningsRequest,
-  EarningsSummary,
-  TransactionItem,
-  TransactionsRequest,
   ExpertDashboard,
   ClientDashboard,
 }
@@ -157,38 +147,7 @@ export async function checkExpertProfileExists(): Promise<boolean> {
   return parsed.data
 }
 
-// ─── Expert Earnings & Dashboard ─────────────────────────────────────────────
-
-export async function getExpertEarnings(params?: EarningsRequest): Promise<EarningsSummary> {
-  const path = "/v1/api/user/expert/earnings"
-  const method = "GET"
-  const response = await clientFetch<unknown>({ path, method, query: params })
-  const parsed = parseSchemaOrThrow(earningsSummaryResponseSchema, response, {
-    path,
-    method,
-    message: "Invalid earnings response payload",
-  })
-  return parsed.data
-}
-
-export async function getExpertTransactions(params?: TransactionsRequest): Promise<{
-  content: TransactionItem[]
-  nextCursor: string | null
-  hasNext: boolean
-}> {
-  const path = "/v1/api/user/expert/earnings/transactions"
-  const method = "GET"
-  const query: Record<string, string> = {}
-  if (params?.cursor) query.cursor = params.cursor
-  if (params?.status && params.status !== "ALL") query.status = params.status
-  const response = await clientFetch<unknown>({ path, method, query })
-  const parsed = parseSchemaOrThrow(transactionsResponseSchema, response, {
-    path,
-    method,
-    message: "Invalid transactions response payload",
-  })
-  return parsed.data
-}
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 
 export async function getExpertDashboard(): Promise<ExpertDashboard> {
   const path = "/v1/api/user/expert/dashboard"

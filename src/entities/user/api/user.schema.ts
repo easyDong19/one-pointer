@@ -213,89 +213,7 @@ export const expertProfileExistsResponseSchema = successResponseSchema(z.boolean
 
 export const portfolioResponseSchema = successResponseSchema(portfolioSchema)
 
-// ─── Earnings ────────────────────────────────────────────────────────────────
-
-export const earningsPeriodSchema = z.enum(["DAILY", "WEEKLY", "MONTHLY"])
-export type EarningsPeriod = z.infer<typeof earningsPeriodSchema>
-
-/** EarningDataPoint */
-export const earningsGraphPointSchema = z.object({
-  label: z.string(),
-  settledAmount: z.number(),
-  pendingAmount: z.number(),
-  transactionCount: z.number(),
-})
-
-/** BankAccountResponse */
-export const bankAccountResponseSchema = z.object({
-  bankCode: z.string(),
-  accountNumber: z.string(),
-  accountHolder: z.string(),
-})
-
-/** ExpertEarningsResponse */
-export const earningsSummarySchema = z.object({
-  bankAccount: bankAccountResponseSchema.nullable().optional(),
-  totalNetEarnings: z.number(),
-  settledAmount: z.number(),
-  pendingAmount: z.number(),
-  totalFee: z.number(),
-  totalFees: z.number().optional(),
-  earningsGraph: z.array(earningsGraphPointSchema),
-  period: z.string(),
-  startDate: z.string(),
-  endDate: z.string(),
-})
-
-export const earningsSummaryResponseSchema = successResponseSchema(earningsSummarySchema)
-
-export const earningsRequestSchema = z.object({
-  period: earningsPeriodSchema,
-  startDate: z.string(),
-  endDate: z.string(),
-})
-
-export type EarningsRequest = z.infer<typeof earningsRequestSchema>
-
-// ─── Transactions ────────────────────────────────────────────────────────────
-
-export const transactionStatusSchema = z.enum(["ALL", "SETTLED", "PENDING"])
-export type TransactionStatus = z.infer<typeof transactionStatusSchema>
-
-/** ExpertTransactionResponse */
-export const transactionItemSchema = z.object({
-  paymentId: z.number(),
-  ticketTitle: z.string(),
-  clientNickname: z.string(),
-  originalAmount: z.number(),
-  fee: z.number(),
-  netAmount: z.number(),
-  status: z.string(),
-  paidAt: z.string(),
-  confirmedAt: z.string().nullable(),
-  settledAt: z.string().nullable(),
-  estimatedSettlementDate: z.string().nullable(),
-  // legacy FE fields (kept for backward compatibility)
-  id: z.number().optional(),
-  ticketId: z.number().optional(),
-  amount: z.number().optional(),
-  createdAt: z.string().optional(),
-})
-
-export const transactionsResponseSchema = successResponseSchema(
-  z.object({
-    content: z.array(transactionItemSchema),
-    nextCursor: z.string().nullable(),
-    hasNext: z.boolean(),
-  }),
-)
-
-export const transactionsRequestSchema = z.object({
-  cursor: z.string().optional(),
-  status: transactionStatusSchema.optional(),
-})
-
-export type TransactionsRequest = z.infer<typeof transactionsRequestSchema>
+// ─── Dashboards ──────────────────────────────────────────────────────────────
 
 /** ExpertDashboardResponse */
 export const expertDashboardSchema = z.object({
@@ -326,9 +244,5 @@ export const clientDashboardSchema = z.object({
 
 export const clientDashboardResponseSchema = successResponseSchema(clientDashboardSchema)
 
-export type EarningsGraphPoint = z.infer<typeof earningsGraphPointSchema>
-export type EarningsSummary = z.infer<typeof earningsSummarySchema>
-export type TransactionItem = z.infer<typeof transactionItemSchema>
-export type TransactionPageResponse = z.infer<typeof transactionsResponseSchema>["data"]
 export type ExpertDashboard = z.infer<typeof expertDashboardSchema>
 export type ClientDashboard = z.infer<typeof clientDashboardSchema>
