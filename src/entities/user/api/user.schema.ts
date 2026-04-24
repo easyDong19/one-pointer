@@ -55,12 +55,12 @@ export const expertProfileSummarySchema = z.object({
   id: z.number(),
   userId: z.number(),
   nickname: z.string(),
-  profileImageUrl: z.string().url().nullable().optional(),
+  profileImageUrl: z.string().nullish(),
   introduction: z.string(),
   activityMethod: activityMethodSchema,
-  averageRating: z.number().nullable().optional(),
-  reviewCount: z.number().optional(),
-  subCategories: z.array(z.object({ id: z.number(), name: z.string() })).optional(),
+  averageRating: z.number().nullish(),
+  reviewCount: z.number().nullish(),
+  subCategories: z.array(z.object({ id: z.number(), name: z.string() })).nullish(),
 })
 
 /** BankAccountResponse (프로필용 — 모든 필드 nullable) */
