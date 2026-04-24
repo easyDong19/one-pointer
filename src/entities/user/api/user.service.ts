@@ -11,7 +11,8 @@ import {
   updateBankAccountRequestSchema,
   updateAvailabilityRequestSchema,
   updateNotificationRequestSchema,
-  expertProfileDetailResponseSchema,
+  myExpertProfileResponseSchema,
+  expertDetailResponseSchema,
   expertProfileExistsResponseSchema,
   earningsSummaryResponseSchema,
   transactionsResponseSchema,
@@ -27,7 +28,7 @@ import {
   type UpdateBankAccountRequest,
   type UpdateAvailabilityRequest,
   type UpdateNotificationRequest,
-  type ExpertProfileDetail,
+  type MyExpertProfile,
   type EarningsRequest,
   type EarningsSummary,
   type TransactionItem,
@@ -35,8 +36,10 @@ import {
   type ExpertDashboard,
   type ClientDashboard,
 } from "./user.schema"
+import type { ExpertDetail } from "@/entities/expert/api/expert.schema"
 
 export type {
+  ExpertDetail,
   UpdateProfileRequest,
   UpdateFcmTokenRequest,
   DeleteFcmTokenRequest,
@@ -47,7 +50,7 @@ export type {
   UpdateBankAccountRequest,
   UpdateAvailabilityRequest,
   UpdateNotificationRequest,
-  ExpertProfileDetail,
+  MyExpertProfile,
   EarningsRequest,
   EarningsSummary,
   TransactionItem,
@@ -118,11 +121,11 @@ export async function updateExpertProfile(input: UpdateExpertProfileRequest): Pr
   await clientFetch<unknown, UpdateExpertProfileRequest>({ path, method, body: payload })
 }
 
-export async function getExpertProfile(id: number): Promise<ExpertProfileDetail> {
+export async function getExpertProfile(id: number): Promise<ExpertDetail> {
   const path = `/v1/api/user/expert/${id}`
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method })
-  const parsed = parseSchemaOrThrow(expertProfileDetailResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(expertDetailResponseSchema, response, {
     path,
     method,
     message: "Invalid expert profile response payload",
@@ -130,11 +133,11 @@ export async function getExpertProfile(id: number): Promise<ExpertProfileDetail>
   return parsed.data
 }
 
-export async function getMyExpertProfile(): Promise<ExpertProfileDetail> {
+export async function getMyExpertProfile(): Promise<MyExpertProfile> {
   const path = "/v1/api/user/expert/me"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method })
-  const parsed = parseSchemaOrThrow(expertProfileDetailResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(myExpertProfileResponseSchema, response, {
     path,
     method,
     message: "Invalid my expert profile response payload",

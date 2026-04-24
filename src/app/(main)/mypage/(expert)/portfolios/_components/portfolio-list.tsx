@@ -20,11 +20,11 @@ import {
   useDeletePortfolioMutation,
 } from "@/features/mypage/portfolios"
 import type { z } from "zod/v4"
-import type { portfolioSchema } from "@/entities/user/api/user.schema"
+import type { expertPortfolioSchema } from "@/entities/expert/api/expert.schema"
 import { PortfolioCard } from "./portfolio-card"
 import { PortfolioFormDialog } from "./portfolio-form-dialog"
 
-type Portfolio = z.infer<typeof portfolioSchema>
+type Portfolio = z.infer<typeof expertPortfolioSchema>
 
 export function PortfolioList() {
   const { data: profile } = useMyExpertProfileQuery()

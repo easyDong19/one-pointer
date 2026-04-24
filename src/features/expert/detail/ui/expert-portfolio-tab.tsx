@@ -28,9 +28,9 @@ export function ExpertPortfolioTab({ expert }: { expert: ExpertDetail }) {
           className="bg-card border-border overflow-hidden rounded-xl border"
         >
           <PortfolioImage
-            src={portfolio.imageUrls[0]}
+            src={(portfolio.imageUrls ?? [])[0]}
             alt={portfolio.description || `포트폴리오 ${idx + 1}`}
-            imageCount={portfolio.imageUrls.length}
+            imageCount={(portfolio.imageUrls ?? []).length}
           />
           {portfolio.description && (
             <div className="p-4">

@@ -39,12 +39,14 @@ export function ExpertDesktopSidebar({ expert }: { expert: ExpertDetail }) {
               <Text as="h2" typography="body1-bold" className="text-foreground">
                 {expert.nickname}
               </Text>
-              <Badge variant="secondary" className="text-xs">
-                {GRADE_LABEL[expert.grade] ?? expert.grade}
-              </Badge>
+              {expert.grade && (
+                <Badge variant="secondary" className="text-xs">
+                  {GRADE_LABEL[expert.grade] ?? expert.grade}
+                </Badge>
+              )}
             </div>
             <Text as="p" typography="caption1-medium" className="text-muted-foreground">
-              {expert.categories.flatMap((c) => c.subCategoryNames).join(", ")}
+              {(expert.categories ?? []).flatMap((c) => c.subCategoryNames ?? []).join(", ")}
             </Text>
           </div>
         </div>
@@ -68,12 +70,16 @@ export function ExpertDesktopSidebar({ expert }: { expert: ExpertDetail }) {
 
         {/* Info */}
         <div className="flex flex-col gap-2">
-          <InfoRow label="활동 방식" value={ACTIVITY_METHOD_LABEL[expert.activityMethod] ?? expert.activityMethod} />
-          <InfoRow label="경력" value={expert.careerPeriod} />
-          {expert.availableRegions.length > 0 && (
+          {expert.activityMethod && (
+            <InfoRow label="활동 방식" value={ACTIVITY_METHOD_LABEL[expert.activityMethod] ?? expert.activityMethod} />
+          )}
+          {expert.careerPeriod && (
+            <InfoRow label="경력" value={expert.careerPeriod} />
+          )}
+          {(expert.availableRegions ?? []).length > 0 && (
             <InfoRow
               label="지역"
-              value={expert.availableRegions.join(", ")}
+              value={(expert.availableRegions ?? []).join(", ")}
               icon={<MapPin className="h-3.5 w-3.5" />}
             />
           )}

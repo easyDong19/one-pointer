@@ -14,9 +14,9 @@ import {
 } from "@/shared/ui/dialog"
 import { cn } from "@/shared/lib/utils"
 import type { z } from "zod/v4"
-import type { portfolioSchema } from "@/entities/user/api/user.schema"
+import type { expertPortfolioSchema } from "@/entities/expert/api/expert.schema"
 
-type Portfolio = z.infer<typeof portfolioSchema>
+type Portfolio = z.infer<typeof expertPortfolioSchema>
 
 type PortfolioFormDialogProps = {
   open: boolean

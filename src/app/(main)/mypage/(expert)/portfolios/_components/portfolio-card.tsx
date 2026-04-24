@@ -3,9 +3,9 @@
 import { ImageIcon, Pencil, Trash2 } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import type { z } from "zod/v4"
-import type { portfolioSchema } from "@/entities/user/api/user.schema"
+import type { expertPortfolioSchema } from "@/entities/expert/api/expert.schema"
 
-type Portfolio = z.infer<typeof portfolioSchema>
+type Portfolio = z.infer<typeof expertPortfolioSchema>
 
 type PortfolioCardProps = {
   portfolio: Portfolio
@@ -14,7 +14,8 @@ type PortfolioCardProps = {
 }
 
 export function PortfolioCard({ portfolio, onEdit, onDelete }: PortfolioCardProps) {
-  const thumbnailUrl = portfolio.imageUrls[0]
+  const images = portfolio.imageUrls ?? []
+  const thumbnailUrl = images[0]
 
   return (
     <div className="flex gap-4 rounded-xl border p-4 shadow-sm">
@@ -23,7 +24,7 @@ export function PortfolioCard({ portfolio, onEdit, onDelete }: PortfolioCardProp
         {thumbnailUrl ? (
           <img
             src={thumbnailUrl}
-            alt={portfolio.description}
+            alt={portfolio.description ?? undefined}
             className="size-full object-cover"
           />
         ) : (
@@ -41,9 +42,9 @@ export function PortfolioCard({ portfolio, onEdit, onDelete }: PortfolioCardProp
         <Text as="p" typography="body3-medium" className="line-clamp-2">
           {portfolio.description}
         </Text>
-        {portfolio.imageUrls.length > 0 && (
+        {images.length > 0 && (
           <Text as="span" typography="caption2-medium" className="text-muted-foreground">
-            이미지 {portfolio.imageUrls.length}장
+            이미지 {images.length}장
           </Text>
         )}
       </div>

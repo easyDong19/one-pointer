@@ -1,4 +1,16 @@
 import { z } from "zod/v4"
+import {
+  expertDetailSchema,
+  expertDetailResponseSchema,
+  expertAuthStatusSchema,
+  expertGradeSchema,
+  benefitResponseSchema as expertBenefitResponseSchema,
+  expertCategorySchema,
+  expertAvailableTimeSchema,
+  expertCertificationSchema,
+  expertPortfolioSchema,
+  expertReviewSummarySchema,
+} from "@/entities/expert/api/expert.schema"
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
@@ -51,26 +63,37 @@ export const expertProfileSummarySchema = z.object({
   subCategories: z.array(z.object({ id: z.number(), name: z.string() })).optional(),
 })
 
-export const expertProfileDetailSchema = z.object({
-  id: z.number(),
-  userId: z.number(),
+/** BankAccountResponse (프로필용 — 모든 필드 nullable) */
+const profileBankAccountSchema = z.object({
+  bankCode: z.string().nullish(),
+  accountNumber: z.string().nullish(),
+  accountHolder: z.string().nullish(),
+})
+
+/** MyExpertProfileResponse — ExpertProfileDetailResponse + bankAccount, userId 없음 */
+export const myExpertProfileSchema = z.object({
+  expertProfileId: z.number().int(),
   nickname: z.string(),
-  profileImageUrl: z.string().url().nullable().optional(),
-  introduction: z.string(),
-  detailIntroduction: z.string().optional(),
-  careerPeriod: z.string().optional(),
-  activityMethod: activityMethodSchema,
-  averageRating: z.number().nullable().optional(),
-  reviewCount: z.number().optional(),
-  availableTimes: z.array(availableTimeSchema).optional(),
-  availableRegions: z.array(z.string()).optional(),
-  subCategories: z.array(z.object({ id: z.number(), name: z.string() })).optional(),
-  certifications: z.array(certificationSchema).optional(),
-  portfolios: z.array(portfolioSchema).optional(),
+  profileImageUrl: z.string().nullish(),
+  bannerImageUrl: z.string().nullish(),
+  introduction: z.string().nullish(),
+  detailIntroduction: z.string().nullish(),
+  careerPeriod: z.string().nullish(),
+  activityMethod: activityMethodSchema.nullish(),
+  authStatus: expertAuthStatusSchema.nullish(),
+  grade: expertGradeSchema.nullish(),
+  activeBenefits: z.array(expertBenefitResponseSchema).nullish(),
+  categories: z.array(expertCategorySchema).nullish(),
+  availableRegions: z.array(z.string()).nullish(),
+  availableTimes: z.array(expertAvailableTimeSchema).nullish(),
+  certifications: z.array(expertCertificationSchema).nullish(),
+  portfolios: z.array(expertPortfolioSchema).nullish(),
+  reviewSummary: expertReviewSummarySchema.nullish(),
+  bankAccount: profileBankAccountSchema.nullish(),
 })
 
 export type ExpertProfileSummary = z.infer<typeof expertProfileSummarySchema>
-export type ExpertProfileDetail = z.infer<typeof expertProfileDetailSchema>
+export type MyExpertProfile = z.infer<typeof myExpertProfileSchema>
 
 // ─── Request Schemas ──────────────────────────────────────────────────────────
 
@@ -184,7 +207,8 @@ export const deleteFcmTokenResponseSchema = successResponseSchema(z.null())
 export const expertRegisterResponseSchema = successResponseSchema(z.unknown())
 export const updateExpertProfileResponseSchema = successResponseSchema(z.unknown())
 
-export const expertProfileDetailResponseSchema = successResponseSchema(expertProfileDetailSchema)
+export const myExpertProfileResponseSchema = successResponseSchema(myExpertProfileSchema)
+export { expertDetailResponseSchema }
 export const expertProfileExistsResponseSchema = successResponseSchema(z.boolean())
 
 export const portfolioResponseSchema = successResponseSchema(portfolioSchema)

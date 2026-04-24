@@ -20,10 +20,10 @@ import {
   useDeleteCertificationMutation,
 } from "@/features/mypage/certifications"
 import type { z } from "zod/v4"
-import type { certificationSchema } from "@/entities/user/api/user.schema"
+import type { expertCertificationSchema } from "@/entities/expert/api/expert.schema"
 import { CertificationFormDialog } from "./certification-form-dialog"
 
-type Certification = z.infer<typeof certificationSchema>
+type Certification = z.infer<typeof expertCertificationSchema>
 
 export function CertificationList() {
   const { data: profile } = useMyExpertProfileQuery()

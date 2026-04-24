@@ -52,16 +52,16 @@ export type PopularExpertItem = ExpertSummary
 
 /** BenefitResponse */
 export const benefitResponseSchema = z.object({
-  id: z.number(),
+  id: z.number().int(),
   benefitType: benefitTypeSchema,
-  status: benefitStatusSchema,
+  status: benefitStatusSchema.nullish(),
 })
 
 /** CategoryGroupResponse */
 export const expertCategorySchema = z.object({
   majorCategoryName: z.string(),
-  majorCategoryIconUrl: z.string(),
-  subCategoryNames: z.array(z.string()),
+  majorCategoryIconUrl: z.string().nullish(),
+  subCategoryNames: z.array(z.string()).nullish(),
 })
 
 /** AvailableTimeResponse */
@@ -73,47 +73,48 @@ export const expertAvailableTimeSchema = z.object({
 
 /** CertificationResponse */
 export const expertCertificationSchema = z.object({
-  id: z.number(),
+  id: z.number().int(),
   name: z.string(),
-  issuer: z.string(),
+  issuer: z.string().nullish(),
 })
 
 /** PortfolioResponse */
 export const expertPortfolioSchema = z.object({
-  id: z.number(),
-  type: z.string(),
-  description: z.string(),
-  imageUrls: z.array(z.string()),
+  id: z.number().int(),
+  type: z.string().nullish(),
+  description: z.string().nullish(),
+  imageUrls: z.array(z.string()).nullish(),
 })
 
 /** ReviewSummaryResponse */
 export const expertReviewSummarySchema = z.object({
-  averageRating: z.number().nullable(),
-  reviewCount: z.number(),
-  totalMatchCount: z.number(),
+  averageRating: z.number().nullish(),
+  reviewCount: z.number().int().nullish(),
+  totalMatchCount: z.number().int().nullish(),
 })
 
 // ─── ExpertProfileDetailResponse ────────────────────────────────────────────
 
 /** ExpertProfileDetailResponse */
 export const expertDetailSchema = z.object({
-  expertProfileId: z.number(),
-  userId: z.number(),
+  expertProfileId: z.number().int(),
+  userId: z.number().int(),
   nickname: z.string(),
-  profileImageUrl: z.string().nullable(),
-  introduction: z.string(),
-  detailIntroduction: z.string(),
-  careerPeriod: z.string(),
-  activityMethod: activityMethodSchema,
-  authStatus: expertAuthStatusSchema,
-  grade: expertGradeSchema,
-  activeBenefits: z.array(benefitResponseSchema),
-  categories: z.array(expertCategorySchema),
-  availableRegions: z.array(z.string()),
-  availableTimes: z.array(expertAvailableTimeSchema),
-  certifications: z.array(expertCertificationSchema),
-  portfolios: z.array(expertPortfolioSchema),
-  reviewSummary: expertReviewSummarySchema,
+  profileImageUrl: z.string().nullish(),
+  bannerImageUrl: z.string().nullish(),
+  introduction: z.string().nullish(),
+  detailIntroduction: z.string().nullish(),
+  careerPeriod: z.string().nullish(),
+  activityMethod: activityMethodSchema.nullish(),
+  authStatus: expertAuthStatusSchema.nullish(),
+  grade: expertGradeSchema.nullish(),
+  activeBenefits: z.array(benefitResponseSchema).nullish(),
+  categories: z.array(expertCategorySchema).nullish(),
+  availableRegions: z.array(z.string()).nullish(),
+  availableTimes: z.array(expertAvailableTimeSchema).nullish(),
+  certifications: z.array(expertCertificationSchema).nullish(),
+  portfolios: z.array(expertPortfolioSchema).nullish(),
+  reviewSummary: expertReviewSummarySchema.nullish(),
 })
 
 export type ExpertDetail = z.infer<typeof expertDetailSchema>

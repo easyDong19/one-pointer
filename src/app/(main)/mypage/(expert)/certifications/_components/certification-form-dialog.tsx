@@ -12,9 +12,9 @@ import {
   DialogFooter,
 } from "@/shared/ui/dialog"
 import type { z } from "zod/v4"
-import type { certificationSchema } from "@/entities/user/api/user.schema"
+import type { expertCertificationSchema } from "@/entities/expert/api/expert.schema"
 
-type Certification = z.infer<typeof certificationSchema>
+type Certification = z.infer<typeof expertCertificationSchema>
 
 type CertificationFormDialogProps = {
   open: boolean
