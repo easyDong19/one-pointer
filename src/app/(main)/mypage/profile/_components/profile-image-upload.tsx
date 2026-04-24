@@ -47,7 +47,7 @@ export function ProfileImageUpload({
               className="size-full object-cover"
             />
           ) : (
-            <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary to-accent">
+            <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary to-chart-2">
               <Text as="span" typography="h2-bold" className="text-white">
                 {initial}
               </Text>

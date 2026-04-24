@@ -1,12 +1,6 @@
 "use client"
 
-import {
-  Wallet,
-  CheckCircle,
-  Star,
-  FileText,
-  Clock,
-} from "lucide-react"
+import { Wallet, CheckCircle, Star, FileText, Clock } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import { useRoleStore } from "@/entities/user/model/role-store"
 import { useExpertDashboardQuery, useClientDashboardQuery } from "@/features/mypage/dashboard"
@@ -47,7 +41,8 @@ function ExpertStats() {
     },
     {
       label: "평균 평점",
-      value: data?.averageRating ?? "-",
+      value:
+        data?.averageRating != null ? (Math.ceil(data.averageRating * 10) / 10).toFixed(1) : "-",
       unit: data?.averageRating != null ? "점" : "",
       icon: Star,
       color: "text-yellow-500",
@@ -116,7 +111,7 @@ function StatGrid({ stats, isLoading }: { stats: StatItem[]; isLoading: boolean 
         return (
           <div
             key={stat.label}
-            className="flex flex-col gap-2 rounded-xl border bg-card p-4 shadow-sm"
+            className="bg-card flex flex-col gap-2 rounded-xl border p-4 shadow-sm"
           >
             <div className={cn("flex size-9 items-center justify-center rounded-lg", stat.bg)}>
               <Icon className={cn("size-5", stat.color)} />
@@ -126,12 +121,16 @@ function StatGrid({ stats, isLoading }: { stats: StatItem[]; isLoading: boolean 
                 {stat.label}
               </Text>
               {isLoading ? (
-                <div className="mt-1 h-6 w-12 animate-pulse rounded bg-muted" />
+                <div className="bg-muted mt-1 h-6 w-12 animate-pulse rounded" />
               ) : (
                 <Text as="p" typography="subtitle1-bold">
                   {stat.value}
                   {stat.unit && (
-                    <Text as="span" typography="body3-regular" className="ml-0.5 text-muted-foreground">
+                    <Text
+                      as="span"
+                      typography="body3-regular"
+                      className="text-muted-foreground ml-0.5"
+                    >
                       {stat.unit}
                     </Text>
                   )}

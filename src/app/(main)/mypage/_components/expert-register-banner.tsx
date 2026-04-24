@@ -14,7 +14,7 @@ export function ExpertRegisterBanner() {
   if (role !== "expert" || isLoading || expertExists) return null
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-accent/5 p-5">
+    <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-chart-2/5 p-5">
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-2">
           <Sparkles className="size-5 text-primary" />

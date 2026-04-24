@@ -60,7 +60,7 @@ export function ExpertProfileHero({ expert, className }: Props) {
       <header
         className={cn(
           "relative flex flex-col items-center text-center",
-          "-mt-12 lg:-mt-16 lg:flex-row lg:items-end lg:gap-6 lg:pl-10 lg:text-left",
+          "-mt-12 lg:-mt-16 lg:flex-row lg:items-end lg:gap-6 lg:text-left",
         )}
       >
         <div

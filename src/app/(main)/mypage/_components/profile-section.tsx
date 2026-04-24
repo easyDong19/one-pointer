@@ -27,7 +27,7 @@ export function ProfileSection() {
           className="size-14 rounded-full object-cover"
         />
       ) : (
-        <div className="flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent">
+        <div className="flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-chart-2">
           <Text as="span" typography="title-bold" className="text-white">
             {initial}
           </Text>
