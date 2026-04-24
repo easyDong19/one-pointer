@@ -1,12 +1,30 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { cn } from "@/shared/lib/utils"
 import { Text } from "@/shared/ui/text"
 import { useRoleStore } from "@/entities/user/model/role-store"
+import { useExpertExistsQuery, openExpertRegisterPrompt } from "@/features/mypage"
 
 export function RoleToggle() {
+  const router = useRouter()
   const role = useRoleStore((s) => s.role)
   const setRole = useRoleStore((s) => s.setRole)
+  const { data: expertExists, isLoading } = useExpertExistsQuery()
+
+  const handleExpertClick = async () => {
+    if (isLoading) return
+
+    if (expertExists) {
+      setRole("expert")
+      return
+    }
+
+    const confirmed = await openExpertRegisterPrompt()
+    if (confirmed) {
+      router.push("/mypage/expert-register")
+    }
+  }
 
   return (
     <div className="flex rounded-lg bg-muted p-1">
@@ -24,7 +42,8 @@ export function RoleToggle() {
         </Text>
       </button>
       <button
-        onClick={() => setRole("expert")}
+        onClick={handleExpertClick}
+        disabled={isLoading}
         className={cn(
           "flex-1 rounded-md px-4 py-2 text-center transition-colors",
           role === "expert"
