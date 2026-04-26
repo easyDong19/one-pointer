@@ -16,20 +16,27 @@ import type { expertCertificationSchema } from "@/entities/expert/api/expert.sch
 
 type Certification = z.infer<typeof expertCertificationSchema>
 
-type CertificationFormDialogProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  certification?: Certification
-  onSubmit: (data: { name: string; issuer: string }) => void
-  isPending: boolean
+export type CertificationFormData = {
+  name: string
+  issuer: string
 }
 
+type CertificationFormDialogProps = {
+  isOpen: boolean
+  certification?: Certification
+  onSubmit: (data: CertificationFormData) => void
+  onClose: () => void
+}
+
+/**
+ * 자격증 추가/편집 다이얼로그.
+ * 직접 마운트하지 말고 `@/features/mypage/certifications` 의 `openCertificationForm()` 으로 호출한다.
+ */
 export function CertificationFormDialog({
-  open,
-  onOpenChange,
+  isOpen,
   certification,
   onSubmit,
-  isPending,
+  onClose,
 }: CertificationFormDialogProps) {
   const [name, setName] = useState(certification?.name ?? "")
   const [issuer, setIssuer] = useState(certification?.issuer ?? "")
@@ -41,7 +48,7 @@ export function CertificationFormDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
@@ -73,11 +80,11 @@ export function CertificationFormDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={onClose}>
               취소
             </Button>
-            <Button type="submit" disabled={isPending || !name.trim()}>
-              {isPending ? "저장 중..." : "저장"}
+            <Button type="submit" disabled={!name.trim()}>
+              저장
             </Button>
           </DialogFooter>
         </form>

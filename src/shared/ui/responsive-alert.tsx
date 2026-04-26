@@ -21,21 +21,25 @@ import {
 } from "@/shared/ui/sheet"
 
 type ResponsiveAlertProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  isOpen: boolean
   variant: "success" | "warning"
   title: string
   description?: string
   confirmLabel?: string
+  onClose: () => void
 }
 
+/**
+ * 반응형 알림 (데스크탑: Dialog / 모바일: Sheet).
+ * 직접 마운트하지 말고 `@/shared/lib/open-alert` 의 `openAlert()` 으로 호출한다.
+ */
 export function ResponsiveAlert({
-  open,
-  onOpenChange,
+  isOpen,
   variant,
   title,
   description,
   confirmLabel = "확인",
+  onClose,
 }: ResponsiveAlertProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)")
 
@@ -43,7 +47,7 @@ export function ResponsiveAlert({
 
   if (isDesktop) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
@@ -59,7 +63,7 @@ export function ResponsiveAlert({
             <Button
               variant={buttonVariant}
               className="w-full"
-              onClick={() => onOpenChange(false)}
+              onClick={onClose}
             >
               {confirmLabel}
             </Button>
@@ -70,7 +74,7 @@ export function ResponsiveAlert({
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="bottom" className="rounded-t-2xl px-6 pb-[env(safe-area-inset-bottom,0px)]">
         <SheetHeader className="px-0">
           <SheetTitle>
@@ -86,7 +90,7 @@ export function ResponsiveAlert({
           <Button
             variant={buttonVariant}
             className="w-full"
-            onClick={() => onOpenChange(false)}
+            onClick={onClose}
           >
             {confirmLabel}
           </Button>

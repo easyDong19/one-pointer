@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/shared/ui/button"
 import { Text } from "@/shared/ui/text"
-import { ResponsiveAlert } from "@/shared/ui/responsive-alert"
+import { openAlert } from "@/shared/lib/open-alert"
 import { useMyProfileQuery } from "@/features/auth/me/model/use-my-profile-query"
 import { useUpdateProfileMutation } from "@/features/mypage/profile-edit"
 import { ProfileImageUpload } from "./profile-image-upload"
@@ -23,21 +23,30 @@ export function ProfileEditForm() {
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-  const [alertOpen, setAlertOpen] = useState(false)
-  const [alertConfig, setAlertConfig] = useState<{
-    variant: "success" | "warning"
-    title: string
-    description?: string
-  }>({ variant: "success", title: "" })
+  // preview blob URL 메모리 누수 방지: 새 파일 선택/제거 시 이전 URL revoke,
+  // 언마운트 시에도 revoke.
+  const previewUrlRef = useRef<string | null>(null)
+  previewUrlRef.current = previewUrl
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
+    }
+  }, [])
 
   const handleFileSelect = (file: File) => {
     setProfileImageFile(file)
-    setPreviewUrl(URL.createObjectURL(file))
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return URL.createObjectURL(file)
+    })
   }
 
   const handleRemoveImage = () => {
     setProfileImageFile(null)
-    setPreviewUrl(null)
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return null
+    })
     setProfileImageUrl(null)
   }
 
@@ -49,20 +58,12 @@ export function ProfileEditForm() {
     e.preventDefault()
 
     if (nickname.length < 2) {
-      setAlertConfig({
-        variant: "warning",
-        title: "닉네임은 2자 이상이어야 합니다.",
-      })
-      setAlertOpen(true)
+      openAlert({ variant: "warning", title: "닉네임은 2자 이상이어야 합니다." })
       return
     }
 
     if (!nicknameChecked) {
-      setAlertConfig({
-        variant: "warning",
-        title: "닉네임 중복확인을 해주세요.",
-      })
-      setAlertOpen(true)
+      openAlert({ variant: "warning", title: "닉네임 중복확인을 해주세요." })
       return
     }
 
@@ -73,65 +74,44 @@ export function ProfileEditForm() {
         profileImageFile,
       })
 
-      setAlertConfig({
-        variant: "success",
-        title: "프로필이 수정되었습니다.",
-      })
-      setAlertOpen(true)
+      await openAlert({ variant: "success", title: "프로필이 수정되었습니다." })
+      router.push("/mypage")
     } catch (error) {
       console.error("[ProfileEdit] 저장 실패:", error)
-      setAlertConfig({
+      openAlert({
         variant: "warning",
         title: "프로필 수정에 실패했습니다.",
         description: error instanceof Error ? error.message : "다시 시도해주세요.",
       })
-      setAlertOpen(true)
-    }
-  }
-
-  const handleAlertClose = (open: boolean) => {
-    setAlertOpen(open)
-    if (!open && alertConfig.variant === "success") {
-      router.push("/mypage")
     }
   }
 
   return (
-    <>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        <ProfileImageUpload
-          currentImageUrl={profileImageUrl}
-          previewUrl={previewUrl}
-          nickname={nickname}
-          onFileSelect={handleFileSelect}
-          onRemove={handleRemoveImage}
-        />
-
-        <NicknameInput
-          value={nickname}
-          originalNickname={user?.nickname ?? ""}
-          onChange={setNickname}
-          onCheckedChange={handleNicknameCheckedChange}
-        />
-
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={updateMutation.isPending}
-        >
-          <Text as="span" typography="body3-medium">
-            {updateMutation.isPending ? "저장 중..." : "저장"}
-          </Text>
-        </Button>
-      </form>
-
-      <ResponsiveAlert
-        open={alertOpen}
-        onOpenChange={handleAlertClose}
-        variant={alertConfig.variant}
-        title={alertConfig.title}
-        description={alertConfig.description}
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <ProfileImageUpload
+        currentImageUrl={profileImageUrl}
+        previewUrl={previewUrl}
+        nickname={nickname}
+        onFileSelect={handleFileSelect}
+        onRemove={handleRemoveImage}
       />
-    </>
+
+      <NicknameInput
+        value={nickname}
+        originalNickname={user?.nickname ?? ""}
+        onChange={setNickname}
+        onCheckedChange={handleNicknameCheckedChange}
+      />
+
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={updateMutation.isPending}
+      >
+        <Text as="span" typography="body3-medium">
+          {updateMutation.isPending ? "저장 중..." : "저장"}
+        </Text>
+      </Button>
+    </form>
   )
 }

@@ -1,3 +1,5 @@
 export { useAddCertificationMutation } from "./model/use-add-certification-mutation"
 export { useUpdateCertificationMutation } from "./model/use-update-certification-mutation"
 export { useDeleteCertificationMutation } from "./model/use-delete-certification-mutation"
+export { openCertificationForm } from "./lib/open-certification-form"
+export type { CertificationFormData } from "./ui/certification-form-dialog"

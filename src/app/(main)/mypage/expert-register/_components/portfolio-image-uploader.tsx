@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ImagePlus, X } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import { cn } from "@/shared/lib/utils"
@@ -11,12 +11,52 @@ type PortfolioImageUploaderProps = {
   maxCount?: number
 }
 
+/**
+ * 부모(react-hook-form 등)가 `File[]` 를 소유하는 컴포넌트.
+ * 각 File 에 대한 blob preview URL 은 내부에서 캐싱·revoke 한다 (메모리 누수 방지).
+ */
 export function PortfolioImageUploader({
   images,
   onChange,
   maxCount = 7,
 }: PortfolioImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // images 와 동기화되는 File → blob URL 매핑.
+  // ref 로 들고 setState 로도 트리거 (unmount cleanup 시 setState 부작용 회피).
+  const previewsRef = useRef<Map<File, string>>(new Map())
+  const [previews, setPreviews] = useState<Map<File, string>>(new Map())
+
+  useEffect(() => {
+    const next = new Map<File, string>()
+    let changed = false
+    images.forEach((file) => {
+      const existing = previewsRef.current.get(file)
+      if (existing) {
+        next.set(file, existing)
+      } else {
+        next.set(file, URL.createObjectURL(file))
+        changed = true
+      }
+    })
+    previewsRef.current.forEach((url, file) => {
+      if (!next.has(file)) {
+        URL.revokeObjectURL(url)
+        changed = true
+      }
+    })
+    if (changed) {
+      previewsRef.current = next
+      setPreviews(next)
+    }
+  }, [images])
+
+  useEffect(() => {
+    return () => {
+      previewsRef.current.forEach((url) => URL.revokeObjectURL(url))
+      previewsRef.current = new Map()
+    }
+  }, [])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? [])
@@ -41,7 +81,7 @@ export function PortfolioImageUploader({
         {images.map((file, index) => (
           <div key={`${file.name}-${index}`} className="group relative size-20 overflow-hidden rounded-md border">
             <img
-              src={URL.createObjectURL(file)}
+              src={previews.get(file) ?? ""}
               alt={file.name}
               className="size-full object-cover"
             />

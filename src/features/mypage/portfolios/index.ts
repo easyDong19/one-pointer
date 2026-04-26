@@ -1,3 +1,5 @@
 export { useAddPortfolioMutation } from "./model/use-add-portfolio-mutation"
 export { useUpdatePortfolioMutation } from "./model/use-update-portfolio-mutation"
 export { useDeletePortfolioMutation } from "./model/use-delete-portfolio-mutation"
+export { openPortfolioForm } from "./lib/open-portfolio-form"
+export type { PortfolioFormData } from "./ui/portfolio-form-dialog"

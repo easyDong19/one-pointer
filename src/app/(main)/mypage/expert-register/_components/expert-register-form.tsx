@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { Button } from "@/shared/ui/button"
 import { Text } from "@/shared/ui/text"
 import { Card, CardContent } from "@/shared/ui/card"
-import { ResponsiveAlert } from "@/shared/ui/responsive-alert"
+import { openAlert } from "@/shared/lib/open-alert"
 import {
   useRegisterExpertMutation,
   STEP_FIELDS,
@@ -23,13 +23,6 @@ const TOTAL_STEPS = 5
 export function ExpertRegisterForm() {
   const [currentStep, setCurrentStep] = useState(1)
   const registerMutation = useRegisterExpertMutation()
-
-  const [alertOpen, setAlertOpen] = useState(false)
-  const [alertConfig, setAlertConfig] = useState<{
-    variant: "success" | "warning"
-    title: string
-    description?: string
-  }>({ variant: "success", title: "" })
 
   const form = useForm<ExpertRegisterFormValues>({
     defaultValues: {
@@ -65,79 +58,67 @@ export function ExpertRegisterForm() {
   const handleSubmit = form.handleSubmit(async (values) => {
     try {
       await registerMutation.mutateAsync(values)
-      setAlertConfig({
+      openAlert({
         variant: "success",
         title: "전문가 등록이 완료되었습니다!",
       })
-      setAlertOpen(true)
     } catch (error) {
-      setAlertConfig({
+      openAlert({
         variant: "warning",
         title: "등록에 실패했습니다.",
         description: error instanceof Error ? error.message : "다시 시도해주세요.",
       })
-      setAlertOpen(true)
     }
   })
 
   return (
-    <>
-      <Card>
-        <CardContent>
-          <StepIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
-        </CardContent>
+    <Card>
+      <CardContent>
+        <StepIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+      </CardContent>
 
-        <CardContent>
-          <form onSubmit={handleSubmit}>
-            {currentStep === 1 && <Step1BasicInfo form={form} />}
-            {currentStep === 2 && <Step2Certifications form={form} />}
-            {currentStep === 3 && <Step3Portfolios form={form} />}
-            {currentStep === 4 && <Step4ActivityInfo form={form} />}
-            {currentStep === 5 && <Step5Confirm form={form} />}
+      <CardContent>
+        <form onSubmit={handleSubmit}>
+          {currentStep === 1 && <Step1BasicInfo form={form} />}
+          {currentStep === 2 && <Step2Certifications form={form} />}
+          {currentStep === 3 && <Step3Portfolios form={form} />}
+          {currentStep === 4 && <Step4ActivityInfo form={form} />}
+          {currentStep === 5 && <Step5Confirm form={form} />}
 
-            <div className="mt-6 flex gap-3">
-              {currentStep > 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={handlePrev}
-                >
-                  <Text as="span" typography="body3-medium">이전</Text>
-                </Button>
-              )}
+          <div className="mt-6 flex gap-3">
+            {currentStep > 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={handlePrev}
+              >
+                <Text as="span" typography="body3-medium">이전</Text>
+              </Button>
+            )}
 
-              {currentStep < TOTAL_STEPS ? (
-                <Button
-                  type="button"
-                  className="flex-1"
-                  onClick={handleNext}
-                >
-                  <Text as="span" typography="body3-medium">다음</Text>
-                </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  className="flex-1"
-                  disabled={registerMutation.isPending}
-                >
-                  <Text as="span" typography="body3-medium">
-                    {registerMutation.isPending ? "등록 중..." : "전문가 등록"}
-                  </Text>
-                </Button>
-              )}
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-
-      <ResponsiveAlert
-        open={alertOpen}
-        onOpenChange={setAlertOpen}
-        variant={alertConfig.variant}
-        title={alertConfig.title}
-        description={alertConfig.description}
-      />
-    </>
+            {currentStep < TOTAL_STEPS ? (
+              <Button
+                type="button"
+                className="flex-1"
+                onClick={handleNext}
+              >
+                <Text as="span" typography="body3-medium">다음</Text>
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                className="flex-1"
+                disabled={registerMutation.isPending}
+              >
+                <Text as="span" typography="body3-medium">
+                  {registerMutation.isPending ? "등록 중..." : "전문가 등록"}
+                </Text>
+              </Button>
+            )}
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   )
 }
