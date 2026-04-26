@@ -17,6 +17,7 @@ export function RoleToggle() {
 
     if (expertExists) {
       setRole("expert")
+      router.push("/mypage")
       return
     }
 
@@ -29,7 +30,10 @@ export function RoleToggle() {
   return (
     <div className="flex rounded-lg bg-muted p-1">
       <button
-        onClick={() => setRole("client")}
+        onClick={() => {
+          setRole("client")
+          router.push("/mypage")
+        }}
         className={cn(
           "flex-1 rounded-md px-4 py-2 text-center transition-colors",
           role === "client"

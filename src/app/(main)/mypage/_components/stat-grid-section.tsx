@@ -1,6 +1,6 @@
 "use client"
 
-import { Wallet, CheckCircle, Star, FileText, Clock } from "lucide-react"
+import { CheckCircle, Star, FileText, Clock } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import { useRoleStore } from "@/entities/user/model/role-store"
 import { useExpertDashboardQuery, useClientDashboardQuery } from "@/features/mypage/dashboard"
@@ -58,7 +58,7 @@ function ClientStats() {
 
   const stats = [
     {
-      label: "등록 티켓",
+      label: "모집 중",
       value: data?.openTickets ?? 0,
       unit: "건",
       icon: FileText,
@@ -82,12 +82,12 @@ function ClientStats() {
       bg: "bg-emerald-500/10",
     },
     {
-      label: "쿠폰",
-      value: data?.couponBalance ?? 0,
-      unit: "개",
-      icon: Wallet,
-      color: "text-blue-500",
-      bg: "bg-blue-500/10",
+      label: "리뷰",
+      value: data?.writtenReviewCount ?? 0,
+      unit: "건",
+      icon: Star,
+      color: "text-yellow-500",
+      bg: "bg-yellow-500/10",
     },
   ]
 

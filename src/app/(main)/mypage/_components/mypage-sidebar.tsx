@@ -1,15 +1,38 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/shared/lib/utils"
-import { useSidebarMenus, type SidebarMenuGroup } from "@/features/mypage"
+import { useSidebarMenus, useExpertExistsQuery, openExpertRegisterPrompt, type SidebarMenuGroup } from "@/features/mypage"
 import { useRoleStore } from "@/entities/user/model/role-store"
 
 export function MypageSidebar() {
+  const router = useRouter()
   const menus = useSidebarMenus()
   const activeRole = useRoleStore((s) => s.role)
-  const toggleRole = useRoleStore((s) => s.toggleRole)
+  const setRole = useRoleStore((s) => s.setRole)
+  const { data: expertExists, isLoading } = useExpertExistsQuery()
+
+  const handleToggle = async () => {
+    if (activeRole === "expert") {
+      setRole("client")
+      router.push("/mypage")
+      return
+    }
+
+    if (isLoading) return
+
+    if (expertExists) {
+      setRole("expert")
+      router.push("/mypage")
+      return
+    }
+
+    const confirmed = await openExpertRegisterPrompt()
+    if (confirmed) {
+      router.push("/mypage/expert-register")
+    }
+  }
 
   return (
     <nav className="flex flex-col gap-6">
@@ -18,7 +41,8 @@ export function MypageSidebar() {
           {activeRole === "expert" ? "전문가" : "의뢰인"} 모드
         </span>
         <button
-          onClick={toggleRole}
+          onClick={handleToggle}
+          disabled={isLoading && activeRole === "client"}
           className="text-primary text-sm font-medium hover:underline"
         >
           {activeRole === "expert" ? "의뢰인" : "전문가"}으로 전환

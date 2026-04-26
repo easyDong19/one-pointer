@@ -17,16 +17,14 @@ export type SidebarMenuGroup = {
 const CLIENT_MENUS: SidebarMenuGroup[] = [
   {
     items: [
-      { label: "마이페이지", href: "/mypage" },
+      { label: "대시보드", href: "/mypage" },
       { label: "나의 의뢰", href: "/mypage/tickets" },
-      { label: "쿠폰함", href: "/mypage/coupons" },
     ],
   },
   {
     title: "계정",
     items: [
       { label: "프로필 수정", href: "/mypage/profile" },
-      { label: "알림 설정", href: "/mypage/notifications" },
     ],
   },
 ]
