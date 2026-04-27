@@ -34,9 +34,7 @@ export function TicketDetailContent({ ticketId }: { ticketId: number }) {
     return (
       <div className="bg-background flex min-h-dvh flex-col items-center justify-center gap-3">
         <Text as="p" typography="body1-medium" className="text-muted-foreground">
-          {isError
-            ? "데이터를 불러오는 중 오류가 발생했습니다"
-            : "의뢰를 찾을 수 없습니다"}
+          {isError ? "데이터를 불러오는 중 오류가 발생했습니다" : "의뢰를 찾을 수 없습니다"}
         </Text>
         {isError && (
           <Text
@@ -72,7 +70,7 @@ export function TicketDetailContent({ ticketId }: { ticketId: number }) {
               <TicketImageCarousel images={ticket.images ?? []} />
             </div>
 
-            <div className="pt-5 lg:pt-0">
+            <div className="pt-5 lg:pt-5">
               <TicketHeader ticket={ticket} />
               <Separator className="my-5" />
               <TicketDescription ticket={ticket} />

@@ -9,8 +9,8 @@ export function TicketHeader({ ticket }: { ticket: TicketDetail }) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Badges */}
-      <div className="flex flex-wrap items-center gap-2">
+      {/* Badges — pill chip 시각적 호흡 폭. gap-3 (12px, 디자인 토큰 정식 단계) */}
+      <div className="flex flex-wrap items-center gap-3">
         <Badge variant={statusInfo.variant}>{statusInfo.text}</Badge>
         {ticket.categoryName && (
           <Badge variant="outline">{ticket.categoryName}</Badge>
