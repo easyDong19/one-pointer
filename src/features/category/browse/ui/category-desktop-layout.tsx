@@ -10,13 +10,14 @@ type Detail = ReturnType<typeof useCategoryDetail>
 /**
  * 카테고리 상세의 데스크탑(≥ lg) 레이아웃.
  *
- * app-shell 스크롤 격리 (CATEGORY_PAGE.md §2.3):
- * - 외곽 래퍼가 `h-[calc(100dvh-3.5rem)] overflow-hidden` — 뷰포트 - CommonHeader 높이.
- * - grid 내부 메인 컬럼에만 `overflow-y-auto` → 스크롤바는 메인 컬럼 내부에만.
- * - 사이드바는 스크롤을 안 하는 컬럼으로 자연히 고정된 모양.
+ * 사이드바 sticky 패턴 (CATEGORY_PAGE.md §2.3):
+ * - 본문은 일반 body(window) 스크롤. 페이지 끝까지 자연스럽게 흘러간다.
+ * - 사이드바는 `sticky top-14 self-start` 로 CommonHeader(`h-14`) 아래에 머무름.
+ * - 사이드바가 뷰포트보다 길어지면 `max-h-[calc(100dvh-3.5rem)] overflow-y-auto` 로 그 안에서만 스크롤.
+ * - FilterBar 도 window 기준 sticky → `top-14` 로 헤더 아래에 위치.
  *
- * PageShell 은 사용하지 않는다 — `min-h-dvh` 가 app-shell 모델과 충돌.
- * CommonHeader 의 `md:pt-14` 보상은 이 페이지에서 직접 불필요 (fixed 헤더 아래 뷰포트 높이 계산).
+ * PageShell 은 사용하지 않는다 — 사이드바형 레이아웃이라 max-w 정책이 약간 다름.
+ * CommonHeader 가 데스크탑에서 `md:fixed top-0 h-14` 이므로 외곽에 `pt-14` 보상.
  */
 export function CategoryDesktopLayout({
   state,
@@ -32,10 +33,10 @@ export function CategoryDesktopLayout({
   handleRegionClick,
 }: Detail & { category: NonNullable<Detail["category"]> }) {
   return (
-    <div className="bg-background h-[calc(100dvh-3.5rem)] overflow-hidden pt-14">
-      <div className="mx-auto grid h-full max-w-6xl grid-cols-[240px_minmax(0,1fr)] gap-8 px-10 lg:px-16">
-        {/* Sidebar — 스크롤 안 함 (내부 리스트가 넘칠 때만 자체 overflow-y-auto) */}
-        <aside className="overflow-y-auto py-6 pr-1">
+    <div className="bg-background pt-14">
+      <div className="mx-auto grid max-w-6xl grid-cols-[240px_minmax(0,1fr)] gap-8 px-10 lg:px-16">
+        {/* Sidebar — 헤더 아래 sticky. 사이드바가 길어지면 자체 스크롤 */}
+        <aside className="sticky top-14 self-start max-h-[calc(100dvh-3.5rem)] overflow-y-auto py-6 pr-1">
           <CategoryDesktopSidebar
             categoryName={category.name}
             mainTab={state.mainTab}
@@ -46,10 +47,10 @@ export function CategoryDesktopLayout({
           />
         </aside>
 
-        {/* Main — 유일한 주 스크롤 영역 */}
-        <div className="flex min-h-0 flex-col overflow-y-auto">
-          {/* Filter Bar (sticky top-0 within main) */}
-          <div className="border-border/50 bg-background sticky top-0 z-10 border-b">
+        {/* Main — 자연 흐름. window 스크롤이 본 페이지를 움직인다. */}
+        <div className="flex flex-col">
+          {/* Filter Bar — window 기준 sticky, 헤더(h-14) 아래로 보정 */}
+          <div className="border-border/50 bg-background sticky top-14 z-10 border-b">
             <div className="scrollbar-none flex items-center gap-2 overflow-x-auto py-2.5">
               {state.mainTab === "tickets" ? (
                 <TicketFilterBar
