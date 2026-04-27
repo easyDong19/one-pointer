@@ -11,6 +11,7 @@ import {
   type QueryParams,
 } from "@/shared/api/http/core"
 import { refreshAccessToken } from "@/shared/api/http/refresh-token"
+import type { RefreshTokenResponse } from "@/shared/api/http/refresh-token.schema"
 
 type ClientFetchOptions<TBody = unknown> = FetchBaseOptions<TBody> &
   Omit<RequestInit, "method" | "body" | "headers" | "credentials"> & {
@@ -24,6 +25,20 @@ const REFRESH_ENDPOINT_PATH = "/v1/api/auth/refresh"
 
 function shouldTryAuthRefresh(status: number): boolean {
   return status === 401
+}
+
+/**
+ * refresh 성공 시 호출되는 콜백.
+ * shared 레이어가 entities/auth · queryClient 를 직접 import 하지 않도록 의존성 역전.
+ * `providers.tsx` 등 상위 레이어에서 `setOnRefreshSuccess()` 로 wire-up.
+ *
+ * 명세: docs/bug-fix/auth-refresh-stale-user.md
+ */
+type RefreshSuccessHandler = (data: RefreshTokenResponse["data"]) => void
+let onRefreshSuccess: RefreshSuccessHandler | null = null
+
+export function setOnRefreshSuccess(handler: RefreshSuccessHandler | null): void {
+  onRefreshSuccess = handler
 }
 
 export async function clientFetch<TResponse, TBody = unknown>(
@@ -86,9 +101,20 @@ function buildClientRequestInit(
 
 async function refreshWithLock(baseUrl?: string): Promise<void> {
   if (!refreshLock) {
-    refreshLock = refreshAccessToken(baseUrl).then(() => undefined).finally(() => {
-      refreshLock = null
-    })
+    refreshLock = refreshAccessToken(baseUrl)
+      .then((res) => {
+        // refresh 응답의 user 정보를 상위 레이어로 전달 → store 동기화 + 쿼리 invalidate
+        // 이전: `.then(() => undefined)` 로 응답을 버려 auth store 가 stale 해지는 버그
+        try {
+          onRefreshSuccess?.(res.data)
+        } catch (callbackError) {
+          // 콜백 내부 에러가 fetch 흐름을 막지 않도록 격리
+          console.error("[clientFetch] onRefreshSuccess handler threw:", callbackError)
+        }
+      })
+      .finally(() => {
+        refreshLock = null
+      })
   }
 
   await refreshLock
