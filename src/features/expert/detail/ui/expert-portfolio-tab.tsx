@@ -5,6 +5,7 @@ import Image from "next/image"
 import { ImageOff, Images } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import type { ExpertDetail } from "@/entities/expert/api/expert.schema"
+import { openPortfolioDetail } from "../lib/open-portfolio-detail"
 
 export function ExpertPortfolioTab({ expert }: { expert: ExpertDetail }) {
   const portfolios = expert.portfolios ?? []
@@ -23,9 +24,11 @@ export function ExpertPortfolioTab({ expert }: { expert: ExpertDetail }) {
   return (
     <div className="flex flex-col gap-4 px-4 py-6 lg:px-0">
       {portfolios.map((portfolio, idx) => (
-        <div
+        <button
+          type="button"
           key={portfolio.id ?? idx}
-          className="bg-card border-border overflow-hidden rounded-xl border"
+          onClick={() => openPortfolioDetail(portfolio)}
+          className="bg-card border-border focus-visible:ring-ring block w-full overflow-hidden rounded-xl border text-left transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:outline-none"
         >
           <PortfolioImage
             src={(portfolio.imageUrls ?? [])[0]}
@@ -39,7 +42,7 @@ export function ExpertPortfolioTab({ expert }: { expert: ExpertDetail }) {
               </Text>
             </div>
           )}
-        </div>
+        </button>
       ))}
     </div>
   )
