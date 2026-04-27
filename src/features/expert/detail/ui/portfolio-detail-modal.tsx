@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, ImageOff } from "lucide-react"
 import { useMediaQuery } from "@/shared/hooks/use-media-query"
@@ -62,14 +62,14 @@ export function PortfolioDetailModal({
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent
           className={cn(
-            "bg-card flex max-h-[88vh] flex-col gap-0 overflow-hidden border-none p-0 sm:max-w-[44rem]",
+            "bg-card flex max-h-[90vh] flex-col gap-0 overflow-hidden border-none p-0 sm:max-w-3xl lg:max-w-5xl",
             // 기본 X 버튼 위치 미세 조정
             "[&>button]:top-5 [&>button]:right-5 [&>button]:opacity-60 hover:[&>button]:opacity-100",
           )}
         >
           {/* Header strip */}
-          <div className="border-border/60 flex h-16 items-center border-b px-7">
-            <DialogTitle className="text-foreground flex items-center gap-2.5 text-lg font-semibold tracking-tight">
+          <div className="border-border/60 flex h-16 items-center border-b px-7 lg:h-[68px] lg:px-10">
+            <DialogTitle className="text-foreground flex items-center gap-2.5 text-lg font-semibold tracking-tight lg:text-xl">
               <span
                 aria-hidden
                 className="bg-foreground/30 inline-block size-1 shrink-0 rounded-full"
@@ -82,7 +82,7 @@ export function PortfolioDetailModal({
           </DialogDescription>
 
           {/* Image stage */}
-          <div className="px-7 pt-6 pb-5">
+          <div className="px-7 pt-6 pb-5 lg:px-10 lg:pt-8 lg:pb-6">
             <PortfolioCarousel
               imageUrls={images}
               altPrefix={altPrefix}
@@ -92,10 +92,8 @@ export function PortfolioDetailModal({
 
           {/* Description — 매거진 본문 톤 */}
           {description && (
-            <div className="border-border/60 max-h-[32vh] flex-1 overflow-y-auto border-t px-7 py-5">
-              <p className="text-foreground/90 text-[15px] leading-[1.7] whitespace-pre-wrap">
-                {description}
-              </p>
+            <div className="border-border/60 flex-1 overflow-y-auto border-t px-7 py-5 lg:px-10 lg:py-6">
+              <PortfolioDescription description={description} />
             </div>
           )}
         </DialogContent>
@@ -145,13 +143,51 @@ export function PortfolioDetailModal({
         {/* Description */}
         {description && (
           <div className="border-border/60 flex-1 overflow-y-auto border-t px-5 py-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)]">
-            <p className="text-foreground/90 text-[15px] leading-[1.7] whitespace-pre-wrap">
-              {description}
-            </p>
+            <PortfolioDescription description={description} />
           </div>
         )}
       </SheetContent>
     </Sheet>
+  )
+}
+
+/**
+ * 설명 본문 — 6줄 초과 시 line-clamp 후 "더 보기" 토글.
+ * scrollHeight vs clientHeight 측정으로 실제 클램핑 여부 감지.
+ */
+function PortfolioDescription({ description }: { description: string }) {
+  const ref = useRef<HTMLParagraphElement>(null)
+  const [isClamped, setIsClamped] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el || expanded) return
+    // 클램핑 감지: 1px 버퍼로 반올림 방지
+    setIsClamped(el.scrollHeight > el.clientHeight + 1)
+  }, [description, expanded])
+
+  return (
+    <>
+      <p
+        ref={ref}
+        className={cn(
+          "text-foreground/90 text-[15px] leading-[1.7] whitespace-pre-wrap",
+          !expanded && "line-clamp-6",
+        )}
+      >
+        {description}
+      </p>
+      {(isClamped || expanded) && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="text-primary hover:text-primary-hover focus-visible:ring-ring mt-3 text-[13px] font-medium transition-colors hover:underline focus-visible:ring-2 focus-visible:rounded-sm focus-visible:outline-none"
+        >
+          {expanded ? "접기" : "더 보기"}
+        </button>
+      )}
+    </>
   )
 }
 
