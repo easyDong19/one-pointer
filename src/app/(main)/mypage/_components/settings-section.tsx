@@ -16,8 +16,7 @@ type SettingsItem = {
 }
 
 const SETTINGS_ITEMS: SettingsItem[] = [
-  // TODO: 고객센터(문의 작성) 페이지 신설 후 href 연결. 지금은 비활성 placeholder.
-  { label: "고객센터", icon: Headphones, action: "link", href: "#" },
+  { label: "고객센터", icon: Headphones, action: "link", href: "/support" },
   { label: "이용약관", icon: FileText, action: "link", href: "/terms" },
   { label: "개인정보처리방침", icon: Shield, action: "link", href: "/privacy" },
   { label: "환불·분쟁 정책", icon: Scale, action: "link", href: "/policies/refund-dispute" },

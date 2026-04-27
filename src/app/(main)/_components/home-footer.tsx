@@ -62,16 +62,15 @@ export function HomeFooter() {
           >
             ·
           </Text>
-          {/* TODO: 고객센터(문의) 페이지 신설 후 href 연결. 모바일은 InquiryView 로 직접 이동. */}
-          <button
-            type="button"
-            disabled
-            className="text-muted-foreground/60 cursor-not-allowed"
-          >
-            <Text as="span" typography="caption1-medium">
+          <Link href="/support">
+            <Text
+              as="span"
+              typography="caption1-medium"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
               고객센터
             </Text>
-          </button>
+          </Link>
         </div>
 
         {/* 사업자 정보 */}
