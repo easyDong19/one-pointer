@@ -5,6 +5,15 @@
 기획서 및 도메인별 비즈니스 로직은 `.claude/skills/` 디렉토리에 정리되어 있다.
 새로운 기능 구현이나 도메인 파악이 필요할 때 반드시 해당 디렉토리를 먼저 확인할 것.
 
+## 타이포그래피
+
+**프로젝트 전체 서체는 Pretendard 단일.** 다른 서체(monospace 포함) 도입 금지.
+
+- 본문/헤더/메타/캡션 모두 Pretendard. 본문에 mono 톤이 필요해 보일 때도 쓰지 않는다 — 위계와 한글 가독성을 해친다.
+- 숫자 정렬·표 같은 모노스페이스 효용이 필요한 곳은 **`tabular-nums`** 클래스로 처리. `font-mono` 는 사용하지 않는다.
+- `globals.css` 의 `--font-mono` CSS 변수는 Pretendard 로 alias 되어 있어 실수로 `font-mono` 를 써도 시각적으로 깨지지 않지만, 코드상에서도 쓰지 않는 것이 원칙.
+- 새 서체(serif/display/등) 도입은 디자인 정책 변경 사안이라 별도 합의 후에만.
+
 ## 레이아웃
 
 `(main)` 하위 페이지는 반드시 `@/shared/ui/page-shell` 의 `PageShell` 을 루트로 사용한다.

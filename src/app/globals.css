@@ -10,9 +10,12 @@
   --font-sans:
     "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
     "Noto Sans KR", "Malgun Gothic", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* 정책: 프로젝트 전체 서체는 Pretendard 단일 — `font-mono` 클래스도 Pretendard 로 alias.
+     모노 글리프가 진짜 필요한 곳(숫자 정렬 등)은 `tabular-nums` 만 쓰고 font-mono 는 쓰지 않는다.
+     세부 정책: `CLAUDE.md` "타이포그래피" 섹션. */
   --font-mono:
-    "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
-    monospace;
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --color-primary-hover: var(--primary-hover);
   --color-primary-light: var(--primary-light);
   --color-sidebar-ring: var(--sidebar-ring);
