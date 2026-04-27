@@ -257,6 +257,14 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* 스크롤바를 항상 표시 + 자리도 항상 예약.
+     - overflow-y: scroll → 콘텐츠가 짧아도 스크롤바 트랙 노출 (Windows/Linux 항상, macOS 는 시스템 설정 의존)
+     - scrollbar-gutter: stable → macOS 오버레이 모드에서도 gutter 자리 유지하여 본문 너비 흔들림 없음
+     (전문가 프로필 탭 전환 등에서 발생하던 layout shift 제거 목적) */
+  html {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+  }
   body {
     @apply bg-background text-foreground font-sans;
   }
