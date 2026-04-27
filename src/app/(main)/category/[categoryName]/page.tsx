@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import { Loader2 } from "lucide-react"
 import { CategoryDetailContent } from "./_components/category-detail-content"
@@ -9,6 +10,8 @@ type Props = {
 export default async function CategoryPage({ params }: Props) {
   const { categoryName } = await params
   const decodedName = decodeURIComponent(categoryName)
+
+  if (!decodedName.trim()) notFound()
 
   return (
     <Suspense
