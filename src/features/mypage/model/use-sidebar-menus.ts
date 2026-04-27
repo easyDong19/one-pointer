@@ -50,7 +50,6 @@ const EXPERT_MENUS: SidebarMenuGroup[] = [
     title: "계정",
     items: [
       { label: "정산 계좌", href: "/mypage/bank-account" },
-      { label: "알림 설정", href: "/mypage/notifications" },
     ],
   },
 ]
