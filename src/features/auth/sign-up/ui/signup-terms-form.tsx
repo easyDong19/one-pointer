@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import type { UseFormReturn } from "react-hook-form"
 import { ChevronRight } from "lucide-react"
 import { Button } from "@/shared/ui/button"
@@ -14,10 +15,10 @@ type SignupTermsFormProps = {
 }
 
 const TERMS_ITEMS = [
-  { key: "termsOfService" as const, label: "서비스 이용약관 동의", required: true },
-  { key: "privacyPolicy" as const, label: "개인정보 수집 및 이용 동의", required: true },
-  { key: "chatReviewAgreed" as const, label: "채팅 내역 리뷰 활용 동의", required: true },
-  { key: "marketingConsent" as const, label: "마케팅 정보 수신 동의", required: false },
+  { key: "termsOfService" as const, label: "서비스 이용약관 동의", required: true, href: "/terms" },
+  { key: "privacyPolicy" as const, label: "개인정보 수집 및 이용 동의", required: true, href: "/privacy" },
+  { key: "chatReviewAgreed" as const, label: "채팅 내역 리뷰 활용 동의", required: true, href: "/policies/chat-review" },
+  { key: "marketingConsent" as const, label: "마케팅 정보 수신 동의", required: false, href: "/policies/marketing" },
 ] as const
 
 type TermsKey = (typeof TERMS_ITEMS)[number]["key"]
@@ -102,9 +103,15 @@ export function SignupTermsForm({ form, isPending }: SignupTermsFormProps) {
                   </span>
                 </Text>
               </div>
-              <button type="button" className="text-muted-foreground p-1">
+              <Link
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${item.label} 보기 (새 탭)`}
+                className="text-muted-foreground hover:text-foreground p-1 transition-colors"
+              >
                 <ChevronRight size={20} />
-              </button>
+              </Link>
             </div>
           ))}
         </div>

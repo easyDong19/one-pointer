@@ -1,6 +1,6 @@
 "use client"
 
-import { Headphones, FileText, Shield, LogOut, ChevronRight } from "lucide-react"
+import { Headphones, FileText, Shield, Scale, LogOut, ChevronRight } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import { Separator } from "@/shared/ui/separator"
 import { useLogoutMutation } from "@/features/auth/sign-out/model/use-logout-mutation"
@@ -10,13 +10,17 @@ type SettingsItem = {
   icon: React.ComponentType<{ className?: string }>
   action: "link" | "logout"
   href?: string
+  /** true 면 같은 탭에서 이동, false/생략 시 새 탭 */
+  sameTab?: boolean
   destructive?: boolean
 }
 
 const SETTINGS_ITEMS: SettingsItem[] = [
+  // TODO: 고객센터(문의 작성) 페이지 신설 후 href 연결. 지금은 비활성 placeholder.
   { label: "고객센터", icon: Headphones, action: "link", href: "#" },
-  { label: "이용약관", icon: FileText, action: "link", href: "#" },
-  { label: "개인정보처리방침", icon: Shield, action: "link", href: "#" },
+  { label: "이용약관", icon: FileText, action: "link", href: "/terms" },
+  { label: "개인정보처리방침", icon: Shield, action: "link", href: "/privacy" },
+  { label: "환불·분쟁 정책", icon: Scale, action: "link", href: "/policies/refund-dispute" },
   { label: "로그아웃", icon: LogOut, action: "logout", destructive: true },
 ]
 
@@ -29,7 +33,12 @@ export function SettingsSection() {
         logoutMutation.mutate()
       }
     } else if (item.href) {
-      window.open(item.href, "_blank")
+      if (item.href === "#") return // placeholder 미구현 항목 — 클릭 무시
+      if (item.sameTab) {
+        window.location.href = item.href
+      } else {
+        window.open(item.href, "_blank", "noopener,noreferrer")
+      }
     }
   }
 
