@@ -6,10 +6,10 @@ import type {
   ChatMessage,
   TicketProgressInfo,
 } from "@/entities/chat/api/chat.schema"
+import { isSameCalendarDay } from "@/entities/chat/lib/format-bubble-time"
+import { DateSeparator } from "@/entities/chat/ui/date-separator"
+import { MessageBubble } from "@/entities/chat/ui/message-bubble"
 
-import { isSameCalendarDay } from "../lib/format-bubble-time"
-import { DateSeparator } from "./date-separator"
-import { MessageBubble } from "./message-bubble"
 import { TicketSummaryCard } from "./ticket-summary-card"
 
 type Props = {

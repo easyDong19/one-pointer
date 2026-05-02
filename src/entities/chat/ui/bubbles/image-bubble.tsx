@@ -2,7 +2,7 @@
 
 import { cn } from "@/shared/lib/utils"
 
-import { openImageViewer } from "../../lib/open-image-viewer"
+import { openImageViewer } from "@/shared/lib/open-image-viewer"
 
 type Props = {
   url: string

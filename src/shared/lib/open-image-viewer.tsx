@@ -2,7 +2,7 @@
 
 import { overlay } from "overlay-kit"
 
-import { ImageViewerDialog } from "../ui/image-viewer-dialog"
+import { ImageViewerDialog } from "@/shared/ui/image-viewer-dialog"
 
 /**
  * 이미지 뷰어를 열고 닫힐 때 resolve.
