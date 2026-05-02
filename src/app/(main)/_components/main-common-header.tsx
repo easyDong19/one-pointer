@@ -27,6 +27,7 @@ export function MainCommonHeader() {
 
       <CommonHeader.Actions>
         <CommonHeader.NavLink href="/tickets/new">의뢰 등록</CommonHeader.NavLink>
+        <CommonHeader.NavLink href="/chat">채팅</CommonHeader.NavLink>
         <HeaderAuthSection />
       </CommonHeader.Actions>
     </CommonHeader>
