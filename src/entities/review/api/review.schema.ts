@@ -16,7 +16,6 @@ export const visibilityReasonSchema = z.enum(["PERSONAL", "SENSITIVE", "OTHER"])
 export const ticketTypeSchema = z.enum(["OFFLINE", "ONLINE"])
 export const senderTypeSchema = z.enum(["CLIENT", "EXPERT", "SYSTEM"])
 export const messageTypeSchema = z.enum(["TEXT", "IMAGE", "FILE", "SYSTEM", "AGREEMENT", "DELIVERY"])
-export const callerTypeSchema = z.enum(["CLIENT", "EXPERT", "SYSTEM"])
 
 // ─── Sub-schemas ─────────────────────────────────────────────────────────────
 
@@ -40,18 +39,18 @@ export const expertReplySchema = z.object({
   id: z.number().optional(),
 })
 
-/** ClientProfileResponse */
+/** ClientProfileResponse — 실측: clientId 필드명 사용 (id 아님) */
 export const clientProfileSchema = z.object({
-  id: z.number(),
+  clientId: z.number(),
   nickname: z.string(),
-  profileImageUrl: z.string().url().nullable().optional(),
+  profileImageUrl: z.string().nullable().optional(),
 })
 
-/** ExpertProfileResponse */
+/** ExpertProfileResponse — 실측: expertId 필드명 사용 */
 export const expertProfileSchema = z.object({
-  id: z.number(),
+  expertId: z.number(),
   nickname: z.string(),
-  profileImageUrl: z.string().url().nullable().optional(),
+  profileImageUrl: z.string().nullable().optional(),
 })
 
 /** MessagePreviewResponse */
@@ -79,34 +78,34 @@ export const snapshotMessageSchema = z.object({
   senderId: z.number().optional(),
 })
 
-/** FilteringMessageResponse */
+/** FilteringMessageResponse — 실측: 모든 필드 nullable (docs/api/12-review.md) */
 export const filteringMessageSchema = z.object({
-  messageId: z.number(),
-  senderType: senderTypeSchema,
-  senderNickname: z.string(),
-  messageType: messageTypeSchema,
-  content: z.string(),
-  attachmentUrl: z.string().nullable(),
-  visibility: messageVisibilitySchema,
-  sentAt: z.string(),
-  sequence: z.number(),
-  canToggle: z.boolean(),
-  own: z.boolean(),
+  messageId: z.number().int().nullish(),
+  senderType: senderTypeSchema.nullish(),
+  senderNickname: z.string().nullish(),
+  content: z.string().nullish(),
+  attachmentUrl: z.string().nullish(),
+  messageType: messageTypeSchema.nullish(),
+  visibility: messageVisibilitySchema.nullish(),
+  sentAt: z.string().nullish(),
+  sequence: z.number().int().nullish(),
+  own: z.boolean().nullish(),
+  canToggle: z.boolean().nullish(),
 })
 
-/** FilteringViewResponse */
+/** FilteringViewResponse — 실측 nullable */
 export const filteringViewSchema = z.object({
-  reviewId: z.number(),
-  status: reviewStatusSchema,
-  filteringDeadline: z.string(),
-  myFilteringCompleted: z.boolean(),
-  otherFilteringCompleted: z.boolean(),
-  rating: z.number().nullable(),
-  callerType: callerTypeSchema,
-  totalMessageCount: z.number(),
-  myMessageCount: z.number(),
-  myHiddenCount: z.number(),
-  messages: z.array(filteringMessageSchema),
+  reviewId: z.number().int().nullish(),
+  status: reviewStatusSchema.nullish(),
+  filteringDeadline: z.string().nullish(),
+  myFilteringCompleted: z.boolean().nullish(),
+  otherFilteringCompleted: z.boolean().nullish(),
+  rating: z.number().nullish(),
+  callerType: senderTypeSchema.nullish(),
+  totalMessageCount: z.number().int().nullish(),
+  myMessageCount: z.number().int().nullish(),
+  myHiddenCount: z.number().int().nullish(),
+  messages: z.array(filteringMessageSchema).nullish(),
 })
 
 /** ReviewDetailResponse */
@@ -133,7 +132,7 @@ export const reviewDetailSchema = z.object({
 /** ReviewFeedResponse */
 export const reviewFeedSchema = z.object({
   reviewId: z.number(),
-  rating: z.number(),
+  rating: z.number().nullable(),
   publishedAt: z.string(),
   helpfulCount: z.number(),
   ticketType: ticketTypeSchema,
@@ -145,7 +144,24 @@ export const reviewFeedSchema = z.object({
   expertReply: expertReplySchema.nullable(),
 })
 
-/** MyReviewResponse */
+/** MyReviewCardResponse — 실측 (docs/api/12-review.md) 기반 */
+export const myReviewCardSchema = z.object({
+  reviewId: z.number().int(),
+  ticketTitle: z.string(),
+  ticketType: ticketTypeSchema.nullish(),
+  expertProfile: expertProfileSchema,
+  status: reviewStatusSchema,
+  rating: z.number().nullable(),
+  filteringDeadline: z.string(),
+  myFilteringCompleted: z.boolean().default(false),
+  totalMessageCount: z.number().int().default(0),
+  hiddenMessageCount: z.number().int().default(0),
+  publishedAt: z.string().nullish(),
+  helpfulCount: z.number().int().default(0),
+  createdAt: z.string(),
+})
+
+/** MyReviewResponse — 구버전 (사용처 없음, 호환용) */
 export const myReviewSchema = z.object({
   reviewId: z.number(),
   rating: z.number().nullable(),
@@ -182,6 +198,7 @@ export type FilteringMessage = z.infer<typeof filteringMessageSchema>
 export type FilteringView = z.infer<typeof filteringViewSchema>
 export type ReviewFeed = z.infer<typeof reviewFeedSchema>
 export type MyReview = z.infer<typeof myReviewSchema>
+export type MyReviewCard = z.infer<typeof myReviewCardSchema>
 
 // ─── Request Schemas ──────────────────────────────────────────────────────────
 
@@ -230,7 +247,7 @@ export const reviewFeedListResponseSchema = successResponseSchema(
 
 export const myReviewListResponseSchema = successResponseSchema(
   z.object({
-    content: z.array(myReviewSchema),
+    content: z.array(myReviewCardSchema),
     nextCursor: z.string().nullable(),
     hasNext: z.boolean(),
   }),

@@ -5,13 +5,17 @@ import {
   createExpertReplyRequestSchema,
   toggleMessageVisibilityRequestSchema,
   reviewDetailResponseSchema,
-  reviewListResponseSchema,
+  reviewFeedListResponseSchema,
+  myReviewListResponseSchema,
   myReviewSummaryResponseSchema,
+  filteringViewResponseSchema,
   type SubmitRatingRequest,
   type CreateExpertReplyRequest,
   type ToggleMessageVisibilityRequest,
   type ReviewDetail,
-  type ReviewSummary,
+  type ReviewFeed,
+  type MyReviewCard,
+  type FilteringView,
 } from "./review.schema"
 
 export type {
@@ -19,7 +23,9 @@ export type {
   CreateExpertReplyRequest,
   ToggleMessageVisibilityRequest,
   ReviewDetail,
-  ReviewSummary,
+  ReviewFeed,
+  MyReviewCard,
+  FilteringView,
 }
 
 
@@ -104,14 +110,14 @@ export async function getReview(reviewId: number): Promise<ReviewDetail> {
   return parsed.data
 }
 
-export async function getFilteringReview(reviewId: number): Promise<ReviewDetail> {
+export async function getFilteringView(reviewId: number): Promise<FilteringView> {
   const path = `/v1/api/review/${reviewId}/filtering`
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method })
-  const parsed = parseSchemaOrThrow(reviewDetailResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(filteringViewResponseSchema, response, {
     path,
     method,
-    message: "Invalid filtering review response payload",
+    message: "Invalid filtering view response payload",
   })
   return parsed.data
 }
@@ -134,11 +140,11 @@ export async function getMyReviewSummary(): Promise<{
 export async function getMyReviews(params?: {
   cursor?: string
   size?: number
-}): Promise<{ content: ReviewSummary[]; nextCursor: string | null; hasNext: boolean }> {
+}): Promise<{ content: MyReviewCard[]; nextCursor: string | null; hasNext: boolean }> {
   const path = "/v1/api/review/my-reviews"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
-  const parsed = parseSchemaOrThrow(reviewListResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(myReviewListResponseSchema, response, {
     path,
     method,
     message: "Invalid my reviews response payload",
@@ -149,11 +155,11 @@ export async function getMyReviews(params?: {
 export async function getExpertReviews(
   expertProfileId: number,
   params?: { cursor?: string; size?: number },
-): Promise<{ content: ReviewSummary[]; nextCursor: string | null; hasNext: boolean }> {
+): Promise<{ content: ReviewFeed[]; nextCursor: string | null; hasNext: boolean }> {
   const path = `/v1/api/review/expert/${expertProfileId}`
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
-  const parsed = parseSchemaOrThrow(reviewListResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(reviewFeedListResponseSchema, response, {
     path,
     method,
     message: "Invalid expert reviews response payload",
