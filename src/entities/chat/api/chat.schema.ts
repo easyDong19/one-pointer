@@ -1,20 +1,19 @@
 import { z } from "zod/v4"
 
-// ─── Enums ───────────────────────────────────────────────────────────────────
+import {
+  disputeResolutionTypeSchema,
+  disputeStatusSchema,
+} from "@/entities/dispute/api/dispute.schema"
+import {
+  escrowRefundStatusSchema,
+  escrowRefundZoneSchema,
+} from "@/entities/payment/api/payment.schema"
+import { reviewStatusSchema, senderTypeSchema } from "@/entities/review/api/review.schema"
+import { ticketStatusSchema, ticketTypeSchema } from "@/entities/ticket/api/ticket.schema"
 
-export const ticketStatusSchema = z.enum([
-  "DRAFT",
-  "OPEN",
-  "IN_REVIEW",
-  "MATCHED",
-  "PAYMENT_PENDING",
-  "PAID",
-  "IN_PROGRESS",
-  "DELIVERED",
-  "COMPLETED",
-  "CANCELLED",
-  "EXPIRED",
-])
+// ─── Enums (chat 자체) ───────────────────────────────────────────────────────
+
+export const chatRoomStatusSchema = z.enum(["ACTIVE", "REPORTED"])
 
 export const messageTypeSchema = z.enum([
   "TEXT",
@@ -25,92 +24,178 @@ export const messageTypeSchema = z.enum([
   "DELIVERY",
 ])
 
-export const senderTypeSchema = z.enum(["CLIENT", "EXPERT", "SYSTEM"])
+export const chatBannerTypeSchema = z.enum([
+  "NONE",
+  // Online 합의서
+  "AGREEMENT_NEEDED",
+  "AGREEMENT_REPROPOSE",
+  "AGREEMENT_WAITING",
+  // Online 결제
+  "PAYMENT_PENDING",
+  "PAYMENT_WAITING",
+  // Online 작업물
+  "DELIVERY_NEEDED",
+  "DELIVERY_REVISION_NEEDED",
+  "DELIVERY_SUBMITTED",
+  // Online 마감 초과
+  "DEADLINE_OVERDUE_CLIENT",
+  "DEADLINE_OVERDUE_EXPERT",
+  // Offline
+  "OFFLINE_COMPLETE_NEEDED",
+  "OFFLINE_WAITING_COMPLETE",
+  // 공통
+  "REVIEW_PENDING",
+  "REFUND_IN_PROGRESS",
+  "DISPUTE_IN_PROGRESS",
+  "DISPUTE_RESOLVED",
+])
 
-export const participantRoleSchema = z.enum(["CLIENT", "EXPERT"])
+export type ChatRoomStatus = z.infer<typeof chatRoomStatusSchema>
+export type MessageType = z.infer<typeof messageTypeSchema>
+export type ChatBannerType = z.infer<typeof chatBannerTypeSchema>
 
 // ─── Sub-schemas ─────────────────────────────────────────────────────────────
 
-export const chatParticipantSchema = z.object({
-  id: z.number(),
-  nickname: z.string(),
-  profileImageUrl: z.string().url().nullable().optional(),
+/** OpponentInfo — 상대방 정보 */
+export const opponentInfoSchema = z.object({
+  userId: z.number().int().nullish(),
+  expertProfileId: z.number().int().nullish(),
+  nickname: z.string().nullish(),
+  profileImageUrl: z.string().nullish(),
+  expertCategoryNames: z.array(z.string()).nullish(),
 })
 
-/** ChatMessage */
+export type OpponentInfo = z.infer<typeof opponentInfoSchema>
+
+/** StepInfo — TicketProgress 의 한 단계 */
+export const stepInfoSchema = z.object({
+  label: z.string().nullish(),
+  status: ticketStatusSchema.nullish(),
+  completed: z.boolean().nullish(),
+  current: z.boolean().nullish(),
+})
+
+export type StepInfo = z.infer<typeof stepInfoSchema>
+
+/** TicketProgressInfo — 채팅방 상단 프로그레스 스텝 */
+export const ticketProgressInfoSchema = z.object({
+  ticketId: z.number().int().nullish(),
+  ticketType: ticketTypeSchema.nullish(),
+  currentStatus: ticketStatusSchema.nullish(),
+  steps: z.array(stepInfoSchema).nullish(),
+})
+
+export type TicketProgressInfo = z.infer<typeof ticketProgressInfoSchema>
+
+/** ChatBannerResponse — 서버 드리븐 UI 의 핵심
+ *  type 에 따라 나머지 필드가 선택적으로 채워진다. */
+export const chatBannerResponseSchema = z.object({
+  type: chatBannerTypeSchema.nullish(),
+
+  // 합의서
+  ticketId: z.number().int().nullish(),
+  rejectedAgreementId: z.number().int().nullish(),
+
+  // 결제
+  agreementId: z.number().int().nullish(),
+  amount: z.number().int().nullish(),
+
+  // 작업물
+  existingDeliveryId: z.number().int().nullish(),
+
+  // 리뷰
+  reviewId: z.number().int().nullish(),
+
+  // 환불
+  refundRequestId: z.number().int().nullish(),
+  refundStatus: escrowRefundStatusSchema.nullish(),
+  refundZone: escrowRefundZoneSchema.nullish(),
+  expertRejectReason: z.string().nullish(),
+  disputeId: z.number().int().nullish(),
+
+  // 분쟁
+  disputeStatus: disputeStatusSchema.nullish(),
+  resolutionType: disputeResolutionTypeSchema.nullish(),
+  totalAmount: z.number().int().nullish(),
+  expertSettlementAmount: z.number().int().nullish(),
+
+  // AppBar 환불 버튼 제어
+  canRequestRefund: z.boolean().default(false),
+  currentRefundZone: escrowRefundZoneSchema.nullish(),
+})
+
+export type ChatBannerResponse = z.infer<typeof chatBannerResponseSchema>
+
+// ─── Message ─────────────────────────────────────────────────────────────────
+
+/** ChatMessageResponse — 개별 메시지 */
 export const chatMessageSchema = z.object({
-  messageId: z.number(),
-  senderType: senderTypeSchema,
-  senderNickname: z.string(),
-  messageType: messageTypeSchema,
-  content: z.string(),
-  attachmentUrl: z.string().nullable(),
-  attachmentName: z.string().nullable(),
-  sentAt: z.string(),
-  readAt: z.string().nullable(),
-  // FE-only fields (not in Swagger but used in frontend)
-  id: z.number().optional(),
-  roomId: z.number().optional(),
-  senderId: z.number().nullable().optional(),
-  senderProfileImageUrl: z.string().url().nullable().optional(),
-  fileUrl: z.string().nullable().optional(),
-  fileName: z.string().nullable().optional(),
-  fileSize: z.number().nullable().optional(),
-  isRead: z.boolean().optional(),
-})
-
-/** AgreementResponse */
-export const agreementResponseSchema = z
-  .object({
-    // placeholder – extend when Swagger publishes the full shape
-  })
-  .passthrough()
-  .nullable()
-
-/** ChatRoomSummary */
-export const chatRoomSummarySchema = z.object({
-  roomId: z.string(),
-  participantNickname: z.string(),
-  participantProfileImageUrl: z.string().nullable(),
-  ticketTitle: z.string(),
-  ticketId: z.number(),
-  ticketStatus: ticketStatusSchema,
-  lastMessageContent: z.string().nullable(),
-  lastMessageAt: z.string(),
-  unreadCount: z.number(),
-  // FE-only fields (not in Swagger but used in frontend)
-  id: z.number().optional(),
-  participant: chatParticipantSchema.optional(),
-  lastMessage: z.string().nullable().optional(),
-  lastMessageType: messageTypeSchema.nullable().optional(),
-})
-
-/** DeliveryResponse (inline ref) */
-import { deliverySchema } from "@/entities/delivery/api/delivery.schema"
-
-/** ChatRoomMessagesResponse */
-export const chatRoomDetailSchema = z.object({
-  roomId: z.string(),
-  participantId: z.number(),
-  participantNickname: z.string(),
-  participantProfileImageUrl: z.string().nullable(),
-  participantRole: participantRoleSchema,
-  ticketId: z.number(),
-  ticketTitle: z.string(),
-  ticketStatus: ticketStatusSchema,
-  messages: z.array(chatMessageSchema),
-  deliveryInfo: deliverySchema.nullable().optional(),
-  agreementInfo: agreementResponseSchema.optional(),
-  // FE-only fields
-  id: z.number().optional(),
-  participant: chatParticipantSchema.optional(),
+  id: z.string().nullish(),
+  roomId: z.string().nullish(),
+  senderId: z.number().int().nullish(),
+  messageType: messageTypeSchema.nullish(),
+  content: z.string().nullish(),
+  attachmentUrl: z.string().nullish(),
+  isRead: z.boolean().nullish(),
+  createdAt: z.string().nullish(),
 })
 
 export type ChatMessage = z.infer<typeof chatMessageSchema>
-export type ChatRoomSummary = z.infer<typeof chatRoomSummarySchema>
+
+// ─── Room aggregates ─────────────────────────────────────────────────────────
+
+/** ChatRoomMessagesResponse — 채팅방 진입 시 전체 데이터 */
+export const chatRoomDetailSchema = z.object({
+  myRole: senderTypeSchema.nullish(),
+  reviewId: z.number().int().nullish(),
+  reviewStatus: reviewStatusSchema.nullish(),
+  opponent: opponentInfoSchema.nullish(),
+  ticketProgress: ticketProgressInfoSchema.nullish(),
+  banner: chatBannerResponseSchema.nullish(),
+  messages: z.array(chatMessageSchema).nullish(),
+})
+
 export type ChatRoomDetail = z.infer<typeof chatRoomDetailSchema>
 
-// ─── Response Schemas ─────────────────────────────────────────────────────────
+/** MyChatRoomResponse — 채팅방 목록 아이템 */
+export const chatRoomSummarySchema = z.object({
+  roomId: z.string().nullish(),
+  ticketId: z.number().int().nullish(),
+  opponentNickname: z.string().nullish(),
+  opponentProfileImageUrl: z.string().nullish(),
+  ticketTitle: z.string().nullish(),
+  ticketType: ticketTypeSchema.nullish(),
+  ticketStatus: ticketStatusSchema.nullish(),
+  statusLabel: z.string().nullish(),
+  lastMessageType: messageTypeSchema.nullish(),
+  lastMessage: z.string().nullish(),
+  lastMessageAt: z.string().nullish(),
+  unreadCount: z.number().int().nullish(),
+  reviewPending: z.boolean().nullish(),
+})
+
+export type ChatRoomSummary = z.infer<typeof chatRoomSummarySchema>
+
+// ─── WebSocket DTOs ──────────────────────────────────────────────────────────
+
+/** SendMessageRequest — STOMP /app/chat.send 페이로드 */
+export const sendMessageRequestSchema = z.object({
+  roomId: z.string(),
+  messageType: messageTypeSchema,
+  content: z.string(),
+  attachmentUrl: z.string().nullish(),
+})
+
+export type SendMessageRequest = z.infer<typeof sendMessageRequestSchema>
+
+/** TypingEvent — /topic/chat/{roomId}/typing 페이로드 */
+export const typingEventSchema = z.object({
+  userId: z.number().int(),
+})
+
+export type TypingEvent = z.infer<typeof typingEventSchema>
+
+// ─── Response wrappers ───────────────────────────────────────────────────────
 
 const successResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
   z.object({
@@ -119,14 +204,20 @@ const successResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
     data: dataSchema,
   })
 
+/** GET /v1/api/chat/rooms — MyChatRoomListResponse */
 export const chatRoomListResponseSchema = successResponseSchema(
   z.object({
-    content: z.array(chatRoomSummarySchema),
-    nextCursor: z.string().nullable(),
-    hasNext: z.boolean(),
+    rooms: z.array(chatRoomSummarySchema).nullish(),
+    nextCursor: z.string().nullish(),
+    hasNext: z.boolean().nullish(),
   }),
 )
 
+/** GET /v1/api/chat/rooms/{roomId}/messages — ChatRoomMessagesResponse */
 export const chatRoomDetailResponseSchema = successResponseSchema(chatRoomDetailSchema)
 
-export const readMessagesResponseSchema = successResponseSchema(z.null())
+/** POST /v1/api/chat/rooms/{roomId}/read */
+export const readMessagesResponseSchema = successResponseSchema(z.boolean())
+
+/** GET /v1/api/chat/rooms/by-ticket/{ticketId} — string roomId */
+export const chatRoomIdByTicketResponseSchema = successResponseSchema(z.string())
