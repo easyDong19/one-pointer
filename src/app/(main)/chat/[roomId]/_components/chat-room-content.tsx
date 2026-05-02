@@ -8,7 +8,8 @@ type Props = {
 }
 
 export function ChatRoomContent({ roomId }: Props) {
-  const { detail, isLoading, isError, isConnected } = useChatRoomInit(roomId)
+  const { detail, isLoading, isError, isConnected, myUserId } =
+    useChatRoomInit(roomId)
 
   return (
     <ChatRoomLayout
@@ -16,6 +17,7 @@ export function ChatRoomContent({ roomId }: Props) {
       isLoading={isLoading}
       isError={isError}
       isConnected={isConnected}
+      myUserId={myUserId}
     />
   )
 }

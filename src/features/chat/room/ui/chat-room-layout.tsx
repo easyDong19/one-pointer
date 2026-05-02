@@ -8,7 +8,7 @@ import { Text } from "@/shared/ui/text"
 import { BannerPlaceholder } from "./banner-placeholder"
 import { ChatInputPlaceholder } from "./chat-input-placeholder"
 import { ChatRoomHeader } from "./chat-room-header"
-import { MessageListPlaceholder } from "./message-list-placeholder"
+import { MessageList } from "./message-list"
 import { ProgressStepper } from "./progress-stepper"
 
 type Props = {
@@ -16,6 +16,7 @@ type Props = {
   isLoading: boolean
   isError: boolean
   isConnected: boolean
+  myUserId: number | null
 }
 
 /**
@@ -27,7 +28,13 @@ type Props = {
  *
  * 정책: docs/design/desktop-chat-ux.md §8
  */
-export function ChatRoomLayout({ detail, isLoading, isError, isConnected }: Props) {
+export function ChatRoomLayout({
+  detail,
+  isLoading,
+  isError,
+  isConnected,
+  myUserId,
+}: Props) {
   if (isLoading) {
     return <CenteredState content={<Loader2 className="text-primary h-8 w-8 animate-spin" />} />
   }
@@ -54,7 +61,11 @@ export function ChatRoomLayout({ detail, isLoading, isError, isConnected }: Prop
       <ChatRoomHeader opponent={detail.opponent} />
       <ProgressStepper progress={detail.ticketProgress} />
       <BannerPlaceholder banner={detail.banner} />
-      <MessageListPlaceholder messages={detail.messages} />
+      <MessageList
+        messages={detail.messages ?? []}
+        myUserId={myUserId}
+        ticketProgress={detail.ticketProgress}
+      />
       <ChatInputPlaceholder isConnected={isConnected} />
     </div>
   )
