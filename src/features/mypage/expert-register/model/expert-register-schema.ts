@@ -15,7 +15,7 @@ export const expertRegisterFormSchema = z
       .min(1, "카테고리를 1개 이상 선택해주세요.")
       .max(3, "카테고리는 최대 3개까지 선택할 수 있습니다."),
 
-    // Step 2: 자격증 (선택)
+    // Step 2: 자격증 (선택, 최대 5개)
     certifications: z
       .array(
         z.object({
@@ -23,9 +23,10 @@ export const expertRegisterFormSchema = z
           issuer: z.string().optional(),
         }),
       )
+      .max(5, "자격증은 최대 5개까지 등록할 수 있습니다.")
       .default([]),
 
-    // Step 3: 포트폴리오 (선택)
+    // Step 3: 포트폴리오 (선택, 최대 10개)
     portfolios: z
       .array(
         z.object({
@@ -34,6 +35,7 @@ export const expertRegisterFormSchema = z
           images: z.array(z.instanceof(File)).max(7, "이미지는 최대 7장까지 가능합니다."),
         }),
       )
+      .max(10, "포트폴리오는 최대 10개까지 등록할 수 있습니다.")
       .default([]),
 
     // Step 4: 활동 정보

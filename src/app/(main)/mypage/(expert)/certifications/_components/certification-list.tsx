@@ -113,10 +113,20 @@ export function CertificationList() {
             </div>
           ))}
 
-          <Button variant="outline" className="w-full" onClick={handleAdd}>
-            <Plus className="mr-1 size-4" />
-            자격증 추가
-          </Button>
+          {certifications.length < 5 ? (
+            <Button variant="outline" className="w-full" onClick={handleAdd}>
+              <Plus className="mr-1 size-4" />
+              자격증 추가
+            </Button>
+          ) : (
+            <Text
+              as="p"
+              typography="caption2-medium"
+              className="text-muted-foreground border-border/60 rounded-xl border border-dashed py-3 text-center"
+            >
+              자격증은 최대 5개까지 등록할 수 있습니다
+            </Text>
+          )}
         </>
       )}
     </div>

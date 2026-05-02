@@ -76,15 +76,25 @@ export function Step2Certifications({ form }: Step2Props) {
         </div>
       ))}
 
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full"
-        onClick={() => append({ name: "", issuer: "" })}
-      >
-        <Plus className="mr-1 size-4" />
-        자격증 추가
-      </Button>
+      {fields.length < 5 ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() => append({ name: "", issuer: "" })}
+        >
+          <Plus className="mr-1 size-4" />
+          자격증 추가
+        </Button>
+      ) : (
+        <Text
+          as="p"
+          typography="caption2-medium"
+          className="text-muted-foreground border-border/60 rounded-xl border border-dashed py-3 text-center"
+        >
+          자격증은 최대 5개까지 등록할 수 있습니다
+        </Text>
+      )}
     </div>
   )
 }
