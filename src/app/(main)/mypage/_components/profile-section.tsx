@@ -5,17 +5,21 @@ import { ChevronRight, Pencil } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import { useMyProfileQuery } from "@/features/auth/me/model/use-my-profile-query"
 import { useExpertExistsQuery } from "@/features/mypage"
+import { useMyExpertProfileQuery } from "@/features/mypage/expert-profile"
 import { useRoleStore } from "@/entities/user/model/role-store"
 
 export function ProfileSection() {
   const { data: user } = useMyProfileQuery()
   const { data: expertExists } = useExpertExistsQuery()
+  const { data: expertProfile } = useMyExpertProfileQuery()
   const role = useRoleStore((s) => s.role)
 
   if (!user) return null
 
   const initial = (user.nickname ?? user.name)?.[0] ?? "?"
   const isExpertMode = role === "expert" && expertExists
+  // user.id 가 아닌 expertProfileId 사용 (둘은 다른 식별자)
+  const expertProfileId = expertProfile?.expertProfileId
 
   return (
     <div className="flex items-center gap-4 rounded-xl border bg-card p-4 shadow-sm">
@@ -59,9 +63,10 @@ export function ProfileSection() {
         >
           <Pencil className="size-4" />
         </Link>
-        {isExpertMode && (
+        {isExpertMode && expertProfileId && (
           <Link
-            href={`/experts/${user.id}`}
+            href={`/experts/${expertProfileId}`}
+            aria-label="내 전문가 프로필 보기"
             className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted"
           >
             <ChevronRight className="size-4" />
