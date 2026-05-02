@@ -1,3 +1,4 @@
+import { ApiError } from "@/shared/api/http/api-error"
 import { clientFetch } from "@/shared/api/http/client-fetch"
 import { parseSchemaOrThrow } from "@/shared/api/http/parse-schema"
 import {
@@ -16,6 +17,7 @@ import {
   expertProfileExistsResponseSchema,
   expertDashboardResponseSchema,
   clientDashboardResponseSchema,
+  withdrawResponseSchema,
   type UpdateProfileRequest,
   type UpdateFcmTokenRequest,
   type DeleteFcmTokenRequest,
@@ -276,4 +278,43 @@ export async function updateNotificationSetting(
     message: "Invalid update notification request payload",
   })
   await clientFetch<unknown, UpdateNotificationRequest>({ path, method, body: payload })
+}
+
+// ─── Withdraw (회원 탈퇴) ──────────────────────────────────────────────────────
+
+/**
+ * 회원 탈퇴. body 없이 DELETE.
+ * 백엔드가 HTTP 200 + `success: false` 로 차단 응답할 수 있어 (진행 중 거래 등)
+ * 그 케이스를 ApiError(409) 로 변환해 React Query onError 흐름으로 보낸다.
+ */
+export async function withdrawAccount(): Promise<void> {
+  const path = "/v1/api/user/me"
+  const method = "DELETE"
+  const response = await clientFetch<unknown>({
+    path,
+    method,
+    skipAuthRefresh: true, // logout 과 동일. 401 재시도 의미 없음.
+  })
+
+  const parsed = withdrawResponseSchema.safeParse(response)
+  if (!parsed.success) {
+    throw new ApiError({
+      status: 500,
+      path,
+      method,
+      message: "Invalid withdraw response payload",
+      details: parsed.error.flatten(),
+    })
+  }
+
+  if (!parsed.data.success) {
+    // 진행 중 거래 / 매칭 / 미정산 / 분쟁 등으로 차단
+    throw new ApiError({
+      status: 409,
+      path,
+      method,
+      message: parsed.data.message || "탈퇴할 수 없습니다.",
+      details: parsed.data,
+    })
+  }
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { Headphones, FileText, Shield, Scale, LogOut, ChevronRight } from "lucide-react"
+import { Headphones, FileText, Shield, Scale, UserMinus, LogOut, ChevronRight } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import { Separator } from "@/shared/ui/separator"
 import { useLogoutMutation } from "@/features/auth/sign-out/model/use-logout-mutation"
@@ -20,6 +20,7 @@ const SETTINGS_ITEMS: SettingsItem[] = [
   { label: "이용약관", icon: FileText, action: "link", href: "/terms" },
   { label: "개인정보처리방침", icon: Shield, action: "link", href: "/privacy" },
   { label: "환불·분쟁 정책", icon: Scale, action: "link", href: "/policies/refund-dispute" },
+  { label: "회원탈퇴", icon: UserMinus, action: "link", href: "/mypage/withdraw", sameTab: true, destructive: true },
   { label: "로그아웃", icon: LogOut, action: "logout", destructive: true },
 ]
 

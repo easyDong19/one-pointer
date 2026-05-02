@@ -246,3 +246,14 @@ export const clientDashboardResponseSchema = successResponseSchema(clientDashboa
 
 export type ExpertDashboard = z.infer<typeof expertDashboardSchema>
 export type ClientDashboard = z.infer<typeof clientDashboardSchema>
+
+// ─── Withdraw (회원 탈퇴) ──────────────────────────────────────────────────────
+// HTTP 200 + success: false 로 차단 응답 가능 (진행 중 거래 등) → service 에서 ApiError 변환.
+// 모바일 UserApi.withdraw 가 reason 파라미터를 받지만 BE 로 전송하지 않음 — 웹도 body 없이 DELETE.
+export const withdrawResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: z.unknown().nullish(),
+})
+
+export type WithdrawResponse = z.infer<typeof withdrawResponseSchema>
