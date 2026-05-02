@@ -6,10 +6,11 @@ import type { ChatRoomDetail } from "@/entities/chat/api/chat.schema"
 import { Text } from "@/shared/ui/text"
 
 import { BannerPlaceholder } from "./banner-placeholder"
-import { ChatInputPlaceholder } from "./chat-input-placeholder"
+import { ChatInput } from "./chat-input"
 import { ChatRoomHeader } from "./chat-room-header"
 import { MessageList } from "./message-list"
 import { ProgressStepper } from "./progress-stepper"
+import { TypingIndicator } from "./typing-indicator"
 
 type Props = {
   detail: ChatRoomDetail | undefined
@@ -17,6 +18,12 @@ type Props = {
   isError: boolean
   isConnected: boolean
   myUserId: number | null
+  typingUserId: number | null
+  isUploading: boolean
+  onSendText: (text: string) => void
+  onPickImages: (files: File[]) => void
+  onPickFile: (file: File) => void
+  onTyping: () => void
 }
 
 /**
@@ -34,6 +41,12 @@ export function ChatRoomLayout({
   isError,
   isConnected,
   myUserId,
+  typingUserId,
+  isUploading,
+  onSendText,
+  onPickImages,
+  onPickFile,
+  onTyping,
 }: Props) {
   if (isLoading) {
     return <CenteredState content={<Loader2 className="text-primary h-8 w-8 animate-spin" />} />
@@ -56,6 +69,12 @@ export function ChatRoomLayout({
     )
   }
 
+  const opponentNickname = detail.opponent?.nickname ?? null
+  const opponentUserId = detail.opponent?.userId ?? null
+  const isTypingVisible =
+    typingUserId != null &&
+    (opponentUserId == null || typingUserId === opponentUserId)
+
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-3xl flex-col">
       <ChatRoomHeader opponent={detail.opponent} />
@@ -66,7 +85,15 @@ export function ChatRoomLayout({
         myUserId={myUserId}
         ticketProgress={detail.ticketProgress}
       />
-      <ChatInputPlaceholder isConnected={isConnected} />
+      <TypingIndicator visible={isTypingVisible} nickname={opponentNickname} />
+      <ChatInput
+        isConnected={isConnected}
+        isUploading={isUploading}
+        onSendText={onSendText}
+        onPickImages={onPickImages}
+        onPickFile={onPickFile}
+        onTyping={onTyping}
+      />
     </div>
   )
 }
