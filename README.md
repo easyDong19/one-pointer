@@ -38,6 +38,7 @@ pnpm install
 
 - 필수: `BASE_URL` (서버 전용)
 - 선택: `NEXT_PUBLIC_BASE_URL` (클라이언트 노출)
+- 선택: `NEXT_PUBLIC_WS_URL` (채팅 WebSocket URL 명시 override. 미설정 시 `NEXT_PUBLIC_BASE_URL` origin 에서 `wss://{host}/ws` 로 자동 파생)
 
 ```bash
 touch .env.development
