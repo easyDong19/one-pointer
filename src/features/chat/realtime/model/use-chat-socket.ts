@@ -2,6 +2,7 @@
 
 import type { Client, StompSubscription } from "@stomp/stompjs"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
 
 import {
   chatMessageSchema,
@@ -61,10 +62,22 @@ export function useChatSocket({
 
     let messageSub: StompSubscription | null = null
     let typingSub: StompSubscription | null = null
+    // 한 번이라도 connected 였는지 — 첫 mount 의 connect 실패에서 false positive 토스트 방지
+    let wasConnected = false
+    // tab 숨김 등으로 의도적 deactivate 일 때 토스트 skip
+    let intentionalClose = false
+
+    const notifyDropped = () => {
+      if (!wasConnected || intentionalClose) return
+      toast.error("연결이 끊어졌습니다", {
+        description: "재연결을 시도하고 있어요.",
+      })
+    }
 
     const client = createChatSocket({
       onConnect: () => {
         setIsConnected(true)
+        wasConnected = true
 
         messageSub = client.subscribe(subscribeMessages(roomId), (frame) => {
           try {
@@ -88,11 +101,16 @@ export function useChatSocket({
       },
       onStompError: (frame) => {
         console.error("[chat-socket] STOMP error", frame.headers["message"], frame.body)
+        notifyDropped()
         setIsConnected(false)
       },
-      onWebSocketClose: () => setIsConnected(false),
+      onWebSocketClose: () => {
+        notifyDropped()
+        setIsConnected(false)
+      },
       onWebSocketError: (event) => {
         console.error("[chat-socket] WS error", event)
+        notifyDropped()
         setIsConnected(false)
       },
     })
@@ -102,8 +120,10 @@ export function useChatSocket({
 
     const handleVisibility = () => {
       if (document.visibilityState === "hidden") {
+        intentionalClose = true
         client.deactivate()
       } else if (document.visibilityState === "visible" && !client.active) {
+        intentionalClose = false
         client.activate()
       }
     }
@@ -111,6 +131,8 @@ export function useChatSocket({
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility)
+      // unmount 는 의도적 종료 — 토스트 skip
+      intentionalClose = true
       messageSub?.unsubscribe()
       typingSub?.unsubscribe()
       client.deactivate()

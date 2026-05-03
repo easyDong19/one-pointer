@@ -10,6 +10,7 @@ import { authQueryKeys } from "@/entities/auth/model/auth.query-keys"
 import type { AuthUser } from "@/entities/auth/api/auth.schema"
 import { setOnRefreshSuccess } from "@/shared/api/http/client-fetch"
 import { buildLoginRedirectPath } from "@/shared/lib/redirect"
+import { Toaster } from "@/shared/ui/sonner"
 
 export default function Providers({
   children,
@@ -51,6 +52,7 @@ export default function Providers({
       <OverlayProvider>
         <AuthRedirectWatcher />
         {children}
+        <Toaster richColors position="top-center" />
       </OverlayProvider>
     </QueryClientProvider>
   )
