@@ -16,15 +16,14 @@ export const imageBulkUploadResponseSchema = successResponseSchema(
 )
 
 export const fileUploadResponseSchema = successResponseSchema(
-  z.object({ fileUrl: z.string(), originalFileName: z.string(), fileSize: z.number() }),
+  z.string(),
 )
 
 export const fileBulkUploadResponseSchema = successResponseSchema(
-  z.array(
-    z.object({ fileUrl: z.string(), originalFileName: z.string(), fileSize: z.number() }),
-  ),
+  z.array(z.string()),
 )
 
 export type ImageUploadResult = string
 export type ImageBulkUploadResult = string[]
-export type FileUploadResult = { fileUrl: string; originalFileName: string; fileSize: number }
+export type FileUploadResult = string
+export type FileBulkUploadResult = string[]

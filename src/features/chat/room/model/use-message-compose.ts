@@ -42,12 +42,12 @@ export function useMessageCompose(roomId: string, send: SendFn) {
   const sendFile = async (file: File) => {
     setIsUploading(true)
     try {
-      const result = await uploadPdf(file)
+      const url = await uploadPdf(file)
       send({
         roomId,
         messageType: "FILE",
-        content: result.originalFileName,
-        attachmentUrl: result.fileUrl,
+        content: file.name,
+        attachmentUrl: url,
       })
     } catch (error) {
       console.error("[chat] file upload failed", error)

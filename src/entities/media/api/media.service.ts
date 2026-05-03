@@ -8,9 +8,10 @@ import {
   type ImageUploadResult,
   type ImageBulkUploadResult,
   type FileUploadResult,
+  type FileBulkUploadResult,
 } from "./media.schema"
 
-export type { ImageUploadResult, ImageBulkUploadResult, FileUploadResult }
+export type { ImageUploadResult, ImageBulkUploadResult, FileUploadResult, FileBulkUploadResult }
 
 export type ImageDomain =
   | "PROFILE"
@@ -64,7 +65,7 @@ export async function uploadPdf(file: File): Promise<FileUploadResult> {
   return parsed.data
 }
 
-export async function uploadPdfs(files: File[]): Promise<FileUploadResult[]> {
+export async function uploadPdfs(files: File[]): Promise<FileBulkUploadResult> {
   const path = "/v1/api/file/upload/pdf/bulk"
   const method = "POST"
   const formData = new FormData()
