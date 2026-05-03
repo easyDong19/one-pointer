@@ -21,6 +21,8 @@ import { ServiceInProgressBanner } from "./banners/service-in-progress"
 
 type Props = {
   banner: ChatBannerResponse | null | undefined
+  /** Wave 3+ mutation 들의 invalidate 키 — chat detail */
+  roomId: string
   /** ChatRoomDetail.myRole — NONE §5.4 / REFUND 분기에 사용 */
   myRole?: SenderType | null
   /** ChatRoomDetail.ticketProgress.currentStatus — NONE §5.4 안내 분기에 사용 */
@@ -39,7 +41,7 @@ type Props = {
  *
  * default 의 `_exhaustive: never` 로 enum 추가 시 컴파일 에러로 누락을 알린다.
  */
-export function BannerDispatcher({ banner, myRole, ticketStatus }: Props) {
+export function BannerDispatcher({ banner, roomId, myRole, ticketStatus }: Props) {
   if (!banner) return null
   const type = banner.type
 
@@ -78,7 +80,7 @@ export function BannerDispatcher({ banner, myRole, ticketStatus }: Props) {
     case "DEADLINE_OVERDUE_EXPERT":
       return <DeadlineOverdueExpertBanner banner={banner} />
     case "OFFLINE_COMPLETE_NEEDED":
-      return <OfflineCompleteNeededBanner banner={banner} />
+      return <OfflineCompleteNeededBanner banner={banner} roomId={roomId} />
     case "OFFLINE_WAITING_COMPLETE":
       return <OfflineWaitingCompleteBanner banner={banner} />
     case "REVIEW_PENDING":

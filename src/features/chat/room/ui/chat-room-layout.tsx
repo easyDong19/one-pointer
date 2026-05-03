@@ -13,6 +13,7 @@ import { ProgressStepper } from "./progress-stepper"
 import { TypingIndicator } from "./typing-indicator"
 
 type Props = {
+  roomId: string
   detail: ChatRoomDetail | undefined
   isLoading: boolean
   isError: boolean
@@ -36,6 +37,7 @@ type Props = {
  * 정책: docs/design/desktop-chat-ux.md §8
  */
 export function ChatRoomLayout({
+  roomId,
   detail,
   isLoading,
   isError,
@@ -81,6 +83,7 @@ export function ChatRoomLayout({
       <ProgressStepper progress={detail.ticketProgress} />
       <BannerDispatcher
         banner={detail.banner}
+        roomId={roomId}
         myRole={detail.myRole}
         ticketStatus={detail.ticketProgress?.currentStatus}
       />

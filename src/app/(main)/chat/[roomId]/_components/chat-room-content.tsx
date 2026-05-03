@@ -16,6 +16,7 @@ export function ChatRoomContent({ roomId }: Props) {
 
   return (
     <ChatRoomLayout
+      roomId={roomId}
       detail={init.detail}
       isLoading={init.isLoading}
       isError={init.isError}
