@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react"
 
 import type { ChatRoomDetail } from "@/entities/chat/api/chat.schema"
 import { BannerDispatcher } from "@/features/chat/banner/ui/banner-dispatcher"
+import { openAgreementDetail } from "@/features/agreement/lib/open-agreement-detail"
 import { Text } from "@/shared/ui/text"
 
 import { ChatInput } from "./chat-input"
@@ -77,6 +78,12 @@ export function ChatRoomLayout({
     typingUserId != null &&
     (opponentUserId == null || typingUserId === opponentUserId)
 
+  const ticketId = detail.ticketProgress?.ticketId ?? null
+  const myRole = detail.myRole ?? null
+
+  const handleAgreementClick =
+    ticketId != null ? () => openAgreementDetail({ ticketId, myRole }) : undefined
+
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-3xl flex-col">
       <ChatRoomHeader opponent={detail.opponent} />
@@ -91,6 +98,7 @@ export function ChatRoomLayout({
         messages={detail.messages ?? []}
         myUserId={myUserId}
         ticketProgress={detail.ticketProgress}
+        onAgreementClick={handleAgreementClick}
       />
       <TypingIndicator visible={isTypingVisible} nickname={opponentNickname} />
       <ChatInput

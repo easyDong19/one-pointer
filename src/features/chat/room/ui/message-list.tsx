@@ -16,6 +16,8 @@ type Props = {
   messages: ReadonlyArray<ChatMessage>
   myUserId: number | null
   ticketProgress: TicketProgressInfo | null | undefined
+  /** AGREEMENT 메시지 카드 클릭 핸들러 — chat-room-layout 이 wiring */
+  onAgreementClick?: () => void
 }
 
 const NEAR_BOTTOM_THRESHOLD = 200
@@ -29,7 +31,12 @@ const NEAR_BOTTOM_THRESHOLD = 200
  * - 자동 스크롤: 초기 로드 시 즉시 맨 아래로, 새 메시지 도착 시 사용자가 하단
  *   근처에 있을 때만 부드럽게 스크롤 (위쪽 메시지 읽는 중이면 yank 하지 않음)
  */
-export function MessageList({ messages, myUserId, ticketProgress }: Props) {
+export function MessageList({
+  messages,
+  myUserId,
+  ticketProgress,
+  onAgreementClick,
+}: Props) {
   const initialScrollDoneRef = useRef(false)
   const lastCountRef = useRef(0)
 
@@ -74,7 +81,11 @@ export function MessageList({ messages, myUserId, ticketProgress }: Props) {
           return (
             <Fragment key={msg.id ?? `idx-${index}`}>
               {showDateSep && <DateSeparator date={msg.createdAt} />}
-              <MessageBubble message={msg} myUserId={myUserId} />
+              <MessageBubble
+                message={msg}
+                myUserId={myUserId}
+                onAgreementClick={onAgreementClick}
+              />
             </Fragment>
           )
         })}
