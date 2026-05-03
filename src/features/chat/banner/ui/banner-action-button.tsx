@@ -1,5 +1,6 @@
 "use client"
 
+import { Slot } from "radix-ui"
 import { toast } from "sonner"
 
 import { cn } from "@/shared/lib/utils"
@@ -9,32 +10,37 @@ import { STUB_TOAST_MESSAGE, type BannerTone } from "../lib/banner.constants"
 type Props = {
   tone: BannerTone
   children: React.ReactNode
-  /**
-   * Wave 2 에선 미지정 시 stub toast.info 호출 — Wave 3 에서 도메인 mutation/
-   * 페이지 이동으로 한 줄 교체.
-   */
   onClick?: () => void
+  /**
+   * true 면 Slot 으로 children 에 props 위임 — `<Link>` 같은 anchor 시멘틱이 필요할 때.
+   * stub toast 자동 주입은 button 모드에서만 동작.
+   */
+  asChild?: boolean
 }
 
-/**
- * 배너 우측 CTA 버튼. tone 별로 색·hover 만 다르고 모양은 동일.
- */
-export function BannerActionButton({ tone, children, onClick }: Props) {
-  const handleClick = onClick ?? (() => toast.info(STUB_TOAST_MESSAGE))
+export function BannerActionButton({
+  tone,
+  children,
+  onClick,
+  asChild = false,
+}: Props) {
+  const Comp = asChild ? Slot.Root : "button"
+  const handleClick = asChild
+    ? onClick
+    : (onClick ?? (() => toast.info(STUB_TOAST_MESSAGE)))
 
   return (
-    <button
+    <Comp
       type="button"
       onClick={handleClick}
       className={cn(
         "inline-flex shrink-0 items-center justify-center rounded-md font-semibold transition-colors",
-        // 모바일은 컴팩트, 데스크탑은 한 단계 큼
         "h-8 px-3 text-xs md:h-10 md:px-5 md:text-sm",
         TONE_CLASSES[tone],
       )}
     >
       {children}
-    </button>
+    </Comp>
   )
 }
 
