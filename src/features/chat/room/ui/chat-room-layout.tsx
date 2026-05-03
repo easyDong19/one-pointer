@@ -86,7 +86,12 @@ export function ChatRoomLayout({
 
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-3xl flex-col">
-      <ChatRoomHeader opponent={detail.opponent} />
+      <ChatRoomHeader
+        opponent={detail.opponent}
+        banner={detail.banner}
+        myRole={detail.myRole}
+        ticketId={ticketId}
+      />
       <ProgressStepper progress={detail.ticketProgress} />
       <BannerDispatcher
         banner={detail.banner}

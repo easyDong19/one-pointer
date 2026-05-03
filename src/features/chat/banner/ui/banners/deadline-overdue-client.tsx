@@ -4,15 +4,14 @@ import { AlarmClock } from "lucide-react"
 
 import type { ChatBannerResponse } from "@/entities/chat/api/chat.schema"
 import { openDeadlineExtend } from "@/features/agreement/lib/open-deadline-extend"
+import { openRefundRequest } from "@/features/refund/lib/open-refund-request"
 
 import { BannerActionButton } from "../banner-action-button"
 import { BannerCard } from "../banner-card"
 
 /**
  * §5.2 — 의뢰인 시점에 마감 초과 알림.
- * §7.6 — "마감 연장" 으로 합의서 마감일 갱신, 또는 환불 요청 분기.
- *
- * "마감 연장" 은 wave-3a (본 트랙). "환불 요청" 은 wave-3b 에서 wiring.
+ * §7.6 — "마감 연장" (wave-3a) 또는 "환불 요청" (wave-3b) 분기.
  */
 type Props = { banner: ChatBannerResponse }
 
@@ -27,6 +26,14 @@ export function DeadlineOverdueClientBanner({ banner }: Props) {
     openDeadlineExtend({ ticketId })
   }
 
+  const handleRefund = () => {
+    if (ticketId == null) {
+      console.warn("[deadline-overdue-client] ticketId is missing")
+      return
+    }
+    openRefundRequest({ ticketId, refundZone: banner.refundZone ?? null })
+  }
+
   return (
     <BannerCard
       tone="destructive"
@@ -38,7 +45,9 @@ export function DeadlineOverdueClientBanner({ banner }: Props) {
           <BannerActionButton tone="info" onClick={handleExtend}>
             마감 연장
           </BannerActionButton>
-          <BannerActionButton tone="destructive">환불 요청</BannerActionButton>
+          <BannerActionButton tone="destructive" onClick={handleRefund}>
+            환불 요청
+          </BannerActionButton>
         </div>
       }
     />

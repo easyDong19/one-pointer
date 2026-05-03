@@ -73,6 +73,8 @@ export const escrowRefundSchema = z.object({
 
 export type EscrowPayment = z.infer<typeof escrowPaymentSchema>
 export type EscrowRefund = z.infer<typeof escrowRefundSchema>
+export type EscrowRefundZone = z.infer<typeof escrowRefundZoneSchema>
+export type EscrowRefundStatus = z.infer<typeof escrowRefundStatusSchema>
 
 // ─── Request Schemas ──────────────────────────────────────────────────────────
 

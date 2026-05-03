@@ -1,23 +1,32 @@
 "use client"
 
-import { MoreHorizontal, User } from "lucide-react"
+import { User } from "lucide-react"
 
-import type { OpponentInfo } from "@/entities/chat/api/chat.schema"
+import type {
+  ChatBannerResponse,
+  OpponentInfo,
+} from "@/entities/chat/api/chat.schema"
+import type { SenderType } from "@/entities/review/api/review.schema"
 import { MobileHeader } from "@/shared/ui/mobile-header"
 import { Text } from "@/shared/ui/text"
 
+import { ChatRoomOptionsMenu } from "./chat-room-options-menu"
+
 type Props = {
   opponent: OpponentInfo | null | undefined
+  banner: ChatBannerResponse | null | undefined
+  myRole: SenderType | null | undefined
+  ticketId: number | null
 }
 
 /**
  * 채팅방 상단 헤더.
  * - 모바일: MobileHeader (back + 닉네임 + spacer).
- * - 데스크탑: AppBar (avatar + 닉네임/카테고리 + 옵션 메뉴 placeholder).
+ * - 데스크탑: AppBar (avatar + 닉네임/카테고리 + 옵션 드롭다운).
  *
- * 환불 버튼 / 다이얼로그 등 실제 옵션 액션은 Wave 2 (배너 시스템) 에서.
+ * 옵션 드롭다운은 `canRequestRefund=true` 일 때 환불 요청 항목 노출 (wave-3b).
  */
-export function ChatRoomHeader({ opponent }: Props) {
+export function ChatRoomHeader({ opponent, banner, myRole, ticketId }: Props) {
   const nickname = opponent?.nickname ?? "상대방"
   const categories = opponent?.expertCategoryNames ?? []
 
@@ -51,13 +60,11 @@ export function ChatRoomHeader({ opponent }: Props) {
           )}
         </div>
 
-        <button
-          type="button"
-          aria-label="채팅방 옵션"
-          className="text-muted-foreground hover:text-foreground rounded-md p-2 transition-colors"
-        >
-          <MoreHorizontal className="h-5 w-5" />
-        </button>
+        <ChatRoomOptionsMenu
+          banner={banner}
+          myRole={myRole}
+          ticketId={ticketId}
+        />
       </div>
     </>
   )

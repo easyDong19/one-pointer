@@ -1,9 +1,12 @@
 "use client"
 
 import { RotateCcw } from "lucide-react"
+import { toast } from "sonner"
 
 import type { ChatBannerResponse } from "@/entities/chat/api/chat.schema"
 import type { SenderType } from "@/entities/review/api/review.schema"
+import { openDisputeCreate } from "@/features/dispute/lib/open-dispute-create"
+import { openRefundRespond } from "@/features/refund/lib/open-refund-respond"
 
 import type { BannerTone } from "../../lib/banner.constants"
 import { BannerActionButton } from "../banner-action-button"
@@ -22,15 +25,22 @@ type Variant = {
 }
 
 /**
- * docs/app/chat.md §5.3 — RefundStatus × myRole 매트릭스를 그대로 따른다.
- * CTA 의 실제 onClick 은 Wave 3b 에서 wiring (현재는 stub toast).
+ * docs/app/chat.md §5.3 — RefundStatus × myRole 매트릭스.
+ *
+ * CTA wiring (wave-3b):
+ * - REQUESTED + EXPERT → openRefundRespond
+ * - EXPERT_REJECTED + CLIENT → openDisputeCreate
+ * - CONVERTED_TO_DISPUTE → wave-5 위임 (다듬어진 stub toast)
+ * - 그 외 terminal — BannerActionButton 의 기본 stub
  */
 export function RefundInProgressBanner({ banner, myRole }: Props) {
+  const status = banner.refundStatus ?? null
   const variant = resolveVariant(
-    banner.refundStatus ?? null,
+    status,
     myRole,
     banner.expertRejectReason ?? null,
   )
+  const handleClick = resolveHandler(status, myRole, banner)
 
   return (
     <BannerCard
@@ -40,11 +50,50 @@ export function RefundInProgressBanner({ banner, myRole }: Props) {
       description={variant.description}
       action={
         variant.cta ? (
-          <BannerActionButton tone={variant.tone}>{variant.cta}</BannerActionButton>
+          <BannerActionButton tone={variant.tone} onClick={handleClick}>
+            {variant.cta}
+          </BannerActionButton>
         ) : undefined
       }
     />
   )
+}
+
+function resolveHandler(
+  status: ChatBannerResponse["refundStatus"],
+  myRole: SenderType | null,
+  banner: ChatBannerResponse,
+): (() => void) | undefined {
+  const isExpert = myRole === "EXPERT"
+
+  switch (status) {
+    case "REQUESTED":
+      if (!isExpert) return undefined
+      return () => {
+        if (banner.refundRequestId == null) {
+          console.warn("[refund-in-progress] refundRequestId missing for REQUESTED+EXPERT")
+          return
+        }
+        openRefundRespond({ refundRequestId: banner.refundRequestId })
+      }
+
+    case "EXPERT_REJECTED":
+      if (isExpert) return undefined
+      return () => {
+        if (banner.ticketId == null) {
+          console.warn("[refund-in-progress] ticketId missing for EXPERT_REJECTED+CLIENT")
+          return
+        }
+        openDisputeCreate({ ticketId: banner.ticketId })
+      }
+
+    case "CONVERTED_TO_DISPUTE":
+      // Wave 5 위임 — 분쟁 상세 페이지 미존재. 다듬어진 안내 토스트.
+      return () => toast.info("분쟁 진행 상황은 곧 만나보실 수 있어요")
+
+    default:
+      return undefined
+  }
 }
 
 function resolveVariant(

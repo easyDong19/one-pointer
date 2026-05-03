@@ -9,11 +9,21 @@ import {
   type EscrowPaymentRequest,
   type EscrowPayment,
   type EscrowRefund,
+  type EscrowRefundZone,
+  type EscrowRefundStatus,
   type RefundRequest,
   type RefundRespondRequest,
 } from "./payment.schema"
 
-export type { EscrowPaymentRequest, EscrowPayment, EscrowRefund, RefundRequest, RefundRespondRequest }
+export type {
+  EscrowPaymentRequest,
+  EscrowPayment,
+  EscrowRefund,
+  EscrowRefundZone,
+  EscrowRefundStatus,
+  RefundRequest,
+  RefundRespondRequest,
+}
 
 
 export async function payEscrow(input: EscrowPaymentRequest): Promise<EscrowPayment> {
