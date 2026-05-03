@@ -1,0 +1,22 @@
+"use client"
+
+import { Package } from "lucide-react"
+
+import type { ChatBannerResponse } from "@/entities/chat/api/chat.schema"
+
+import { BannerActionButton } from "../banner-action-button"
+import { BannerCard } from "../banner-card"
+
+type Props = { banner: ChatBannerResponse }
+
+export function DeliveryNeededBanner({ banner: _banner }: Props) {
+  return (
+    <BannerCard
+      tone="primary"
+      icon={Package}
+      title="작업물을 제출해주세요"
+      description="마감일 전 제출이 필요해요."
+      action={<BannerActionButton tone="primary">작업물 제출</BannerActionButton>}
+    />
+  )
+}

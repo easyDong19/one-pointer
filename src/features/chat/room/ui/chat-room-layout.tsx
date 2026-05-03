@@ -3,9 +3,9 @@
 import { Loader2 } from "lucide-react"
 
 import type { ChatRoomDetail } from "@/entities/chat/api/chat.schema"
+import { BannerDispatcher } from "@/features/chat/banner/ui/banner-dispatcher"
 import { Text } from "@/shared/ui/text"
 
-import { BannerPlaceholder } from "./banner-placeholder"
 import { ChatInput } from "./chat-input"
 import { ChatRoomHeader } from "./chat-room-header"
 import { MessageList } from "./message-list"
@@ -79,7 +79,11 @@ export function ChatRoomLayout({
     <div className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-3xl flex-col">
       <ChatRoomHeader opponent={detail.opponent} />
       <ProgressStepper progress={detail.ticketProgress} />
-      <BannerPlaceholder banner={detail.banner} />
+      <BannerDispatcher
+        banner={detail.banner}
+        myRole={detail.myRole}
+        ticketStatus={detail.ticketProgress?.currentStatus}
+      />
       <MessageList
         messages={detail.messages ?? []}
         myUserId={myUserId}
