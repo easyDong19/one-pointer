@@ -17,6 +17,9 @@ export const ticketTypeSchema = z.enum(["OFFLINE", "ONLINE"])
 export const senderTypeSchema = z.enum(["CLIENT", "EXPERT", "SYSTEM"])
 export const messageTypeSchema = z.enum(["TEXT", "IMAGE", "FILE", "SYSTEM", "AGREEMENT", "DELIVERY"])
 
+export type SenderType = z.infer<typeof senderTypeSchema>
+export type MessageType = z.infer<typeof messageTypeSchema>
+
 // ─── Sub-schemas ─────────────────────────────────────────────────────────────
 
 /** CommunicationMetricsResponse */

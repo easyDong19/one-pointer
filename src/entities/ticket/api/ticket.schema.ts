@@ -30,12 +30,20 @@ export const sourceTypeSchema = z.enum(["TICKET_FEED", "DIRECT_REQUEST"])
 
 // ─── Sub-schemas ─────────────────────────────────────────────────────────────
 
-/** DesiredDateResponse */
+/** DesiredDateResponse — 응답에 id 포함 */
 export const desiredDateSchema = z.object({
   id: z.number(),
   date: z.string(),
   timeSlot: z.string(),
 })
+
+/** DesiredDateRequest — 생성/수정 요청에는 id 없음 (서버 생성). docs/api/05-ticket.md */
+export const desiredDateRequestSchema = z.object({
+  date: z.string(),
+  timeSlot: z.string(),
+})
+
+export type DesiredDateRequest = z.infer<typeof desiredDateRequestSchema>
 
 /** TicketImageResponse */
 export const ticketImageSchema = z.object({
@@ -104,6 +112,13 @@ export const ticketSummarySchema = ticketDetailSchema.pick({
   categoryName: true,
 })
 
+export type TicketType = z.infer<typeof ticketTypeSchema>
+export type TicketLevel = z.infer<typeof ticketLevelSchema>
+export type TicketDuration = z.infer<typeof ticketDurationSchema>
+export type BudgetType = z.infer<typeof budgetTypeSchema>
+export type TicketStatus = z.infer<typeof ticketStatusSchema>
+export type EstimatedDurationUnit = z.infer<typeof estimatedDurationUnitSchema>
+
 export type TicketSummary = z.infer<typeof ticketSummarySchema>
 export type TicketDetail = z.infer<typeof ticketDetailSchema>
 export type TicketImage = z.infer<typeof ticketImageSchema>
@@ -126,20 +141,29 @@ export type MyTicket = z.infer<typeof myTicketSchema>
 
 // ─── Request Schemas ──────────────────────────────────────────────────────────
 
+/**
+ * 모바일 실측 (one-pointer-mobile/lib/model/ticket/request/CreateTicketRequest.dart) 기준:
+ * - desiredDuration 필드는 요청에서 사용 안 함 (서버가 estimatedDuration 으로부터 계산)
+ * - estimatedDurationValue + estimatedDurationUnit 으로 시간 표현
+ * - imageUrls 로 첨부 이미지 (최대 3장)
+ * - level / subCategoryId 도 nullable optional
+ */
 export const createTicketRequestSchema = z.object({
   ticketType: ticketTypeSchema,
   title: z.string().min(1, "제목을 입력해주세요."),
   content: z.string().min(1, "내용을 입력해주세요."),
-  level: ticketLevelSchema,
-  desiredDuration: ticketDurationSchema,
-  budgetType: budgetTypeSchema,
+  level: ticketLevelSchema.nullable().optional(),
+  estimatedDurationValue: z.number().int().nullable().optional(),
+  estimatedDurationUnit: estimatedDurationUnitSchema.nullable().optional(),
+  budgetType: budgetTypeSchema.nullable().optional(),
   budgetMin: z.number().nullable().optional(),
   budgetMax: z.number().nullable().optional(),
   region: z.string().nullable().optional(),
   locationDetail: z.string().nullable().optional(),
-  subCategoryId: z.number(),
+  subCategoryId: z.number().nullable().optional(),
   targetExpertId: z.number().nullable().optional(),
-  desiredDates: z.array(desiredDateSchema).optional(),
+  desiredDates: z.array(desiredDateRequestSchema).nullable().optional(),
+  imageUrls: z.array(z.string()).nullable().optional(),
   directRequest: z.boolean().optional(),
 })
 
@@ -147,15 +171,17 @@ export const updateTicketRequestSchema = z.object({
   ticketType: ticketTypeSchema.optional(),
   title: z.string().optional(),
   content: z.string().optional(),
-  level: ticketLevelSchema.optional(),
-  desiredDuration: ticketDurationSchema.optional(),
-  budgetType: budgetTypeSchema.optional(),
+  level: ticketLevelSchema.nullable().optional(),
+  estimatedDurationValue: z.number().int().nullable().optional(),
+  estimatedDurationUnit: estimatedDurationUnitSchema.nullable().optional(),
+  budgetType: budgetTypeSchema.nullable().optional(),
   budgetMin: z.number().nullable().optional(),
   budgetMax: z.number().nullable().optional(),
   region: z.string().nullable().optional(),
   locationDetail: z.string().nullable().optional(),
   subCategoryId: z.number().optional(),
-  desiredDates: z.array(desiredDateSchema).optional(),
+  desiredDates: z.array(desiredDateRequestSchema).nullable().optional(),
+  imageUrls: z.array(z.string()).nullable().optional(),
 })
 
 export type CreateTicketRequest = z.infer<typeof createTicketRequestSchema>
