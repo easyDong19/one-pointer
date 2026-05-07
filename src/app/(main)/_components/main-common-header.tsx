@@ -7,6 +7,7 @@ import { CommonHeader } from "@/shared/ui/common-header"
 import { Button } from "@/shared/ui/button"
 import { HeaderSearch } from "@/features/ticket/search/ui/header-search"
 import { HeaderAuthSection } from "./header-auth-section"
+import { NotificationBellButton } from "./notification-bell-button"
 
 /**
  * `(main)` 그룹 공용 헤더 조립체.
@@ -34,6 +35,7 @@ export function MainCommonHeader() {
       </CommonHeader.Slot>
 
       <CommonHeader.Actions>
+        <NotificationBellButton />
         <Button asChild variant="ghost" className="rounded-full px-5 py-2">
           <Link href="/chat">
             <MessageSquare className="size-4" />

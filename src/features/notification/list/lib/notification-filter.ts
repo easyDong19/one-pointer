@@ -1,0 +1,70 @@
+import type { Notification, NotificationType } from "@/entities/notification/api/notification.schema"
+
+export type NotificationFilterTab = "ALL" | "REQUEST" | "TRANSACTION"
+
+const REQUEST_TYPES: ReadonlySet<NotificationType> = new Set([
+  "NEW_TICKET",
+  "TICKET_CANCELLED",
+  "TICKET_EXPIRED",
+  "PROPOSAL_RECEIVED",
+  "DIRECT_REQUEST_RECEIVED",
+  "DIRECT_REQUEST_REJECTED",
+  "DIRECT_REQUEST_EXPIRED",
+])
+
+const TRANSACTION_TYPES: ReadonlySet<NotificationType> = new Set([
+  "TICKET_MATCHED_CLIENT",
+  "TICKET_MATCHED_EXPERT",
+  "DELIVERY_SUBMITTED",
+  "DELIVERY_APPROVED",
+  "REVISION_REQUESTED",
+  "DELIVERY_RESUBMITTED",
+  "DELIVERY_REJECTED_EXPERT",
+  "DELIVERY_REJECTED_CLIENT",
+  "TICKET_AUTO_COMPLETED",
+  "DELIVERY_AUTO_APPROVED",
+  "DELIVERY_APPROVE_REMINDER",
+  "AGREEMENT_PROPOSED",
+  "AGREEMENT_CONFIRMED",
+  "AGREEMENT_REJECTED",
+  "AGREEMENT_REPROPOSED",
+  "ESCROW_PAYMENT_COMPLETED",
+  "ESCROW_SETTLED",
+  "ESCROW_REFUND_REQUESTED_CLIENT",
+  "ESCROW_REFUND_REQUESTED_EXPERT",
+  "ESCROW_REFUND_COOLING_OFF",
+  "ESCROW_REFUND_EXPERT_ACCEPTED",
+  "ESCROW_REFUND_EXPERT_REJECTED",
+  "ESCROW_REFUND_AUTO_APPROVED",
+  "ESCROW_REFUND_COMPLETED",
+  "DEADLINE_OVERDUE_CLIENT",
+  "DEADLINE_OVERDUE_EXPERT",
+  "DEADLINE_EXTENDED_CLIENT",
+  "DEADLINE_EXTENDED_EXPERT",
+  "DISPUTE_SUBMITTED_APPLICANT",
+  "DISPUTE_SUBMITTED_RESPONDENT",
+  "DISPUTE_REJECTED",
+  "DISPUTE_UNDER_REVIEW",
+  "DISPUTE_RESPONDENT_STATEMENT",
+  "DISPUTE_RESOLVED",
+  "DISPUTE_CLOSED",
+  "DISPUTE_CANCELLED",
+])
+
+export const NOTIFICATION_TABS: ReadonlyArray<{
+  key: NotificationFilterTab
+  label: string
+}> = [
+  { key: "ALL", label: "전체" },
+  { key: "REQUEST", label: "의뢰" },
+  { key: "TRANSACTION", label: "거래" },
+]
+
+export function matchesNotificationTab(
+  tab: NotificationFilterTab,
+  notification: Notification,
+): boolean {
+  if (tab === "ALL") return true
+  if (tab === "REQUEST") return REQUEST_TYPES.has(notification.type)
+  return TRANSACTION_TYPES.has(notification.type)
+}

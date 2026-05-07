@@ -33,7 +33,7 @@ export async function getUnreadNotificationCount(): Promise<number> {
     method,
     message: "Invalid unread count response payload",
   })
-  return parsed.data.count
+  return parsed.data
 }
 
 export async function readNotification(notificationId: number): Promise<void> {
