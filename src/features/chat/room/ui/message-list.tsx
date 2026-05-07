@@ -18,6 +18,8 @@ type Props = {
   ticketProgress: TicketProgressInfo | null | undefined
   /** AGREEMENT 메시지 카드 클릭 핸들러 — chat-room-layout 이 wiring */
   onAgreementClick?: () => void
+  /** DELIVERY 메시지 카드 클릭 핸들러 — chat-room-layout 이 wiring */
+  onDeliveryClick?: () => void
 }
 
 const NEAR_BOTTOM_THRESHOLD = 200
@@ -36,6 +38,7 @@ export function MessageList({
   myUserId,
   ticketProgress,
   onAgreementClick,
+  onDeliveryClick,
 }: Props) {
   const initialScrollDoneRef = useRef(false)
   const lastCountRef = useRef(0)
@@ -85,6 +88,7 @@ export function MessageList({
                 message={msg}
                 myUserId={myUserId}
                 onAgreementClick={onAgreementClick}
+                onDeliveryClick={onDeliveryClick}
               />
             </Fragment>
           )

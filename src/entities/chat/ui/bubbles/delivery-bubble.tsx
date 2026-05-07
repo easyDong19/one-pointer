@@ -8,20 +8,21 @@ import { cn } from "@/shared/lib/utils"
 type Props = {
   content: string
   isMine: boolean
+  onClick?: () => void
 }
 
-/**
- * 작업물 카드 메시지.
- * onClick 동작 (작업물 상세 화면 진입) 은 Wave 2 / Phase 11 에서 wiring.
- */
-export function DeliveryBubble({ content, isMine }: Props) {
+export function DeliveryBubble({ content, isMine, onClick }: Props) {
+  const isInteractive = onClick != null
+
   return (
     <button
       type="button"
-      disabled
+      onClick={onClick}
+      disabled={!isInteractive}
       className={cn(
         "border-border flex max-w-[260px] flex-col items-stretch gap-2 rounded-2xl border bg-background p-3 text-left md:max-w-[320px]",
         isMine ? "rounded-br-sm" : "rounded-bl-sm",
+        isInteractive && "hover:bg-accent transition-colors",
       )}
     >
       <div className="flex items-center gap-2">
@@ -49,7 +50,7 @@ export function DeliveryBubble({ content, isMine }: Props) {
           typography="caption2-medium"
           className="text-muted-foreground"
         >
-          작업물 확인하기 (Wave 2)
+          작업물 확인하기
         </Text>
         <ChevronRight className="text-muted-foreground h-3.5 w-3.5" />
       </div>

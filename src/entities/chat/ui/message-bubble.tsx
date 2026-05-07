@@ -17,6 +17,8 @@ type Props = {
   myUserId: number | null
   /** AGREEMENT 카드 클릭 핸들러. 호출처 (chat-room-layout) 가 합의서 상세 진입 wiring. */
   onAgreementClick?: () => void
+  /** DELIVERY 카드 클릭 핸들러. 호출처 (chat-room-layout) 가 작업물 확인 진입 wiring. */
+  onDeliveryClick?: () => void
 }
 
 /**
@@ -24,7 +26,7 @@ type Props = {
  * SYSTEM 은 중앙 정렬 단독 — 시간/읽음 라벨 없음.
  * 그 외는 좌/우 정렬 + 시간 + (내 메시지일 때) 읽음 라벨.
  */
-export function MessageBubble({ message, myUserId, onAgreementClick }: Props) {
+export function MessageBubble({ message, myUserId, onAgreementClick, onDeliveryClick }: Props) {
   const type = message.messageType
   const content = message.content ?? ""
 
@@ -50,6 +52,7 @@ export function MessageBubble({ message, myUserId, onAgreementClick }: Props) {
         message.attachmentUrl ?? "",
         isMine,
         onAgreementClick,
+        onDeliveryClick,
       )}
 
       {!isMine && <Meta time={time} />}
@@ -63,6 +66,7 @@ function renderBubble(
   attachmentUrl: string,
   isMine: boolean,
   onAgreementClick: (() => void) | undefined,
+  onDeliveryClick: (() => void) | undefined,
 ) {
   switch (type) {
     case "IMAGE":
@@ -86,7 +90,7 @@ function renderBubble(
         />
       )
     case "DELIVERY":
-      return <DeliveryBubble content={content} isMine={isMine} />
+      return <DeliveryBubble content={content} isMine={isMine} onClick={onDeliveryClick} />
     case "TEXT":
     default:
       return <TextBubble content={content} isMine={isMine} />
