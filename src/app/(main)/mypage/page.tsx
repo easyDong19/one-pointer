@@ -5,6 +5,7 @@ import { RoleToggle } from "./_components/role-toggle"
 import { StatGridSection } from "./_components/stat-grid-section"
 import { ExpertRegisterBanner } from "./_components/expert-register-banner"
 import { QuickLinkGrid } from "./_components/quick-link-grid"
+import { MobileMenuList } from "./_components/mobile-menu-list"
 import { SettingsSection } from "./_components/settings-section"
 
 export default function MypagePage() {
@@ -15,6 +16,7 @@ export default function MypagePage() {
       <ExpertRegisterBanner />
       <StatGridSection />
       <QuickLinkGrid />
+      <MobileMenuList />
       <SettingsSection />
     </div>
   )
