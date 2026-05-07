@@ -14,6 +14,8 @@ export const notificationTypeSchema = z.enum([
   "TICKET_AUTO_COMPLETED",
   "DELIVERY_AUTO_APPROVED",
   "DELIVERY_APPROVE_REMINDER",
+  "DELIVERY_REJECTED_EXPERT",
+  "DELIVERY_REJECTED_CLIENT",
   "TICKET_CANCELLED",
   "TICKET_EXPIRED",
   "REVIEW_PUBLISHED",
@@ -21,10 +23,14 @@ export const notificationTypeSchema = z.enum([
   "CHAT_REMINDER",
   "CHAT_MESSAGE",
   "COUPON_EXPIRING",
+  "AGREEMENT_PROPOSED",
   "AGREEMENT_CONFIRMED",
+  "AGREEMENT_REJECTED",
+  "AGREEMENT_REPROPOSED",
   "ESCROW_PAYMENT_COMPLETED",
   "ESCROW_SETTLED",
   "DIRECT_REQUEST_RECEIVED",
+  "DIRECT_REQUEST_REJECTED",
   "DIRECT_REQUEST_EXPIRED",
   "DISPUTE_SUBMITTED_APPLICANT",
   "DISPUTE_SUBMITTED_RESPONDENT",
@@ -34,28 +40,47 @@ export const notificationTypeSchema = z.enum([
   "DISPUTE_RESOLVED",
   "DISPUTE_CLOSED",
   "DISPUTE_CANCELLED",
+  "ESCROW_REFUND_REQUESTED_CLIENT",
+  "ESCROW_REFUND_REQUESTED_EXPERT",
+  "ESCROW_REFUND_COOLING_OFF",
+  "ESCROW_REFUND_EXPERT_ACCEPTED",
+  "ESCROW_REFUND_EXPERT_REJECTED",
+  "ESCROW_REFUND_AUTO_APPROVED",
+  "ESCROW_REFUND_COMPLETED",
+  "DEADLINE_OVERDUE_CLIENT",
+  "DEADLINE_OVERDUE_EXPERT",
+  "DEADLINE_EXTENDED_CLIENT",
+  "DEADLINE_EXTENDED_EXPERT",
+  "REFERRAL_COUPON_ISSUED",
+  "ADMIN_NOTICE",
+  "ADMIN_INDIVIDUAL",
 ])
 
 export type NotificationType = z.infer<typeof notificationTypeSchema>
 
+export const notificationTargetTypeSchema = z.enum([
+  "TICKET",
+  "REVIEW",
+  "PROPOSAL",
+  "DISPUTE",
+  "NONE",
+])
+
+export type NotificationTargetType = z.infer<typeof notificationTargetTypeSchema>
+
 // ─── Sub-schemas ─────────────────────────────────────────────────────────────
 
-/** NotificationResponse */
+/** 실측 API 응답 필드 기준 */
 export const notificationSchema = z.object({
   id: z.number(),
-  notificationType: notificationTypeSchema,
+  type: notificationTypeSchema,
+  targetType: notificationTargetTypeSchema,
   title: z.string(),
-  content: z.string(),
-  ticketId: z.number().nullable(),
-  proposalId: z.number().nullable(),
-  reviewId: z.number().nullable(),
-  disputeId: z.number().nullable(),
+  body: z.string(),
+  targetId: z.number().nullable(),
+  roomId: z.string().nullable().optional(),
+  isRead: z.boolean(),
   createdAt: z.string(),
-  read: z.boolean(),
-})
-
-export const unreadCountSchema = z.object({
-  count: z.number(),
 })
 
 export type Notification = z.infer<typeof notificationSchema>
@@ -77,4 +102,4 @@ export const notificationListResponseSchema = successResponseSchema(
   }),
 )
 
-export const unreadCountResponseSchema = successResponseSchema(unreadCountSchema)
+export const unreadCountResponseSchema = successResponseSchema(z.number())
