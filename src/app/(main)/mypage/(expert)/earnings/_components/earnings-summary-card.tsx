@@ -4,6 +4,7 @@ import { Wallet, ArrowRightLeft } from "lucide-react"
 import Link from "next/link"
 
 import type { EarningsSummary } from "@/entities/earnings/api/earnings.schema"
+import { getBankName } from "@/shared/data/bank-codes"
 import { Text } from "@/shared/ui/text"
 
 type Props = {
@@ -69,7 +70,7 @@ export function EarningsSummaryCard({ summary }: Props) {
       {summary.bankAccount ? (
         <div className="bg-muted mt-3 rounded-lg px-3 py-2">
           <Text typography="caption2-medium" className="text-muted-foreground">
-            정산 계좌: {summary.bankAccount.bankCode} {summary.bankAccount.accountNumber}
+            정산 계좌: {getBankName(summary.bankAccount.bankCode)} {summary.bankAccount.accountNumber}
           </Text>
         </div>
       ) : (

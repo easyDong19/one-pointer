@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Info, Landmark, Loader2 } from "lucide-react"
 
 import { BANK_CODES, getBankName } from "@/shared/data/bank-codes"
@@ -18,6 +18,7 @@ import {
 } from "@/shared/ui/select"
 import { useMyExpertProfileQuery } from "@/features/mypage/expert-profile"
 import { useUpdateBankAccountMutation } from "@/features/mypage/bank-account"
+import type { MyExpertProfile } from "@/entities/user/api/user.schema"
 
 function maskAccountNumber(num: string) {
   if (num.length <= 4) return num
@@ -26,21 +27,28 @@ function maskAccountNumber(num: string) {
 
 export function BankAccountForm() {
   const { data: profile, isLoading: isProfileLoading } = useMyExpertProfileQuery()
+
+  if (isProfileLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="text-primary h-7 w-7 animate-spin" />
+      </div>
+    )
+  }
+
+  return <BankAccountFormInner bankAccount={profile?.bankAccount} />
+}
+
+function BankAccountFormInner({
+  bankAccount,
+}: {
+  bankAccount: MyExpertProfile["bankAccount"]
+}) {
   const mutation = useUpdateBankAccountMutation()
 
-  const bankAccount = profile?.bankAccount
-  const [bankCode, setBankCode] = useState("")
-  const [accountNumber, setAccountNumber] = useState("")
-  const [accountHolder, setAccountHolder] = useState("")
-  const [synced, setSynced] = useState(false)
-
-  useEffect(() => {
-    if (synced || !bankAccount) return
-    setSynced(true)
-    if (bankAccount.bankCode) setBankCode(bankAccount.bankCode)
-    if (bankAccount.accountNumber) setAccountNumber(bankAccount.accountNumber)
-    if (bankAccount.accountHolder) setAccountHolder(bankAccount.accountHolder)
-  }, [bankAccount, synced])
+  const [bankCode, setBankCode] = useState(bankAccount?.bankCode ?? "")
+  const [accountNumber, setAccountNumber] = useState(bankAccount?.accountNumber ?? "")
+  const [accountHolder, setAccountHolder] = useState(bankAccount?.accountHolder ?? "")
 
   const hasExisting = !!(bankCode && accountNumber)
 
@@ -70,14 +78,6 @@ export function BankAccountForm() {
     } catch {
       openAlert({ variant: "warning", title: "저장에 실패했습니다." })
     }
-  }
-
-  if (isProfileLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="text-primary h-7 w-7 animate-spin" />
-      </div>
-    )
   }
 
   return (
@@ -137,7 +137,7 @@ export function BankAccountForm() {
               은행 <span className="text-destructive">*</span>
             </Text>
             <Select
-              value={bankCode || undefined}
+              value={bankCode}
               onValueChange={setBankCode}
             >
               <SelectTrigger className="w-full">
