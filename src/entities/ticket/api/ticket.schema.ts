@@ -249,11 +249,7 @@ const successResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
 export const ticketDetailResponseSchema = successResponseSchema(ticketDetailSchema)
 
 export const ticketListResponseSchema = successResponseSchema(
-  z.object({
-    content: z.array(myTicketSchema),
-    nextCursor: z.string().nullable(),
-    hasNext: z.boolean(),
-  }),
+  z.array(ticketDetailSchema),
 )
 
 export const ticketFeedResponseSchema = successResponseSchema(
@@ -274,6 +270,14 @@ export const ticketSearchResponseSchema = successResponseSchema(
 
 export const popularTicketListResponseSchema = successResponseSchema(
   z.array(ticketFeedItemSchema),
+)
+
+export const myTicketPaginatedResponseSchema = successResponseSchema(
+  z.object({
+    content: z.array(myTicketSchema),
+    nextCursor: z.string().nullable(),
+    hasNext: z.boolean(),
+  }),
 )
 
 export type TicketDetailResponse = z.infer<typeof ticketDetailResponseSchema>

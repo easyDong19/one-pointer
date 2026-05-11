@@ -12,6 +12,7 @@ import {
   ticketFeedResponseSchema,
   ticketSearchResponseSchema,
   popularTicketListResponseSchema,
+  myTicketPaginatedResponseSchema,
   type CreateTicketRequest,
   type UpdateTicketRequest,
   type TicketDetail,
@@ -146,13 +147,10 @@ export async function searchTickets(
 
 // ─── My Tickets ───────────────────────────────────────────────────────────────
 
-export async function getMyTickets(params?: {
-  cursor?: string
-  size?: number
-}): Promise<{ content: MyTicket[]; nextCursor: string | null; hasNext: boolean }> {
+export async function getMyTickets(): Promise<TicketDetail[]> {
   const path = "/v1/api/ticket/my"
   const method = "GET"
-  const response = await clientFetch<unknown>({ path, method, query: params })
+  const response = await clientFetch<unknown>({ path, method })
   const parsed = parseSchemaOrThrow(ticketListResponseSchema, response, {
     path,
     method,
@@ -168,7 +166,7 @@ export async function getMyInProgressTickets(params?: {
   const path = "/v1/api/ticket/my/in-progress"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
-  const parsed = parseSchemaOrThrow(ticketListResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(myTicketPaginatedResponseSchema, response, {
     path,
     method,
     message: "Invalid my in-progress tickets response payload",
@@ -183,7 +181,7 @@ export async function getMyCompletedTickets(params?: {
   const path = "/v1/api/ticket/my/completed"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
-  const parsed = parseSchemaOrThrow(ticketListResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(myTicketPaginatedResponseSchema, response, {
     path,
     method,
     message: "Invalid my completed tickets response payload",
@@ -200,7 +198,7 @@ export async function getSentDirectRequests(params?: {
   const path = "/v1/api/ticket/direct-request/sent"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
-  const parsed = parseSchemaOrThrow(ticketListResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(myTicketPaginatedResponseSchema, response, {
     path,
     method,
     message: "Invalid sent direct requests response payload",
@@ -215,7 +213,7 @@ export async function getReceivedDirectRequests(params?: {
   const path = "/v1/api/ticket/direct-request/received"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
-  const parsed = parseSchemaOrThrow(ticketListResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(myTicketPaginatedResponseSchema, response, {
     path,
     method,
     message: "Invalid received direct requests response payload",

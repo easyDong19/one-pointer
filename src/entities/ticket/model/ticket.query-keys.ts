@@ -6,11 +6,9 @@ export const ticketQueryKeys = {
   popular: ["ticket", "popular"] as const,
   feed: (params?: TicketFeedParams) => ["ticket", "feed", params] as const,
   search: (params?: TicketSearchParams) => ["ticket", "search", params] as const,
-  my: (params?: { cursor?: string; size?: number }) => ["ticket", "my", params] as const,
-  myInProgress: (params?: { cursor?: string; size?: number }) =>
-    ["ticket", "my", "in-progress", params] as const,
-  myCompleted: (params?: { cursor?: string; size?: number }) =>
-    ["ticket", "my", "completed", params] as const,
+  my: () => ["ticket", "my"] as const,
+  myInProgress: () => ["ticket", "my", "in-progress"] as const,
+  myCompleted: () => ["ticket", "my", "completed"] as const,
   directRequestSent: (params?: { cursor?: string; size?: number }) =>
     ["ticket", "direct-request", "sent", params] as const,
   directRequestReceived: (params?: { cursor?: string; size?: number }) =>
