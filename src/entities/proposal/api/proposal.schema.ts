@@ -44,17 +44,17 @@ const portfolioSchema = z.object({
   description: z.string(),
 })
 
-/** ExpertInfoResponse */
+/** ExpertInfoResponse — `ProposalExpertInfoResponse` 백엔드 실측 */
 export const expertInfoSchema = z.object({
-  userId: z.number(),
-  expertProfileId: z.number(),
-  nickname: z.string(),
-  profileImageUrl: z.string().url().nullable().optional(),
-  introduction: z.string(),
-  detailIntroduction: z.string(),
-  careerPeriod: z.string(),
-  activityMethod: methodSchema,
-  authStatus: authStatusSchema,
+  userId: z.number().nullish(),
+  expertProfileId: z.number().nullish(),
+  nickname: z.string().nullish(),
+  profileImageUrl: z.string().url().nullish(),
+  introduction: z.string().nullish(),
+  detailIntroduction: z.string().nullish(),
+  careerPeriod: z.string().nullish(),
+  activityMethod: methodSchema.nullish(),
+  authStatus: authStatusSchema.nullish(),
   certifications: z.array(certificationSchema).optional(),
   portfolios: z.array(portfolioSchema).optional(),
 })
@@ -69,68 +69,81 @@ export const clientProfileSchema = z.object({
 /** ProposalSummaryResponse */
 export const proposalSummarySchema = z.object({
   id: z.number(),
-  expertProfileId: z.number(),
-  expertNickname: z.string(),
-  expertProfileImageUrl: z.string().url().nullable().optional(),
-  price: z.number(),
-  proposedDuration: z.string(),
-  method: methodSchema,
-  status: z.enum(["PENDING"]),
-  // legacy FE fields (kept for backward compatibility)
+  expertProfileId: z.number().nullish(),
+  expertNickname: z.string().nullish(),
+  expertProfileImageUrl: z.string().url().nullish(),
+  price: z.number().nullish(),
+  proposedDuration: z.string().nullish(),
+  method: methodSchema.nullish(),
+  status: proposalStatusSchema.nullish(),
   ticketId: z.number().optional(),
-  createdAt: z.string().optional(),
+  createdAt: z.string().nullish(),
 })
 
 /** ProposalDetailResponse */
 export const proposalDetailSchema = z.object({
   id: z.number(),
-  price: z.number(),
-  proposedDuration: z.string(),
-  method: methodSchema,
-  locationProposal: z.string().nullable(),
-  onlineTool: z.string().nullable(),
-  appeal: z.string(),
-  status: proposalStatusSchema,
-  createdAt: z.string(),
-  availableDates: z.array(availableDateSchema).optional(),
-  expertInfo: expertInfoSchema.optional(),
-  // legacy FE fields (kept for backward compatibility)
+  price: z.number().nullish(),
+  proposedDuration: z.string().nullish(),
+  method: methodSchema.nullish(),
+  locationProposal: z.string().nullish(),
+  onlineTool: z.string().nullish(),
+  appeal: z.string().nullish(),
+  status: proposalStatusSchema.nullish(),
+  createdAt: z.string().nullish(),
+  availableDates: z.array(availableDateSchema).nullish(),
+  expertInfo: expertInfoSchema.nullish(),
   ticketId: z.number().optional(),
   expertProfileId: z.number().optional(),
   expertNickname: z.string().optional(),
-  expertProfileImageUrl: z.string().url().nullable().optional(),
+  expertProfileImageUrl: z.string().url().nullish(),
 })
 
-/** MyProposalResponse */
+/** MyProposalResponse — 백엔드 실측 (`MyProposalResponse.java`) */
 export const myProposalSchema = z.object({
   id: z.number(),
-  ticketId: z.number(),
-  ticketTitle: z.string(),
-  ticketType: z.enum(["OFFLINE", "ONLINE"]),
-  price: z.number(),
-  status: proposalStatusSchema,
-  clientNickname: z.string(),
-  clientProfileImageUrl: z.string().url().nullable().optional(),
-  proposedDuration: z.string(),
-  createdAt: z.string(),
+  ticketTitle: z.string().nullish(),
+  subCategoryName: z.string().nullish(),
+  ticketType: z.enum(["OFFLINE", "ONLINE"]).nullish(),
+  clientNickname: z.string().nullish(),
+  status: proposalStatusSchema.nullish(),
+  price: z.number().nullish(),
+  createdAt: z.string().nullish(),
+})
+
+/** MyProposalTicketInfoResponse */
+export const myProposalTicketInfoSchema = z.object({
+  ticketId: z.number().nullish(),
+  title: z.string().nullish(),
+  content: z.string().nullish(),
+  ticketType: z.enum(["OFFLINE", "ONLINE"]).nullish(),
+  subCategoryName: z.string().nullish(),
+  level: z.string().nullish(),
+  desiredDuration: z.string().nullish(),
+  budgetType: z.string().nullish(),
+  budgetMin: z.number().nullish(),
+  budgetMax: z.number().nullish(),
+  region: z.string().nullish(),
+  locationDetail: z.string().nullish(),
+  ticketStatus: z.string().nullish(),
+  clientNickname: z.string().nullish(),
+  deadline: z.string().nullish(),
+  createdAt: z.string().nullish(),
 })
 
 /** MyProposalDetailResponse */
 export const myProposalDetailSchema = z.object({
   id: z.number(),
-  ticketId: z.number(),
-  ticketTitle: z.string(),
-  ticketType: z.enum(["OFFLINE", "ONLINE"]),
-  price: z.number(),
-  proposedDuration: z.string(),
-  method: methodSchema,
-  locationProposal: z.string().nullable(),
-  onlineTool: z.string().nullable(),
-  appeal: z.string(),
-  status: proposalStatusSchema,
-  createdAt: z.string(),
-  availableDates: z.array(availableDateSchema).optional(),
-  clientInfo: clientProfileSchema.optional(),
+  price: z.number().nullish(),
+  proposedDuration: z.string().nullish(),
+  method: methodSchema.nullish(),
+  locationProposal: z.string().nullish(),
+  onlineTool: z.string().nullish(),
+  appeal: z.string().nullish(),
+  status: proposalStatusSchema.nullish(),
+  createdAt: z.string().nullish(),
+  availableDates: z.array(availableDateSchema).nullish(),
+  ticketInfo: myProposalTicketInfoSchema.nullish(),
 })
 
 /** AcceptProposalResponse */
@@ -171,19 +184,17 @@ const successResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
 
 export const proposalDetailResponseSchema = successResponseSchema(proposalDetailSchema)
 
-export const proposalListResponseSchema = successResponseSchema(
-  z.object({
-    content: z.array(proposalSummarySchema),
-    nextCursor: z.string().nullable(),
-    hasNext: z.boolean(),
-  }),
+/** 의뢰별 제안 목록 — 백엔드 `List<ProposalSummaryResponse>` (커서 X) */
+export const proposalsByTicketResponseSchema = successResponseSchema(
+  z.array(proposalSummarySchema),
 )
 
+/** 내 제안 목록 — `CursorPageResponse<MyProposalResponse>` */
 export const myProposalListResponseSchema = successResponseSchema(
   z.object({
     content: z.array(myProposalSchema),
-    nextCursor: z.string().nullable(),
-    hasNext: z.boolean(),
+    nextCursor: z.union([z.string(), z.number()]).nullish(),
+    hasNext: z.boolean().nullish(),
   }),
 )
 

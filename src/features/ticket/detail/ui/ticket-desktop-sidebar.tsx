@@ -1,3 +1,7 @@
+"use client"
+
+import { useRouter } from "next/navigation"
+
 import { Text } from "@/shared/ui/text"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
@@ -9,10 +13,30 @@ import {
   TICKET_TYPE_LABEL,
 } from "@/entities/ticket/lib/ticket.constants"
 import type { TicketDetail } from "@/entities/ticket/api/ticket.schema"
+import { useAuthStore } from "@/entities/auth/model/auth-store"
+import { openProposalForm } from "@/features/proposal/lib/open-proposal-form"
+import { openExpertRegisterPrompt, useExpertExistsQuery } from "@/features/mypage"
 
 export function TicketDesktopSidebar({ ticket }: { ticket: TicketDetail }) {
+  const router = useRouter()
+  const userId = useAuthStore((s) => s.user?.id)
+  const isOwner = userId != null && userId === ticket.clientId
+  const { data: expertExists, isLoading: isExpertLoading } = useExpertExistsQuery()
   const statusInfo = STATUS_LABEL[ticket.status] ?? STATUS_LABEL.OPEN
   const canPropose = ticket.status === "OPEN" || ticket.status === "IN_REVIEW"
+
+  const handleSendProposal = async () => {
+    if (isExpertLoading) return
+    if (!expertExists) {
+      const confirmed = await openExpertRegisterPrompt()
+      if (confirmed) router.push("/mypage/expert-register")
+      return
+    }
+    openProposalForm({
+      ticketId: ticket.id,
+      defaultMethod: ticket.ticketType === "ONLINE" ? "ONLINE" : "OFFLINE",
+    })
+  }
 
   return (
     <div className="sticky top-8">
@@ -65,14 +89,21 @@ export function TicketDesktopSidebar({ ticket }: { ticket: TicketDetail }) {
             )}
         </div>
 
-        <Separator />
-
-        {/* CTA */}
-        <Button size="lg" className="w-full" disabled={!canPropose}>
-          <Text as="span" typography="body2-bold">
-            {canPropose ? "제안서 보내기" : statusInfo.text}
-          </Text>
-        </Button>
+        {!isOwner && (
+          <>
+            <Separator />
+            <Button
+              size="lg"
+              className="w-full"
+              disabled={!canPropose}
+              onClick={canPropose ? handleSendProposal : undefined}
+            >
+              <Text as="span" typography="body2-bold">
+                {canPropose ? "제안서 보내기" : statusInfo.text}
+              </Text>
+            </Button>
+          </>
+        )}
       </div>
     </div>
   )
