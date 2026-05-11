@@ -11,7 +11,7 @@ import { useRoleStore } from "@/entities/user/model/role-store"
 export function ProfileSection() {
   const { data: user } = useMyProfileQuery()
   const { data: expertExists } = useExpertExistsQuery()
-  const { data: expertProfile } = useMyExpertProfileQuery()
+  const { data: expertProfile } = useMyExpertProfileQuery(expertExists === true)
   const role = useRoleStore((s) => s.role)
 
   if (!user) return null

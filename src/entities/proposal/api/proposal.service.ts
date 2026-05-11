@@ -2,15 +2,18 @@ import { clientFetch } from "@/shared/api/http/client-fetch"
 import { parseSchemaOrThrow } from "@/shared/api/http/parse-schema"
 import {
   createProposalRequestSchema,
+  myProposalDetailResponseSchema,
+  myProposalListResponseSchema,
   proposalDetailResponseSchema,
-  proposalListResponseSchema,
+  proposalsByTicketResponseSchema,
   type CreateProposalRequest,
+  type MyProposal,
+  type MyProposalDetail,
   type ProposalDetail,
   type ProposalSummary,
 } from "./proposal.schema"
 
-export type { CreateProposalRequest, ProposalDetail, ProposalSummary }
-
+export type { CreateProposalRequest, ProposalDetail, ProposalSummary, MyProposal, MyProposalDetail }
 
 export async function createProposal(input: CreateProposalRequest): Promise<ProposalDetail> {
   const path = "/v1/api/proposal"
@@ -53,12 +56,11 @@ export async function getProposal(id: number): Promise<ProposalDetail> {
 
 export async function getProposalsByTicket(
   ticketId: number,
-  params?: { cursor?: string; size?: number },
-): Promise<{ content: ProposalSummary[]; nextCursor: string | null; hasNext: boolean }> {
+): Promise<ProposalSummary[]> {
   const path = `/v1/api/proposal/ticket/${ticketId}`
   const method = "GET"
-  const response = await clientFetch<unknown>({ path, method, query: params })
-  const parsed = parseSchemaOrThrow(proposalListResponseSchema, response, {
+  const response = await clientFetch<unknown>({ path, method })
+  const parsed = parseSchemaOrThrow(proposalsByTicketResponseSchema, response, {
     path,
     method,
     message: "Invalid proposals by ticket response payload",
@@ -66,11 +68,11 @@ export async function getProposalsByTicket(
   return parsed.data
 }
 
-export async function getMyProposal(id: number): Promise<ProposalDetail> {
+export async function getMyProposal(id: number): Promise<MyProposalDetail> {
   const path = `/v1/api/proposal/my/${id}`
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method })
-  const parsed = parseSchemaOrThrow(proposalDetailResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(myProposalDetailResponseSchema, response, {
     path,
     method,
     message: "Invalid my proposal detail response payload",
@@ -78,14 +80,20 @@ export async function getMyProposal(id: number): Promise<ProposalDetail> {
   return parsed.data
 }
 
+type MyProposalListPage = {
+  content: MyProposal[]
+  nextCursor?: string | number | null
+  hasNext?: boolean | null
+}
+
 export async function getMyInProgressProposals(params?: {
-  cursor?: string
+  cursor?: string | number
   size?: number
-}): Promise<{ content: ProposalSummary[]; nextCursor: string | null; hasNext: boolean }> {
+}): Promise<MyProposalListPage> {
   const path = "/v1/api/proposal/my/in-progress"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
-  const parsed = parseSchemaOrThrow(proposalListResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(myProposalListResponseSchema, response, {
     path,
     method,
     message: "Invalid my in-progress proposals response payload",
@@ -94,13 +102,13 @@ export async function getMyInProgressProposals(params?: {
 }
 
 export async function getMyCompletedProposals(params?: {
-  cursor?: string
+  cursor?: string | number
   size?: number
-}): Promise<{ content: ProposalSummary[]; nextCursor: string | null; hasNext: boolean }> {
+}): Promise<MyProposalListPage> {
   const path = "/v1/api/proposal/my/completed"
   const method = "GET"
   const response = await clientFetch<unknown>({ path, method, query: params })
-  const parsed = parseSchemaOrThrow(proposalListResponseSchema, response, {
+  const parsed = parseSchemaOrThrow(myProposalListResponseSchema, response, {
     path,
     method,
     message: "Invalid my completed proposals response payload",

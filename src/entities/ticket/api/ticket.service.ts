@@ -1,6 +1,10 @@
 import { clientFetch } from "@/shared/api/http/client-fetch"
 import { parseSchemaOrThrow } from "@/shared/api/http/parse-schema"
 import {
+  acceptProposalResponseSchema,
+  type AcceptProposal,
+} from "@/entities/proposal/api/proposal.schema"
+import {
   createTicketRequestSchema,
   updateTicketRequestSchema,
   ticketDetailResponseSchema,
@@ -84,10 +88,16 @@ export async function cancelTicket(ticketId: number): Promise<void> {
   await clientFetch<unknown>({ path, method })
 }
 
-export async function acceptProposal(proposalId: number): Promise<void> {
+export async function acceptProposal(proposalId: number): Promise<AcceptProposal> {
   const path = `/v1/api/ticket/proposal/${proposalId}/accept`
   const method = "POST"
-  await clientFetch<unknown>({ path, method })
+  const response = await clientFetch<unknown>({ path, method })
+  const parsed = parseSchemaOrThrow(acceptProposalResponseSchema, response, {
+    path,
+    method,
+    message: "Invalid accept proposal response payload",
+  })
+  return parsed.data
 }
 
 // ─── Popular Tickets ─────────────────────────────────────────────────────────

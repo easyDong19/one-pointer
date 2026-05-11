@@ -13,10 +13,13 @@ import { TicketDescription } from "@/features/ticket/detail/ui/ticket-descriptio
 import { TicketInfo } from "@/features/ticket/detail/ui/ticket-info"
 import { TicketDesktopSidebar } from "@/features/ticket/detail/ui/ticket-desktop-sidebar"
 import { TicketMobileBottomBar } from "@/features/ticket/detail/ui/ticket-mobile-bottom-bar"
+import { useAuthStore } from "@/entities/auth/model/auth-store"
+import { TicketProposalsSection } from "@/features/proposal/ui/ticket-proposals-section"
 
 export function TicketDetailContent({ ticketId }: { ticketId: number }) {
   const router = useRouter()
   const { data: ticket, isLoading, isError, error } = useTicketDetailQuery(ticketId)
+  const userId = useAuthStore((s) => s.user?.id)
 
   if (isLoading) {
     return (
@@ -76,6 +79,12 @@ export function TicketDetailContent({ ticketId }: { ticketId: number }) {
               <TicketDescription ticket={ticket} />
               <Separator className="my-5" />
               <TicketInfo ticket={ticket} />
+              {userId != null && userId === ticket.clientId && (
+                <>
+                  <Separator className="my-5" />
+                  <TicketProposalsSection ticketId={ticket.id} />
+                </>
+              )}
             </div>
           </div>
 
