@@ -6,6 +6,8 @@ import { toast } from "sonner"
 import { MobileHeader } from "@/shared/ui/mobile-header"
 import { PageShell } from "@/shared/ui/page-shell"
 
+import { useUpdateTicketMutation, buildUpdatePayload } from "@/features/ticket/edit"
+
 import { useCreateTicketMutation, type SubmitTicketInput } from "../model/use-create-ticket-mutation"
 import { useStepFlow } from "../model/use-step-flow"
 import { useTicketCreateForm } from "../model/use-ticket-create-form"
@@ -31,23 +33,48 @@ import { StepTypeCategory } from "./steps/step-type-category"
 export function TicketCreatePage() {
   const router = useRouter()
   const { currentStep } = useStepFlow()
-  const mutation = useCreateTicketMutation()
+  const createMutation = useCreateTicketMutation()
+  const updateMutation = useUpdateTicketMutation()
   const reset = useTicketCreateForm((s) => s.reset)
+  const mode = useTicketCreateForm((s) => s.mode)
+  const targetExpertId = useTicketCreateForm((s) => s.targetExpertId)
+
+  const isEdit = mode === "edit"
+  const headerTitle = isEdit
+    ? "의뢰 수정"
+    : targetExpertId != null
+      ? "직접 의뢰 등록"
+      : "의뢰 등록"
+  const submitMutation = isEdit ? updateMutation : createMutation
 
   const handleSubmit = async () => {
-    const input = buildSubmitInput(useTicketCreateForm.getState())
-    if (!input) {
-      console.warn("[ticket-create] missing required fields at submit")
-      toast.error("필수 항목이 누락되었어요")
-      return
-    }
+    const state = useTicketCreateForm.getState()
     try {
-      const ticket = await mutation.mutateAsync(input)
-      toast.success("의뢰가 등록되었어요. 매칭이 완료되면 알려드릴게요")
-      reset()
-      router.push(`/tickets/${ticket.id}`)
+      if (isEdit) {
+        const input = buildUpdatePayload(state)
+        if (!input) {
+          console.warn("[ticket-edit] missing required fields at submit")
+          toast.error("필수 항목이 누락되었어요")
+          return
+        }
+        const ticket = await updateMutation.mutateAsync(input)
+        toast.success("의뢰가 수정되었어요")
+        reset()
+        router.push(`/tickets/${ticket.id}`)
+      } else {
+        const input = buildSubmitInput(state)
+        if (!input) {
+          console.warn("[ticket-create] missing required fields at submit")
+          toast.error("필수 항목이 누락되었어요")
+          return
+        }
+        const ticket = await createMutation.mutateAsync(input)
+        toast.success("의뢰가 등록되었어요. 매칭이 완료되면 알려드릴게요")
+        reset()
+        router.push(`/tickets/${ticket.id}`)
+      }
     } catch {
-      // useCreateTicketMutation 의 onError 가 토스트 처리
+      // mutation 의 onError 가 토스트 처리
     }
   }
 
@@ -55,7 +82,7 @@ export function TicketCreatePage() {
     <>
       <MobileHeader>
         <MobileHeader.BackButton />
-        <MobileHeader.Title>의뢰 등록</MobileHeader.Title>
+        <MobileHeader.Title>{headerTitle}</MobileHeader.Title>
         <MobileHeader.Spacer />
       </MobileHeader>
       <TicketCreateMobileStepper />
@@ -76,7 +103,7 @@ export function TicketCreatePage() {
               </div>
               <TicketCreateFooter
                 onSubmit={handleSubmit}
-                isSubmitting={mutation.isPending}
+                isSubmitting={submitMutation.isPending}
               />
             </main>
           </div>

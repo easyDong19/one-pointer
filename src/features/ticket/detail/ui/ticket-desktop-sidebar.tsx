@@ -17,6 +17,8 @@ import { useAuthStore } from "@/entities/auth/model/auth-store"
 import { openProposalForm } from "@/features/proposal/lib/open-proposal-form"
 import { openExpertRegisterPrompt, useExpertExistsQuery } from "@/features/mypage"
 
+const EDITABLE_STATUSES = new Set(["OPEN", "IN_REVIEW"])
+
 export function TicketDesktopSidebar({ ticket }: { ticket: TicketDetail }) {
   const router = useRouter()
   const userId = useAuthStore((s) => s.user?.id)
@@ -24,6 +26,7 @@ export function TicketDesktopSidebar({ ticket }: { ticket: TicketDetail }) {
   const { data: expertExists, isLoading: isExpertLoading } = useExpertExistsQuery()
   const statusInfo = STATUS_LABEL[ticket.status] ?? STATUS_LABEL.OPEN
   const canPropose = ticket.status === "OPEN" || ticket.status === "IN_REVIEW"
+  const canEdit = isOwner && EDITABLE_STATUSES.has(ticket.status)
 
   const handleSendProposal = async () => {
     if (isExpertLoading) return
@@ -100,6 +103,22 @@ export function TicketDesktopSidebar({ ticket }: { ticket: TicketDetail }) {
             >
               <Text as="span" typography="body2-bold">
                 {canPropose ? "제안서 보내기" : statusInfo.text}
+              </Text>
+            </Button>
+          </>
+        )}
+
+        {canEdit && (
+          <>
+            <Separator />
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full"
+              onClick={() => router.push(`/tickets/${ticket.id}/edit`)}
+            >
+              <Text as="span" typography="body2-bold">
+                의뢰 수정
               </Text>
             </Button>
           </>
