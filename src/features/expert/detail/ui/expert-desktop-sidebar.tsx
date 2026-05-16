@@ -1,4 +1,7 @@
+"use client"
+
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { Star, MapPin } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import { Badge } from "@/shared/ui/badge"
@@ -11,7 +14,11 @@ import {
 import type { ExpertDetail } from "@/entities/expert/api/expert.schema"
 
 export function ExpertDesktopSidebar({ expert }: { expert: ExpertDetail }) {
+  const router = useRouter()
   const initial = expert.nickname.charAt(0)
+  const handleDirectRequest = () => {
+    router.push(`/tickets/new?targetExpertId=${expert.userId}&directRequest=true`)
+  }
 
   return (
     <div className="sticky top-8">
@@ -88,7 +95,7 @@ export function ExpertDesktopSidebar({ expert }: { expert: ExpertDetail }) {
         <Separator />
 
         {/* CTA */}
-        <Button size="lg" className="w-full">
+        <Button size="lg" className="w-full" onClick={handleDirectRequest}>
           <Text as="span" typography="body2-bold">
             의뢰하기
           </Text>

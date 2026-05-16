@@ -81,7 +81,7 @@ export default async function ExpertDetailPage({ params }: Props) {
       </PageShellContent>
 
       <PageShellFooter>
-        <ExpertMobileBottomBar />
+        <ExpertMobileBottomBar expert={expert} />
       </PageShellFooter>
     </PageShell>
   )
