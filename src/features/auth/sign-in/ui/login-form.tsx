@@ -13,7 +13,7 @@ import { SocialLoginButton } from "@/shared/ui/social-login-button"
 import { Text } from "@/shared/ui/text"
 import { ApiError } from "@/shared/api/http/api-error"
 import { loginRequestSchema, type LoginRequest } from "@/entities/auth/api/auth.schema"
-import { getKakaoAuthorizeUrl } from "@/entities/auth/api/auth.service"
+import { getKakaoAuthorizeUrl, getGoogleAuthorizeUrl } from "@/entities/auth/api/auth.service"
 import { useLoginMutation } from "@/features/auth/sign-in/model/use-login-mutation"
 
 type LoginFormProps = {
@@ -51,6 +51,22 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       const authorizeUrl = Object.values(res.data)[0]
       if (authorizeUrl) {
         // nextPath를 sessionStorage에 저장하여 콜백에서 사용
+        sessionStorage.setItem("auth_next_path", nextPath)
+        window.location.href = authorizeUrl
+      }
+    } catch (error) {
+      setSocialLoading(false)
+      loginMutation.reset()
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    try {
+      setSocialLoading(true)
+      const redirectUri = `${window.location.origin}/auth/google/callback`
+      const res = await getGoogleAuthorizeUrl(redirectUri)
+      const authorizeUrl = Object.values(res.data)[0]
+      if (authorizeUrl) {
         sessionStorage.setItem("auth_next_path", nextPath)
         window.location.href = authorizeUrl
       }
@@ -158,7 +174,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       {/* 소셜 로그인 */}
       <div className="flex flex-col gap-3">
         <SocialLoginButton provider="kakao" onClick={handleKakaoLogin} disabled={isPending} />
-        <SocialLoginButton provider="google" disabled={isPending} />
+        <SocialLoginButton provider="google" onClick={handleGoogleLogin} disabled={isPending} />
         <SocialLoginButton provider="apple" disabled={isPending} />
       </div>
 
