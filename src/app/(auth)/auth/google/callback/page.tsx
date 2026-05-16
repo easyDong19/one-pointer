@@ -6,6 +6,8 @@ import { Text } from "@/shared/ui/text"
 import { googleLogin } from "@/entities/auth/api/auth.service"
 import { useAuthStore } from "@/entities/auth/model/auth-store"
 import { resolveNextPath } from "@/shared/lib/redirect"
+import { saveSocialAuth } from "@/features/auth/social/lib/social-auth-storage"
+import { resolveSocialErrorMessage } from "@/features/auth/social/lib/resolve-social-error"
 
 export default function GoogleCallbackPage() {
   const router = useRouter()
@@ -41,16 +43,18 @@ export default function GoogleCallbackPage() {
       const response = await googleLogin({ code, redirectUri })
 
       if (response.data.newUser) {
-        const googleInfo = response.data.googleUserInfo
-        const params = new URLSearchParams()
-        if (googleInfo?.email) params.set("email", googleInfo.email)
-        if (googleInfo?.name) params.set("name", googleInfo.name)
-        if (googleInfo?.profileImageUrl) params.set("profileImageUrl", googleInfo.profileImageUrl)
-        if (googleInfo?.id) params.set("googleId", googleInfo.id)
-        params.set("code", code)
-        params.set("redirectUri", redirectUri)
+        // 신규 유저: googleAccessToken 을 sessionStorage 에 저장 후 가입 페이지로
+        // (인가 code 는 1회용이므로 회원가입 API 호출 시 accessToken 을 사용해야 함)
+        const googleAccessToken = response.data.googleAccessToken
+        if (!googleAccessToken) {
+          setError("Google 인증 정보를 받지 못했어요. 다시 시도해주세요.")
+          setTimeout(() => router.replace("/login"), 2000)
+          return
+        }
 
-        router.replace(`/signup/google?${params.toString()}`)
+        const googleInfo = response.data.googleUserInfo
+        saveSocialAuth("google", googleAccessToken, googleInfo)
+        router.replace("/signup/google")
       } else {
         await useAuthStore.getState().bootstrap()
         const nextPath = sessionStorage.getItem("auth_next_path") || "/"
@@ -58,8 +62,7 @@ export default function GoogleCallbackPage() {
         router.replace(resolveNextPath(nextPath))
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Google 로그인 중 오류가 발생했습니다."
-      setError(message)
+      setError(resolveSocialErrorMessage(err))
       setTimeout(() => router.replace("/login"), 3000)
     }
   }

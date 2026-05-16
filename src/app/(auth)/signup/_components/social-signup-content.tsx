@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { ArrowLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/shared/ui/button"
@@ -11,15 +11,20 @@ import { Separator } from "@/shared/ui/separator"
 import { Text } from "@/shared/ui/text"
 import { checkNickname } from "@/entities/auth/api/auth.service"
 import { useAuthStore } from "@/entities/auth/model/auth-store"
-
-type SocialProvider = "kakao" | "google"
+import {
+  clearSocialAuth,
+  loadSocialAuth,
+  type SocialProvider,
+  type SocialUserInfo,
+} from "@/features/auth/social/lib/social-auth-storage"
+import { resolveSocialErrorMessage } from "@/features/auth/social/lib/resolve-social-error"
 
 type Props = {
   provider: SocialProvider
   onSignup: (params: {
-    code: string
-    redirectUri: string
+    accessToken: string
     nickname: string
+    phone: string
     chatReviewAgreed: boolean
     marketingConsent: boolean
   }) => Promise<void>
@@ -39,16 +44,27 @@ const TERMS_ITEMS = [
 
 type TermsKey = (typeof TERMS_ITEMS)[number]["key"]
 
+// 010-1234-5678 / 01012345678 / 010 1234 5678 → 01012345678
+function normalizePhone(value: string) {
+  return value.replace(/[^0-9]/g, "")
+}
+
+function isValidPhone(value: string) {
+  // 한국 휴대폰 번호: 010/011/016/017/018/019 + 7~8자리
+  return /^01[016789]\d{7,8}$/.test(value)
+}
+
 export function SocialSignupContent({ provider, onSignup }: Props) {
   const router = useRouter()
-  const searchParams = useSearchParams()
 
-  const name = searchParams.get("name") ?? ""
-  const code = searchParams.get("code") ?? ""
-  const redirectUri = searchParams.get("redirectUri") ?? ""
+  const [accessToken, setAccessToken] = useState<string | null>(null)
+  const [userInfo, setUserInfo] = useState<SocialUserInfo | null>(null)
+  const [bootError, setBootError] = useState<string | null>(null)
 
   const [nickname, setNickname] = useState("")
+  const [phone, setPhone] = useState("")
   const [nicknameError, setNicknameError] = useState<string | null>(null)
+  const [phoneError, setPhoneError] = useState<string | null>(null)
   const [terms, setTerms] = useState<Record<TermsKey, boolean>>({
     termsOfService: false,
     privacyPolicy: false,
@@ -56,7 +72,19 @@ export function SocialSignupContent({ provider, onSignup }: Props) {
     marketingConsent: false,
   })
   const [isPending, setIsPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  // sessionStorage 에서 access token / userInfo 로드
+  useEffect(() => {
+    const saved = loadSocialAuth(provider)
+    if (!saved) {
+      setBootError("인증 정보가 만료되었어요. 다시 로그인해주세요.")
+      setTimeout(() => router.replace("/login"), 2000)
+      return
+    }
+    setAccessToken(saved.accessToken)
+    setUserInfo(saved.userInfo)
+  }, [provider, router])
 
   const allChecked = Object.values(terms).every(Boolean)
   const requiredChecked = TERMS_ITEMS.filter((t) => t.required).every((t) => terms[t.key])
@@ -89,11 +117,11 @@ export function SocialSignupContent({ provider, onSignup }: Props) {
       const res = await checkNickname(nickname)
       const isDuplicate = Object.values(res.data)[0]
       if (isDuplicate) {
-        setNicknameError("이미 사용 중인 닉네임입니다.")
+        setNicknameError("이미 사용 중인 닉네임이에요.")
         return false
       }
     } catch {
-      setNicknameError("닉네임 확인 중 오류가 발생했습니다.")
+      setNicknameError("닉네임 확인 중 오류가 발생했어요.")
       return false
     }
 
@@ -101,38 +129,76 @@ export function SocialSignupContent({ provider, onSignup }: Props) {
     return true
   }
 
+  const validatePhone = () => {
+    const normalized = normalizePhone(phone)
+    if (!normalized) {
+      setPhoneError("휴대폰 번호를 입력해주세요.")
+      return false
+    }
+    if (!isValidPhone(normalized)) {
+      setPhoneError("올바른 휴대폰 번호를 입력해주세요. (예: 01012345678)")
+      return false
+    }
+    setPhoneError(null)
+    return true
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!code || !redirectUri) {
-      setError("인증 정보가 만료되었습니다. 다시 로그인해주세요.")
+    if (!accessToken) {
+      setSubmitError("인증 정보가 만료되었어요. 다시 로그인해주세요.")
       setTimeout(() => router.replace("/login"), 2000)
       return
     }
 
-    const valid = await validateNickname()
-    if (!valid) return
+    const [nicknameOk, phoneOk] = [await validateNickname(), validatePhone()]
+    if (!nicknameOk || !phoneOk) return
 
     setIsPending(true)
-    setError(null)
+    setSubmitError(null)
 
     try {
       await onSignup({
-        code,
-        redirectUri,
+        accessToken,
         nickname,
+        phone: normalizePhone(phone),
         chatReviewAgreed: terms.chatReviewAgreed,
         marketingConsent: terms.marketingConsent,
       })
 
+      clearSocialAuth()
       await useAuthStore.getState().bootstrap()
       const nextPath = sessionStorage.getItem("auth_next_path") || "/"
       sessionStorage.removeItem("auth_next_path")
       router.replace(nextPath)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "회원가입 중 오류가 발생했습니다.")
+      setSubmitError(resolveSocialErrorMessage(err))
       setIsPending(false)
     }
+  }
+
+  if (bootError) {
+    return (
+      <main className="flex min-h-dvh items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-op-lg px-6 text-center">
+          <Text as="p" typography="body1-medium" className="text-destructive">
+            {bootError}
+          </Text>
+          <Text as="p" typography="body3-regular" className="text-muted-foreground">
+            잠시 후 로그인 페이지로 이동합니다...
+          </Text>
+        </div>
+      </main>
+    )
+  }
+
+  if (!accessToken) {
+    return (
+      <main className="flex min-h-dvh items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </main>
+    )
   }
 
   return (
@@ -157,11 +223,16 @@ export function SocialSignupContent({ provider, onSignup }: Props) {
           {/* 인사 */}
           <div>
             <Text as="h2" typography="h2-bold">
-              {name ? `${name}님, 환영합니다!` : "환영합니다!"}
+              {userInfo?.name ? `${userInfo.name}님, 환영합니다!` : "환영합니다!"}
             </Text>
             <Text as="p" typography="body2-regular" className="text-muted-foreground mt-1">
-              닉네임을 설정하고 약관에 동의해주세요.
+              추가 정보를 입력하고 약관에 동의해주세요.
             </Text>
+            {userInfo?.email && (
+              <Text as="p" typography="caption1-medium" className="text-muted-foreground mt-2">
+                {PROVIDER_LABEL[provider]} 계정: {userInfo.email}
+              </Text>
+            )}
           </div>
 
           {/* 닉네임 */}
@@ -184,6 +255,31 @@ export function SocialSignupContent({ provider, onSignup }: Props) {
             {nicknameError ? (
               <Text as="p" typography="caption1-medium" className="text-destructive">
                 {nicknameError}
+              </Text>
+            ) : null}
+          </div>
+
+          {/* 휴대폰 번호 */}
+          <div className="flex flex-col gap-2">
+            <Text as="label" typography="body2-regular" htmlFor="phone">
+              휴대폰 번호
+            </Text>
+            <Input
+              id="phone"
+              type="tel"
+              inputMode="numeric"
+              placeholder="예) 01012345678"
+              className="h-14 rounded-2xl px-4 text-base tabular-nums"
+              value={phone}
+              onChange={(e) => {
+                setPhone(e.target.value)
+                setPhoneError(null)
+              }}
+              onBlur={validatePhone}
+            />
+            {phoneError ? (
+              <Text as="p" typography="caption1-medium" className="text-destructive">
+                {phoneError}
               </Text>
             ) : null}
           </div>
@@ -246,13 +342,13 @@ export function SocialSignupContent({ provider, onSignup }: Props) {
           </div>
 
           {/* 에러 */}
-          {error ? (
+          {submitError ? (
             <Text
               as="p"
               typography="caption1-medium"
               className="border-destructive/25 bg-destructive/10 text-destructive rounded-md border px-3 py-2"
             >
-              {error}
+              {submitError}
             </Text>
           ) : null}
 
@@ -260,7 +356,7 @@ export function SocialSignupContent({ provider, onSignup }: Props) {
           <Button
             type="submit"
             className="mt-2 h-14 w-full rounded-2xl text-base font-medium"
-            disabled={!requiredChecked || nickname.length < 2 || isPending}
+            disabled={!requiredChecked || nickname.length < 2 || !phone || isPending}
           >
             {isPending ? "가입 중..." : "가입하기"}
           </Button>
