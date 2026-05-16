@@ -6,6 +6,8 @@ import { Text } from "@/shared/ui/text"
 import { kakaoLogin } from "@/entities/auth/api/auth.service"
 import { useAuthStore } from "@/entities/auth/model/auth-store"
 import { resolveNextPath } from "@/shared/lib/redirect"
+import { saveSocialAuth } from "@/features/auth/social/lib/social-auth-storage"
+import { resolveSocialErrorMessage } from "@/features/auth/social/lib/resolve-social-error"
 
 export default function KakaoCallbackPage() {
   const router = useRouter()
@@ -41,27 +43,26 @@ export default function KakaoCallbackPage() {
       const response = await kakaoLogin({ code, redirectUri })
 
       if (response.data.newUser) {
-        // 신규 유저: 카카오 회원가입 페이지로 이동 (카카오 정보 전달)
-        const kakaoInfo = response.data.kakaoUserInfo
-        const params = new URLSearchParams()
-        if (kakaoInfo.email) params.set("email", kakaoInfo.email)
-        if (kakaoInfo.name) params.set("name", kakaoInfo.name)
-        if (kakaoInfo.profileImageUrl) params.set("profileImageUrl", kakaoInfo.profileImageUrl)
-        params.set("kakaoId", String(kakaoInfo.id))
-        params.set("code", code)
-        params.set("redirectUri", redirectUri)
+        // 신규 유저: kakaoAccessToken 을 sessionStorage 에 저장 후 가입 페이지로
+        // (인가 code 는 1회용이므로 회원가입 API 호출 시 accessToken 을 사용해야 함)
+        const kakaoAccessToken = response.data.kakaoAccessToken
+        if (!kakaoAccessToken) {
+          setError("카카오 인증 정보를 받지 못했어요. 다시 시도해주세요.")
+          setTimeout(() => router.replace("/login"), 2000)
+          return
+        }
 
-        router.replace(`/signup/kakao?${params.toString()}`)
+        const kakaoInfo = response.data.kakaoUserInfo
+        saveSocialAuth("kakao", kakaoAccessToken, kakaoInfo)
+        router.replace("/signup/kakao")
       } else {
-        // 기존 유저: 로그인 완료 → auth store 갱신 → nextPath로 이동
         await useAuthStore.getState().bootstrap()
         const nextPath = sessionStorage.getItem("auth_next_path") || "/"
         sessionStorage.removeItem("auth_next_path")
         router.replace(resolveNextPath(nextPath))
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "카카오 로그인 중 오류가 발생했습니다."
-      setError(message)
+      setError(resolveSocialErrorMessage(err))
       setTimeout(() => router.replace("/login"), 3000)
     }
   }

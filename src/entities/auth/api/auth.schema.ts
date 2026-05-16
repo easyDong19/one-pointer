@@ -167,6 +167,7 @@ export const kakaoSignupRequestSchema = z.object({
   code: z.string().optional(),
   redirectUri: z.string().optional(),
   nickname: z.string().min(1, "닉네임을 입력해주세요."),
+  phone: z.string().min(1, "휴대폰 번호를 입력해주세요."),
   chatReviewAgreed: z.boolean(),
   marketingConsent: z.boolean(),
 })
@@ -220,6 +221,7 @@ export const googleSignupRequestSchema = z.object({
   code: z.string().optional(),
   redirectUri: z.string().optional(),
   nickname: z.string().min(1, "닉네임을 입력해주세요."),
+  phone: z.string().min(1, "휴대폰 번호를 입력해주세요."),
   chatReviewAgreed: z.boolean(),
   marketingConsent: z.boolean(),
 })
