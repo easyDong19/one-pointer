@@ -16,10 +16,17 @@ import { TicketMobileBottomBar } from "@/features/ticket/detail/ui/ticket-mobile
 import { useAuthStore } from "@/entities/auth/model/auth-store"
 import { TicketProposalsSection } from "@/features/proposal/ui/ticket-proposals-section"
 
+const EDITABLE_STATUSES = new Set(["OPEN", "IN_REVIEW"])
+
 export function TicketDetailContent({ ticketId }: { ticketId: number }) {
   const router = useRouter()
   const { data: ticket, isLoading, isError, error } = useTicketDetailQuery(ticketId)
   const userId = useAuthStore((s) => s.user?.id)
+  const canEdit =
+    ticket != null &&
+    userId != null &&
+    userId === ticket.clientId &&
+    EDITABLE_STATUSES.has(ticket.status)
 
   if (isLoading) {
     return (
@@ -61,7 +68,9 @@ export function TicketDetailContent({ ticketId }: { ticketId: number }) {
   return (
     <PageShell tier="content">
       <PageShell.Header>
-        <TicketDetailHeader />
+        <TicketDetailHeader
+          onEdit={canEdit ? () => router.push(`/tickets/${ticket.id}/edit`) : undefined}
+        />
       </PageShell.Header>
 
       <PageShell.Content spacing="none">

@@ -28,17 +28,20 @@ export function StepContent() {
   const title = useTicketCreateForm((s) => s.title)
   const content = useTicketCreateForm((s) => s.content)
   const localImages = useTicketCreateForm((s) => s.localImages)
+  const existingImageUrls = useTicketCreateForm((s) => s.existingImageUrls)
   const level = useTicketCreateForm((s) => s.level)
   const setField = useTicketCreateForm((s) => s.setField)
   const addLocalImage = useTicketCreateForm((s) => s.addLocalImage)
   const removeLocalImage = useTicketCreateForm((s) => s.removeLocalImage)
+  const removeExistingImage = useTicketCreateForm((s) => s.removeExistingImage)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const totalImageCount = existingImageUrls.length + localImages.length
+  const remainingSlots = TICKET_CREATE_MAX_IMAGES - totalImageCount
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? [])
-    const remaining = TICKET_CREATE_MAX_IMAGES - localImages.length
-    files.slice(0, remaining).forEach(addLocalImage)
+    files.slice(0, Math.max(0, remainingSlots)).forEach(addLocalImage)
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
@@ -82,10 +85,17 @@ export function StepContent() {
             최대 {TICKET_CREATE_MAX_IMAGES}장까지 첨부할 수 있습니다.
           </Text>
           <div className="flex flex-wrap gap-2">
+            {existingImageUrls.map((url) => (
+              <ExistingImageTile
+                key={url}
+                url={url}
+                onRemove={() => removeExistingImage(url)}
+              />
+            ))}
             {localImages.map((file, idx) => (
               <ImageTile key={idx} file={file} onRemove={() => removeLocalImage(idx)} />
             ))}
-            {localImages.length < TICKET_CREATE_MAX_IMAGES && (
+            {remainingSlots > 0 && (
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -93,7 +103,7 @@ export function StepContent() {
               >
                 <ImagePlus className="size-5" />
                 <Text typography="caption2-medium" className="tabular-nums">
-                  {localImages.length}/{TICKET_CREATE_MAX_IMAGES}
+                  {totalImageCount}/{TICKET_CREATE_MAX_IMAGES}
                 </Text>
               </button>
             )}
@@ -151,6 +161,23 @@ function Field({
         {required && <span className="text-destructive">*</span>}
       </Text>
       {children}
+    </div>
+  )
+}
+
+function ExistingImageTile({ url, onRemove }: { url: string; onRemove: () => void }) {
+  return (
+    <div className="border-border relative size-20 overflow-hidden rounded-md border">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={url} alt="" className="size-full object-cover" />
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label="삭제"
+        className="absolute top-1 right-1 flex size-5 items-center justify-center rounded-full bg-black/70 text-white transition-opacity hover:bg-black/85"
+      >
+        <X className="size-3" strokeWidth={3} />
+      </button>
     </div>
   )
 }

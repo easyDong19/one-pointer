@@ -6,6 +6,7 @@ import { Text } from "@/shared/ui/text"
 import { STEP_LABELS } from "../lib/ticket-create.constants"
 import { useStepFlow } from "../model/use-step-flow"
 import { useStepValidation } from "../model/use-step-validation"
+import { useTicketCreateForm } from "../model/use-ticket-create-form"
 
 type Props = {
   onSubmit: () => void
@@ -23,6 +24,10 @@ export function TicketCreateFooter({ onSubmit, isSubmitting }: Props) {
   const { currentStep, currentIndex, totalCount, isFirst, isLast, goPrev, goNext } =
     useStepFlow()
   const canProceed = useStepValidation()
+  const mode = useTicketCreateForm((s) => s.mode)
+  const isEdit = mode === "edit"
+  const submitLabel = isEdit ? "의뢰 수정하기" : "의뢰 등록하기"
+  const submittingLabel = isEdit ? "수정 중..." : "등록 중..."
 
   return (
     <div className="bg-card border-border sticky bottom-0 z-20 mt-6 flex items-center gap-3 border-t px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] md:mt-8 md:rounded-xl md:border md:px-5 md:py-4 md:pb-4">
@@ -62,7 +67,7 @@ export function TicketCreateFooter({ onSubmit, isSubmitting }: Props) {
           size="sm"
           className="min-w-32"
         >
-          {isSubmitting ? "등록 중..." : "의뢰 등록하기"}
+          {isSubmitting ? submittingLabel : submitLabel}
         </Button>
       ) : (
         <Button

@@ -5,9 +5,12 @@ import { create } from "zustand"
 import type {
   BudgetType,
   EstimatedDurationUnit,
+  TicketDetail,
   TicketLevel,
   TicketType,
 } from "@/entities/ticket/api/ticket.schema"
+
+export type TicketFormMode = "create" | "edit"
 
 export type DesiredDateInput = {
   /** YYYY-MM-DD 또는 빈 문자열 (미선택) */
@@ -45,6 +48,12 @@ type FormState = {
   // 직접의뢰 진입 시 prefill
   targetExpertId: number | null
   directRequest: boolean
+
+  // edit mode (Wave 13) — 신규 작성에서는 항상 "create"/null/[]
+  mode: TicketFormMode
+  editingTicketId: number | null
+  /** 편집 시 기존에 업로드된 이미지 URL (사용자가 X 로 지움 → 배열에서 제거) */
+  existingImageUrls: string[]
 }
 
 type FormActions = {
@@ -53,9 +62,11 @@ type FormActions = {
   setNegotiableDuration: (negotiable: boolean) => void
   addLocalImage: (file: File) => void
   removeLocalImage: (index: number) => void
+  removeExistingImage: (url: string) => void
   addDesiredDate: () => void
   updateDesiredDate: (index: number, patch: Partial<DesiredDateInput>) => void
   removeDesiredDate: (index: number) => void
+  initFromTicket: (ticket: TicketDetail) => void
   reset: () => void
 }
 
@@ -82,6 +93,10 @@ const initialState: FormState = {
 
   targetExpertId: null,
   directRequest: false,
+
+  mode: "create",
+  editingTicketId: null,
+  existingImageUrls: [],
 }
 
 const MAX_IMAGES = 3
@@ -128,6 +143,11 @@ export const useTicketCreateForm = create<FormState & FormActions>(
         localImages: state.localImages.filter((_, i) => i !== index),
       })),
 
+    removeExistingImage: (url) =>
+      set((state) => ({
+        existingImageUrls: state.existingImageUrls.filter((u) => u !== url),
+      })),
+
     addDesiredDate: () =>
       set((state) => ({
         desiredDates: [...state.desiredDates, { date: "", timeSlot: "" }],
@@ -148,6 +168,45 @@ export const useTicketCreateForm = create<FormState & FormActions>(
             ? state.desiredDates.filter((_, i) => i !== index)
             : state.desiredDates,
       })),
+
+    initFromTicket: (ticket) =>
+      set({
+        ...initialState,
+        mode: "edit",
+        editingTicketId: ticket.id,
+
+        ticketType: ticket.ticketType,
+        selectedMajorCategoryId: null, // category 그룹 id 는 서버 응답에 없음 — step UI 가 subCategoryId 로부터 역추적
+        subCategoryId: ticket.subCategoryId,
+        region: ticket.region ?? null,
+        locationDetail: ticket.locationDetail ?? "",
+
+        title: ticket.title,
+        content: ticket.content,
+        localImages: [],
+        existingImageUrls: (ticket.images ?? []).map((img) => img.imageUrl),
+        level: ticket.level,
+
+        estimatedDurationValue: ticket.estimatedDurationValue ?? null,
+        estimatedDurationUnit: ticket.estimatedDurationUnit ?? null,
+        isNegotiableDuration:
+          ticket.estimatedDurationValue == null &&
+          ticket.estimatedDurationUnit == null,
+        budgetType: ticket.budgetType,
+        budgetMin: ticket.budgetMin ?? null,
+        budgetMax: ticket.budgetMax ?? null,
+
+        desiredDates:
+          ticket.desiredDates.length > 0
+            ? ticket.desiredDates.map((d) => ({
+                date: d.date,
+                timeSlot: d.timeSlot,
+              }))
+            : [{ date: "", timeSlot: "" }],
+
+        targetExpertId: ticket.targetExpertId ?? null,
+        directRequest: false,
+      }),
 
     reset: () => set(initialState),
   }),
