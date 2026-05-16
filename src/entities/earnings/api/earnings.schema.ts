@@ -18,11 +18,14 @@ export const earningsGraphPointSchema = z.object({
   transactionCount: z.number(),
 })
 
-/** BankAccountResponse */
+/**
+ * BankAccountResponse — 정산계좌 미등록 시 서버가 객체 자체는 보내고 안의 세 필드를 null 로 채움.
+ * (user.schema.ts 의 profileBankAccountSchema 와 동일 정책 — sync 누락 보정)
+ */
 export const bankAccountResponseSchema = z.object({
-  bankCode: z.string(),
-  accountNumber: z.string(),
-  accountHolder: z.string(),
+  bankCode: z.string().nullish(),
+  accountNumber: z.string().nullish(),
+  accountHolder: z.string().nullish(),
 })
 
 // ─── ExpertEarningsResponse ──────────────────────────────────────────────────

@@ -67,7 +67,7 @@ export function EarningsSummaryCard({ summary }: Props) {
         </Text>
       </div>
 
-      {summary.bankAccount ? (
+      {summary.bankAccount?.bankCode && summary.bankAccount.accountNumber ? (
         <div className="bg-muted mt-3 rounded-lg px-3 py-2">
           <Text typography="caption2-medium" className="text-muted-foreground">
             정산 계좌: {getBankName(summary.bankAccount.bankCode)} {summary.bankAccount.accountNumber}
