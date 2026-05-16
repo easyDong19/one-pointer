@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { registerExpert } from "@/entities/user/api/user.service"
 import { uploadImages, type ImageDomain } from "@/entities/media/api/media.service"
 import { userQueryKeys } from "@/entities/user/model/user.query-keys"
+import { formSlotsToApi } from "@/features/mypage/expert-edit"
 import type { ExpertRegisterFormValues } from "./expert-register-schema"
 
 export function useRegisterExpertMutation() {
@@ -40,7 +41,9 @@ export function useRegisterExpertMutation() {
           .map((c) => ({ name: c.name, issuer: c.issuer ?? "" })),
         portfolios: portfoliosWithUrls.length > 0 ? portfoliosWithUrls : undefined,
         availableTimes:
-          input.availableTimes.length > 0 ? input.availableTimes : undefined,
+          input.availableTimes.length > 0
+            ? formSlotsToApi(input.availableTimes)
+            : undefined,
         availableRegions:
           input.availableRegions.length > 0 ? input.availableRegions : undefined,
         bankCode: input.bankCode || undefined,

@@ -33,7 +33,6 @@ const EXPERT_MENUS: SidebarMenuGroup[] = [
   {
     items: [
       { label: "대시보드", href: "/mypage" },
-      { label: "받은 의뢰", href: "/mypage/requests" },
       { label: "받은 직접 요청", href: "/mypage/direct-requests" },
       { label: "보낸 제안", href: "/mypage/proposals" },
       { label: "수익 관리", href: "/mypage/earnings" },
