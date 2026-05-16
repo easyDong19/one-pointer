@@ -7,6 +7,7 @@ import {
   reproposeAgreement,
   type ReproposeAgreementRequest,
 } from "@/entities/agreement/api/agreement.service"
+import { agreementQueryKeys } from "@/entities/agreement/model/agreement.query-keys"
 import { chatQueryKeys } from "@/entities/chat/model/chat.query-keys"
 
 type Variables = { id: number; input: ReproposeAgreementRequest }
@@ -21,6 +22,7 @@ export function useReproposeAgreementMutation(roomId: string) {
     mutationFn: ({ id, input }: Variables) => reproposeAgreement(id, input),
     onSuccess: () => {
       toast.success("합의서를 재제안했어요")
+      queryClient.invalidateQueries({ queryKey: agreementQueryKeys.all })
       queryClient.invalidateQueries({ queryKey: chatQueryKeys.roomDetail(roomId) })
     },
     onError: (error) => {

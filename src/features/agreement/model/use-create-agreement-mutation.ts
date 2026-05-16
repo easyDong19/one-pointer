@@ -7,6 +7,7 @@ import {
   createAgreement,
   type CreateAgreementRequest,
 } from "@/entities/agreement/api/agreement.service"
+import { agreementQueryKeys } from "@/entities/agreement/model/agreement.query-keys"
 import { chatQueryKeys } from "@/entities/chat/model/chat.query-keys"
 
 /**
@@ -21,6 +22,7 @@ export function useCreateAgreementMutation(roomId: string) {
     mutationFn: (input: CreateAgreementRequest) => createAgreement(input),
     onSuccess: () => {
       toast.success("합의서를 작성했어요")
+      queryClient.invalidateQueries({ queryKey: agreementQueryKeys.all })
       queryClient.invalidateQueries({ queryKey: chatQueryKeys.roomDetail(roomId) })
     },
     onError: (error) => {

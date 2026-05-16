@@ -32,8 +32,8 @@ type Props = {
 /**
  * AGREEMENT 메시지 카드 클릭 시 노출되는 상세 다이얼로그.
  *
- * docs/app/chat.md §7.1 — 의뢰인(CLIENT) + status PROPOSED 일 때만 footer 에 승인/거절.
- * 그 외 (전문가 시점, 또는 이미 확정/거절된 합의서) 는 읽기 전용.
+ * docs/app/chat.md §7.1 — 전문가(EXPERT) + status PROPOSED 일 때만 footer 에 승인/거절.
+ * 그 외 (의뢰인 시점, 또는 이미 확정/거절된 합의서) 는 읽기 전용.
  */
 export function AgreementDetailDialog({
   isOpen,
@@ -50,7 +50,7 @@ export function AgreementDetailDialog({
 
   const agreement = query.data
   const isPending = confirmMutation.isPending || rejectMutation.isPending
-  const showActions = myRole === "CLIENT" && agreement?.status === "PROPOSED"
+  const showActions = myRole === "EXPERT" && agreement?.status === "PROPOSED"
 
   const handleConfirm = async () => {
     if (!agreement) return

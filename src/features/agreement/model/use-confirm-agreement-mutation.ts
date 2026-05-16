@@ -4,10 +4,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
 import { confirmAgreement } from "@/entities/agreement/api/agreement.service"
+import { agreementQueryKeys } from "@/entities/agreement/model/agreement.query-keys"
 import { chatQueryKeys } from "@/entities/chat/model/chat.query-keys"
 
 /**
- * `POST /v1/api/agreement/{id}/confirm` — 의뢰인 승인.
+ * `POST /v1/api/agreement/{id}/confirm` — 전문가 승인.
  *
  * 성공 시 PAYMENT_PENDING 단계로 진입.
  */
@@ -18,6 +19,7 @@ export function useConfirmAgreementMutation(roomId: string) {
     mutationFn: (id: number) => confirmAgreement(id),
     onSuccess: () => {
       toast.success("합의서를 승인했어요")
+      queryClient.invalidateQueries({ queryKey: agreementQueryKeys.all })
       queryClient.invalidateQueries({ queryKey: chatQueryKeys.roomDetail(roomId) })
     },
     onError: (error) => {
