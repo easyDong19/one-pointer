@@ -26,7 +26,7 @@ export function AgreementNeededBanner({ banner }: Props) {
       tone="primary"
       icon={FileText}
       title="합의서를 작성해주세요"
-      description="의뢰인과 작업 조건을 합의한 뒤 결제 단계로 넘어가요."
+      description="전문가와 충분히 대화한 뒤 합의서를 보내주세요."
       action={
         ticketId != null ? (
           <BannerActionButton tone="primary" onClick={handleClick}>
