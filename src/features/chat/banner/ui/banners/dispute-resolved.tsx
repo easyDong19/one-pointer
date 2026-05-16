@@ -3,7 +3,9 @@
 import { ShieldCheck } from "lucide-react"
 
 import type { ChatBannerResponse } from "@/entities/chat/api/chat.schema"
+import { openDisputeDetail } from "@/features/dispute/lib/open-dispute-detail"
 
+import { BannerActionButton } from "../banner-action-button"
 import { BannerCard } from "../banner-card"
 
 type Props = { banner: ChatBannerResponse }
@@ -14,6 +16,15 @@ type Props = { banner: ChatBannerResponse }
  */
 export function DisputeResolvedBanner({ banner }: Props) {
   const description = formatResolution(banner)
+  const ticketId = banner.ticketId
+
+  const handleClick = () => {
+    if (ticketId == null) {
+      console.warn("[dispute-resolved] ticketId is missing")
+      return
+    }
+    openDisputeDetail({ ticketId })
+  }
 
   return (
     <BannerCard
@@ -21,6 +32,13 @@ export function DisputeResolvedBanner({ banner }: Props) {
       icon={ShieldCheck}
       title="분쟁이 종결되었어요"
       description={description}
+      action={
+        ticketId != null ? (
+          <BannerActionButton tone="info" onClick={handleClick}>
+            처리 결과 보기
+          </BannerActionButton>
+        ) : undefined
+      }
     />
   )
 }
