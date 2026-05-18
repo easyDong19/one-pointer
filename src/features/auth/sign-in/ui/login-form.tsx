@@ -52,7 +52,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       if (authorizeUrl) {
         // nextPath를 sessionStorage에 저장하여 콜백에서 사용
         sessionStorage.setItem("auth_next_path", nextPath)
-        window.location.href = authorizeUrl
+        window.location.href = withForceLoginPrompt(authorizeUrl)
       }
     } catch (error) {
       setSocialLoading(false)
@@ -68,7 +68,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       const authorizeUrl = Object.values(res.data)[0]
       if (authorizeUrl) {
         sessionStorage.setItem("auth_next_path", nextPath)
-        window.location.href = authorizeUrl
+        window.location.href = withForceLoginPrompt(authorizeUrl)
       }
     } catch (error) {
       setSocialLoading(false)
@@ -191,6 +191,18 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       </div>
     </div>
   )
+}
+
+// 제공자 측 기존 세션을 무시하고 로그인 화면을 강제로 다시 띄우기 위한 OIDC `prompt=login` 부여.
+// 로그아웃 후 재로그인 시 카카오/구글 세션이 살아있어 자동 로그인되는 문제 방지.
+function withForceLoginPrompt(authorizeUrl: string): string {
+  try {
+    const url = new URL(authorizeUrl)
+    url.searchParams.set("prompt", "login")
+    return url.toString()
+  } catch {
+    return authorizeUrl
+  }
 }
 
 function resolveLoginErrorMessage(error: unknown): string | null {
