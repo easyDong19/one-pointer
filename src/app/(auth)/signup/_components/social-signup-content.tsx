@@ -168,7 +168,7 @@ export function SocialSignupContent({ provider, onSignup }: Props) {
       })
 
       clearSocialAuth()
-      await useAuthStore.getState().bootstrap()
+      await useAuthStore.getState().reload()
       const nextPath = sessionStorage.getItem("auth_next_path") || "/"
       sessionStorage.removeItem("auth_next_path")
       router.replace(nextPath)
