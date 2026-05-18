@@ -77,7 +77,7 @@ export function ChatInput({
 
   return (
     <div className="bg-background/95 border-border sticky bottom-0 z-20 border-t backdrop-blur-md">
-      <div className="flex items-end gap-2 px-4 py-3 md:px-6 lg:px-10">
+      <div className="flex items-end gap-2 px-4 py-3">
         <AttachmentMenu
           onPickImages={onPickImages}
           onPickFile={onPickFile}

@@ -16,7 +16,7 @@ export function TypingIndicator({ visible, nickname }: Props) {
   const name = nickname?.trim() || "상대방"
 
   return (
-    <div className="px-4 py-1.5 md:px-6 lg:px-10">
+    <div className="px-4 py-1.5">
       <Text
         as="span"
         typography="caption2-medium"

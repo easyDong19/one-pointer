@@ -38,7 +38,7 @@ export function ChatRoomHeader({ opponent, banner, myRole, ticketId }: Props) {
         <MobileHeader.Spacer />
       </MobileHeader>
 
-      <div className="bg-background/90 border-border sticky top-14 z-30 hidden items-center gap-3 border-b px-6 py-3 backdrop-blur-md md:flex lg:px-10">
+      <div className="bg-background/90 border-border sticky top-14 z-30 hidden items-center gap-3 border-b px-4 py-3 backdrop-blur-md md:flex">
         <Avatar imageUrl={opponent?.profileImageUrl} nickname={nickname} />
 
         <div className="min-w-0 flex-1">

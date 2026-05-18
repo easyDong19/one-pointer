@@ -73,7 +73,7 @@ export function MessageList({
   }, [messages.length])
 
   return (
-    <div className="flex flex-1 flex-col px-4 py-3 md:px-6 lg:px-10">
+    <div className="flex flex-1 flex-col px-4 py-3">
       <TicketSummaryCard progress={ticketProgress} />
 
       <div className="flex flex-1 flex-col justify-end">
