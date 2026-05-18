@@ -1,10 +1,13 @@
+import type { Banner } from "@/entities/banner/api/banner.schema"
 import type { Category } from "@/entities/category/api/category.schema"
 import type { ExpertSummary } from "@/entities/expert/api/expert.schema"
 import type { TicketFeedItem } from "@/entities/ticket/api/ticket.schema"
+import { getHomeBannersOnServer } from "@/entities/banner/api/banner.server-service"
 import { getCategoriesOnServer } from "@/entities/category/api/category.server-service"
 import { getPopularExpertsOnServer } from "@/entities/expert/api/expert.server-service"
 import { getPopularTicketsOnServer } from "@/entities/ticket/api/ticket.server-service"
 import { PageShell, PageShellContent, PageShellFooter } from "@/shared/ui/page-shell"
+import { HomeBannerSection } from "@/features/home/banner/ui/home-banner-section"
 import { HomeCategoryGrid } from "@/app/(main)/_components/home-category-grid"
 import { HomePopularTickets } from "@/app/(main)/_components/home-popular-tickets"
 import { HomePopularExperts } from "@/app/(main)/_components/home-popular-experts"
@@ -22,7 +25,8 @@ async function fetchSafe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
 }
 
 export default async function HomePage() {
-  const [categories, popularTickets, popularExperts] = await Promise.all([
+  const [banners, categories, popularTickets, popularExperts] = await Promise.all([
+    fetchSafe<Banner[]>(getHomeBannersOnServer, []),
     fetchSafe<Category[]>(getCategoriesOnServer, []),
     fetchSafe<TicketFeedItem[]>(getPopularTicketsOnServer, []),
     fetchSafe<ExpertSummary[]>(getPopularExpertsOnServer, []),
@@ -32,6 +36,7 @@ export default async function HomePage() {
     <PageShell tier="shell">
       <PageShellContent>
         <div className="flex flex-col gap-8 md:gap-10">
+          <HomeBannerSection banners={banners} />
           <HomeCategoryGrid categories={categories} />
           <HomePopularTickets tickets={popularTickets} />
           <HomePopularExperts experts={popularExperts} />
