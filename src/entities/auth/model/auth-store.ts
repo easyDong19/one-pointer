@@ -9,11 +9,51 @@ type AuthStore = {
   initialized: boolean
   user: AuthUser | null
   bootstrap: () => Promise<void>
+  reload: () => Promise<void>
   setAuthenticated: (user: AuthUser) => void
   setUnauthenticated: () => void
 }
 
 let bootstrapLock: Promise<void> | null = null
+
+async function fetchAndApplyProfile(set: (partial: Partial<AuthStore>) => void) {
+  if (bootstrapLock) {
+    await bootstrapLock
+    return
+  }
+
+  bootstrapLock = (async () => {
+    set({ status: "loading" })
+
+    try {
+      const profile = await getMyProfile()
+      set({
+        status: "authenticated",
+        initialized: true,
+        user: profile,
+      })
+      return
+    } catch (error) {
+      if (isApiError(error) && error.status === 401) {
+        set({
+          status: "unauthenticated",
+          initialized: true,
+          user: null,
+        })
+        return
+      }
+
+      set({
+        status: "error",
+        initialized: true,
+      })
+    }
+  })().finally(() => {
+    bootstrapLock = null
+  })
+
+  await bootstrapLock
+}
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
   status: "idle",
@@ -23,43 +63,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     if (get().initialized) {
       return
     }
-
-    if (bootstrapLock) {
-      await bootstrapLock
-      return
-    }
-
-    bootstrapLock = (async () => {
-      set({ status: "loading" })
-
-      try {
-        const profile = await getMyProfile()
-        set({
-          status: "authenticated",
-          initialized: true,
-          user: profile,
-        })
-        return
-      } catch (error) {
-        if (isApiError(error) && error.status === 401) {
-          set({
-            status: "unauthenticated",
-            initialized: true,
-            user: null,
-          })
-          return
-        }
-
-        set({
-          status: "error",
-          initialized: true,
-        })
-      }
-    })().finally(() => {
-      bootstrapLock = null
-    })
-
-    await bootstrapLock
+    await fetchAndApplyProfile(set)
+  },
+  reload: async () => {
+    await fetchAndApplyProfile(set)
   },
   setAuthenticated: (user) =>
     set({

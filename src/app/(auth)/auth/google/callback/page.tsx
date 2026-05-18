@@ -56,7 +56,7 @@ export default function GoogleCallbackPage() {
         saveSocialAuth("google", googleAccessToken, googleInfo)
         router.replace("/signup/google")
       } else {
-        await useAuthStore.getState().bootstrap()
+        await useAuthStore.getState().reload()
         const nextPath = sessionStorage.getItem("auth_next_path") || "/"
         sessionStorage.removeItem("auth_next_path")
         router.replace(resolveNextPath(nextPath))
