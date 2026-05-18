@@ -20,7 +20,7 @@ export function ProgressStepper({ progress }: Props) {
 
   return (
     <div className="border-border bg-background border-b">
-      <div className="scrollbar-none flex items-center gap-3 overflow-x-auto px-4 py-3 md:px-6 lg:px-10">
+      <div className="scrollbar-none flex items-center gap-3 overflow-x-auto px-4 py-3">
         {steps.map((step, index) => (
           <Step
             key={`${step.label ?? index}-${index}`}
