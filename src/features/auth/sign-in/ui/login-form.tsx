@@ -11,6 +11,12 @@ import { Input } from "@/shared/ui/input"
 import { PasswordInput } from "@/shared/ui/password-input"
 import { SocialLoginButton } from "@/shared/ui/social-login-button"
 import { Text } from "@/shared/ui/text"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip"
 import { ApiError } from "@/shared/api/http/api-error"
 import { loginRequestSchema, type LoginRequest } from "@/entities/auth/api/auth.schema"
 import { getKakaoAuthorizeUrl, getGoogleAuthorizeUrl } from "@/entities/auth/api/auth.service"
@@ -175,7 +181,23 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       <div className="flex flex-col gap-3">
         <SocialLoginButton provider="kakao" onClick={handleKakaoLogin} disabled={isPending} />
         <SocialLoginButton provider="google" onClick={handleGoogleLogin} disabled={isPending} />
-        <SocialLoginButton provider="apple" disabled={isPending} />
+        <TooltipProvider delayDuration={150}>
+          <Tooltip>
+            {/* 비활성 button 은 pointer event 를 받지 못해 tooltip trigger 가 안되므로,
+                focusable wrapper 로 감싸서 hover/focus 를 캡쳐한다. */}
+            <TooltipTrigger asChild>
+              <span tabIndex={0} className="block w-full cursor-not-allowed">
+                <SocialLoginButton
+                  provider="apple"
+                  disabled
+                  aria-disabled="true"
+                  tabIndex={-1}
+                />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top">추후 지원 예정이에요</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* 회원가입 링크 */}
