@@ -19,49 +19,51 @@ import {
   SelectValue,
 } from "@/shared/ui/select"
 import { Text } from "@/shared/ui/text"
-import { cn } from "@/shared/lib/utils"
 
 import { formatPrice, parsePrice } from "@/features/agreement/lib/format-price"
 import { useCreateProposalMutation } from "../model/use-create-proposal-mutation"
-import {
-  METHOD_LABEL,
-  PROPOSED_DURATION_OPTIONS,
-} from "../lib/proposal.constants"
-
-type Method = "OFFLINE" | "ONLINE" | "BOTH"
+import { PROPOSED_DURATION_OPTIONS } from "../lib/proposal.constants"
 
 type Props = {
   isOpen: boolean
   ticketId: number
-  /** 의뢰의 ticketType 에 맞춘 기본값 */
-  defaultMethod?: Method
+  /**
+   * 의뢰의 ticketType. 노출 필드와 검증 규칙이 이 값으로 결정된다.
+   *
+   * - `ONLINE` → `onlineTool` 만 노출 (필수)
+   * - `OFFLINE` → `locationProposal` 만 노출 (선택)
+   *
+   * 모바일(ProposalCreateController) 과 동일한 도메인 규칙. 제안자가 별도로 진행
+   * 방식을 선택하는 자유도는 없다 — 의뢰의 ticketType 으로 완전히 결정된다.
+   * 자세한 경위는 `docs/bug-fix/proposal-form-method-picker.md` 참조.
+   */
+  ticketType: "OFFLINE" | "ONLINE"
   onClose: () => void
 }
 
 export function ProposalFormDialog({
   isOpen,
   ticketId,
-  defaultMethod = "OFFLINE",
+  ticketType,
   onClose,
 }: Props) {
   const createMutation = useCreateProposalMutation(ticketId)
 
   const [priceText, setPriceText] = useState("")
   const [proposedDuration, setProposedDuration] = useState<string>("")
-  const [method, setMethod] = useState<Method>(defaultMethod)
   const [locationProposal, setLocationProposal] = useState("")
   const [onlineTool, setOnlineTool] = useState("")
   const [appeal, setAppeal] = useState("")
 
+  const isOnline = ticketType === "ONLINE"
+  const isOffline = ticketType === "OFFLINE"
   const price = parsePrice(priceText)
   const isSubmitting = createMutation.isPending
-  const showLocation = method === "OFFLINE" || method === "BOTH"
-  const showOnlineTool = method === "ONLINE" || method === "BOTH"
   const canSubmit =
     price > 0 &&
     !isSubmitting &&
-    (showLocation ? locationProposal.trim().length > 0 : true) &&
-    (showOnlineTool ? onlineTool.trim().length > 0 : true)
+    // ONLINE 의뢰면 onlineTool 필수, OFFLINE 의뢰면 locationProposal 은 선택사항
+    (isOnline ? onlineTool.trim().length > 0 : true)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,8 +73,12 @@ export function ProposalFormDialog({
       ticketId,
       price,
       proposedDuration: proposedDuration ? (proposedDuration as never) : undefined,
-      locationProposal: showLocation ? locationProposal.trim() : undefined,
-      onlineTool: showOnlineTool ? onlineTool.trim() : undefined,
+      locationProposal:
+        isOffline && locationProposal.trim().length > 0
+          ? locationProposal.trim()
+          : undefined,
+      onlineTool:
+        isOnline && onlineTool.trim().length > 0 ? onlineTool.trim() : undefined,
       appeal: appeal.trim() || undefined,
     })
     onClose()
@@ -116,28 +122,8 @@ export function ProposalFormDialog({
             </Select>
           </Field>
 
-          <Field label="진행 방식" required>
-            <div className="flex gap-2">
-              {(["OFFLINE", "ONLINE", "BOTH"] as Method[]).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setMethod(m)}
-                  className={cn(
-                    "flex-1 rounded-md border px-3 py-2 text-sm transition-colors",
-                    method === m
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-input text-muted-foreground hover:bg-muted",
-                  )}
-                >
-                  {METHOD_LABEL[m]}
-                </button>
-              ))}
-            </div>
-          </Field>
-
-          {showLocation && (
-            <Field label="장소 제안" required>
+          {isOffline && (
+            <Field label="장소 제안">
               <Input
                 value={locationProposal}
                 onChange={(e) => setLocationProposal(e.target.value)}
@@ -146,7 +132,7 @@ export function ProposalFormDialog({
             </Field>
           )}
 
-          {showOnlineTool && (
+          {isOnline && (
             <Field label="온라인 도구" required>
               <Input
                 value={onlineTool}

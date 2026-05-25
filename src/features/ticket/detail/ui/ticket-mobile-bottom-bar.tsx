@@ -29,7 +29,7 @@ export function TicketMobileBottomBar({ ticket }: { ticket: TicketDetail }) {
     }
     openProposalForm({
       ticketId: ticket.id,
-      defaultMethod: ticket.ticketType === "ONLINE" ? "ONLINE" : "OFFLINE",
+      ticketType: ticket.ticketType,
     })
   }
 

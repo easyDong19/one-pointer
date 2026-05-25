@@ -149,10 +149,20 @@ function CategorySection() {
   const subId = useTicketCreateForm((s) => s.subCategoryId)
   const setField = useTicketCreateForm((s) => s.setField)
 
-  const currentMajor = useMemo(
-    () => categories.find((c) => c.id === majorId) ?? null,
-    [categories, majorId],
-  )
+  // majorId 가 store 에 없을 때 (edit 모드 prefill 이 sub 만 들고옴) subId 로부터
+  // 대분류를 역추적해서 UI 표시를 보장한다. 사용자가 명시적으로 대분류를 바꾸면
+  // 그때 setField("selectedMajorCategoryId", ...) 가 호출되어 store 도 정합.
+  const currentMajor = useMemo(() => {
+    if (majorId != null) return categories.find((c) => c.id === majorId) ?? null
+    if (subId != null) {
+      return (
+        categories.find((c) =>
+          c.subCategories.some((s) => s.id === subId),
+        ) ?? null
+      )
+    }
+    return null
+  }, [categories, majorId, subId])
 
   const subOptions = currentMajor?.subCategories ?? []
 
@@ -198,8 +208,8 @@ function CategorySection() {
 
           <RequiredLabel>중분류</RequiredLabel>
           <ExpandableSelect
-            placeholder={majorId == null ? "대분류를 먼저 선택하세요" : "선택하세요"}
-            disabled={majorId == null}
+            placeholder={currentMajor == null ? "대분류를 먼저 선택하세요" : "선택하세요"}
+            disabled={currentMajor == null}
             value={
               subOptions.find((s) => s.id === subId)
                 ? { id: subId as number, label: subOptions.find((s) => s.id === subId)!.name }
