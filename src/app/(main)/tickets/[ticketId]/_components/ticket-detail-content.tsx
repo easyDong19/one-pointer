@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
+import { toast } from "sonner"
 import { Text } from "@/shared/ui/text"
 import { Separator } from "@/shared/ui/separator"
 import { PageShell } from "@/shared/ui/page-shell"
@@ -14,19 +15,26 @@ import { TicketInfo } from "@/features/ticket/detail/ui/ticket-info"
 import { TicketDesktopSidebar } from "@/features/ticket/detail/ui/ticket-desktop-sidebar"
 import { TicketMobileBottomBar } from "@/features/ticket/detail/ui/ticket-mobile-bottom-bar"
 import { useAuthStore } from "@/entities/auth/model/auth-store"
+import { getTicketEditAction } from "@/entities/ticket/lib/ticket.constants"
 import { TicketProposalsSection } from "@/features/proposal/ui/ticket-proposals-section"
-
-const EDITABLE_STATUSES = new Set(["OPEN", "IN_REVIEW"])
 
 export function TicketDetailContent({ ticketId }: { ticketId: number }) {
   const router = useRouter()
   const { data: ticket, isLoading, isError, error } = useTicketDetailQuery(ticketId)
   const userId = useAuthStore((s) => s.user?.id)
-  const canEdit =
-    ticket != null &&
-    userId != null &&
-    userId === ticket.clientId &&
-    EDITABLE_STATUSES.has(ticket.status)
+  const isOwner = ticket != null && userId != null && userId === ticket.clientId
+  const editAction = ticket != null ? getTicketEditAction(ticket.status) : null
+  // 모바일과 동일: OPEN(editable) + IN_REVIEW(blocked) 둘 다 버튼 노출, 그 외 숨김
+  const showEditButton = isOwner && editAction != null && editAction.kind !== "hidden"
+
+  function handleEdit() {
+    if (!ticket || !editAction) return
+    if (editAction.kind === "blocked") {
+      toast.info(editAction.message)
+      return
+    }
+    router.push(`/tickets/${ticket.id}/edit`)
+  }
 
   if (isLoading) {
     return (
@@ -68,9 +76,7 @@ export function TicketDetailContent({ ticketId }: { ticketId: number }) {
   return (
     <PageShell tier="content">
       <PageShell.Header>
-        <TicketDetailHeader
-          onEdit={canEdit ? () => router.push(`/tickets/${ticket.id}/edit`) : undefined}
-        />
+        <TicketDetailHeader onEdit={showEditButton ? handleEdit : undefined} />
       </PageShell.Header>
 
       <PageShell.Content spacing="none">

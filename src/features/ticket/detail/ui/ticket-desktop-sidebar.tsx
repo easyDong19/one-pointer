@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 import { Text } from "@/shared/ui/text"
 import { Badge } from "@/shared/ui/badge"
@@ -11,13 +12,12 @@ import {
   STATUS_LABEL,
   LEVEL_LABEL,
   TICKET_TYPE_LABEL,
+  getTicketEditAction,
 } from "@/entities/ticket/lib/ticket.constants"
 import type { TicketDetail } from "@/entities/ticket/api/ticket.schema"
 import { useAuthStore } from "@/entities/auth/model/auth-store"
 import { openProposalForm } from "@/features/proposal/lib/open-proposal-form"
 import { openExpertRegisterPrompt, useExpertExistsQuery } from "@/features/mypage"
-
-const EDITABLE_STATUSES = new Set(["OPEN", "IN_REVIEW"])
 
 export function TicketDesktopSidebar({ ticket }: { ticket: TicketDetail }) {
   const router = useRouter()
@@ -26,7 +26,17 @@ export function TicketDesktopSidebar({ ticket }: { ticket: TicketDetail }) {
   const { data: expertExists, isLoading: isExpertLoading } = useExpertExistsQuery()
   const statusInfo = STATUS_LABEL[ticket.status] ?? STATUS_LABEL.OPEN
   const canPropose = ticket.status === "OPEN" || ticket.status === "IN_REVIEW"
-  const canEdit = isOwner && EDITABLE_STATUSES.has(ticket.status)
+  const editAction = getTicketEditAction(ticket.status)
+  // 모바일 동일: OPEN + IN_REVIEW 둘 다 버튼 노출, 그 외 숨김
+  const showEditButton = isOwner && editAction.kind !== "hidden"
+
+  function handleEdit() {
+    if (editAction.kind === "blocked") {
+      toast.info(editAction.message)
+      return
+    }
+    router.push(`/tickets/${ticket.id}/edit`)
+  }
 
   const handleSendProposal = async () => {
     if (isExpertLoading) return
@@ -37,7 +47,7 @@ export function TicketDesktopSidebar({ ticket }: { ticket: TicketDetail }) {
     }
     openProposalForm({
       ticketId: ticket.id,
-      defaultMethod: ticket.ticketType === "ONLINE" ? "ONLINE" : "OFFLINE",
+      ticketType: ticket.ticketType,
     })
   }
 
@@ -108,14 +118,14 @@ export function TicketDesktopSidebar({ ticket }: { ticket: TicketDetail }) {
           </>
         )}
 
-        {canEdit && (
+        {showEditButton && (
           <>
             <Separator />
             <Button
               size="lg"
               variant="outline"
               className="w-full"
-              onClick={() => router.push(`/tickets/${ticket.id}/edit`)}
+              onClick={handleEdit}
             >
               <Text as="span" typography="body2-bold">
                 의뢰 수정

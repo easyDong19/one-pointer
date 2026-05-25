@@ -9,10 +9,7 @@ import { useAuthStore } from "@/entities/auth/model/auth-store"
 import { Text } from "@/shared/ui/text"
 import { openConfirm } from "@/shared/lib/open-confirm-dialog"
 
-import {
-  matchesNotificationTab,
-  type NotificationFilterTab,
-} from "../lib/notification-filter"
+import { matchesNotificationTab, type NotificationFilterTab } from "../lib/notification-filter"
 import { resolveNotificationHref } from "../lib/notification-navigation"
 import { useNotificationsQuery } from "../model/use-notifications-query"
 import { useReadNotification } from "../model/use-read-notification"
@@ -27,24 +24,14 @@ export function NotificationListContent() {
 
   const [activeTab, setActiveTab] = useState<NotificationFilterTab>("ALL")
 
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-  } = useNotificationsQuery(isAuthed)
+  const { data, isLoading, isError, refetch, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useNotificationsQuery(isAuthed)
 
   const readMutation = useReadNotification()
   const readAllMutation = useReadAllNotifications()
   const deleteMutation = useDeleteNotification()
 
-  const allNotifications = useMemo(
-    () => data?.pages.flatMap((p) => p.content) ?? [],
-    [data],
-  )
+  const allNotifications = useMemo(() => data?.pages.flatMap((p) => p.content) ?? [], [data])
 
   const filtered = useMemo(
     () => allNotifications.filter((n) => matchesNotificationTab(activeTab, n)),
@@ -72,7 +59,7 @@ export function NotificationListContent() {
 
   return (
     <section className="flex flex-col">
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+      <div className="flex items-center justify-between px-2 pt-4 pb-2">
         <Text as="h2" typography="subtitle1-bold">
           알림
         </Text>

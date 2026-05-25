@@ -30,9 +30,13 @@ export const sourceTypeSchema = z.enum(["TICKET_FEED", "DIRECT_REQUEST"])
 
 // ─── Sub-schemas ─────────────────────────────────────────────────────────────
 
-/** DesiredDateResponse — 응답에 id 포함 */
+/** DesiredDateResponse — 응답에 id 포함.
+ *
+ * 실측: PUT/POST 응답에서 새로 생성된 행은 `id` 가 `null` 로 내려옴
+ * (백엔드 직렬화 시점 이슈로 추정). GET 응답에선 정상 number.
+ */
 export const desiredDateSchema = z.object({
-  id: z.number(),
+  id: z.number().nullable(),
   date: z.string(),
   timeSlot: z.string(),
 })
@@ -45,9 +49,12 @@ export const desiredDateRequestSchema = z.object({
 
 export type DesiredDateRequest = z.infer<typeof desiredDateRequestSchema>
 
-/** TicketImageResponse */
+/** TicketImageResponse.
+ *
+ * 실측: PUT/POST 응답에서 새로 생성된 row 의 `id` 가 `null` 로 내려옴.
+ */
 export const ticketImageSchema = z.object({
-  id: z.number(),
+  id: z.number().nullable(),
   imageUrl: z.string(),
   displayOrder: z.number(),
 })

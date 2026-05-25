@@ -19,13 +19,15 @@ import { useTicketCreateForm } from "../model/use-ticket-create-form"
 export function TicketCreateMobileStepper() {
   const { steps, currentIndex, goTo } = useStepFlow()
   const completedSet = useCompletedStepSet()
+  const isEdit = useTicketCreateForm((s) => s.mode === "edit")
 
   return (
     <div className="bg-background border-border flex items-center border-b px-6 py-4 md:hidden">
       {steps.map((step, idx) => {
         const isCompleted = completedSet.has(step) && idx < currentIndex
         const isCurrent = idx === currentIndex
-        const canJump = idx <= currentIndex || completedSet.has(step)
+        // edit 모드는 모든 스탭이 prefill 되어 있으므로 자유 점프 허용
+        const canJump = isEdit || idx <= currentIndex || completedSet.has(step)
 
         return (
           <Fragment key={step}>
@@ -71,6 +73,7 @@ export function TicketCreateDesktopStepper() {
   const { steps, currentStep, currentIndex, totalCount, progress, goTo } =
     useStepFlow()
   const completedSet = useCompletedStepSet()
+  const isEdit = useTicketCreateForm((s) => s.mode === "edit")
 
   return (
     <aside className="sticky top-20 hidden h-fit w-72 shrink-0 flex-col gap-6 md:flex">
@@ -90,7 +93,8 @@ export function TicketCreateDesktopStepper() {
         {steps.map((step, idx) => {
           const isCurrent = step === currentStep
           const isCompleted = completedSet.has(step) && idx < currentIndex
-          const canJump = isCompleted || idx <= currentIndex
+          // edit 모드는 모든 스탭이 prefill 되어 있으므로 자유 점프 허용
+          const canJump = isEdit || isCompleted || idx <= currentIndex
 
           return (
             <li key={step}>
