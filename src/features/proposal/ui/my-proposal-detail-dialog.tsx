@@ -1,6 +1,5 @@
 "use client"
 
-import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import {
   Dialog,
@@ -9,8 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog"
-import { Separator } from "@/shared/ui/separator"
 import { Text } from "@/shared/ui/text"
+import { cn } from "@/shared/lib/utils"
+import { formatDate } from "@/shared/lib/format"
 import { openConfirm } from "@/shared/lib/open-confirm-dialog"
 import { formatPrice } from "@/features/agreement/lib/format-price"
 
@@ -26,6 +26,14 @@ type Props = {
   isOpen: boolean
   proposalId: number
   onClose: () => void
+}
+
+const STATUS_PILL_CLASS: Record<string, string> = {
+  PENDING: "bg-primary/10 text-primary",
+  SELECTED: "bg-emerald-50 text-emerald-700",
+  COMPLETED: "bg-blue-50 text-blue-700",
+  REJECTED: "bg-rose-50 text-rose-600",
+  WITHDRAWN: "bg-muted text-muted-foreground",
 }
 
 export function MyProposalDetailDialog({ isOpen, proposalId, onClose }: Props) {
@@ -44,12 +52,11 @@ export function MyProposalDetailDialog({ isOpen, proposalId, onClose }: Props) {
     onClose()
   }
 
-  const statusLabel = data?.status ? PROPOSAL_STATUS_LABEL[data.status] : null
   const canWithdraw = data?.status === "PENDING"
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl md:p-8">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg md:p-8">
         <DialogHeader>
           <DialogTitle>내 제안서</DialogTitle>
         </DialogHeader>
@@ -61,91 +68,154 @@ export function MyProposalDetailDialog({ isOpen, proposalId, onClose }: Props) {
             ))}
           </div>
         ) : error || !data ? (
-          <Text typography="body2-medium" className="text-muted-foreground py-8 text-center">
+          <Text
+            as="p"
+            typography="body2-medium"
+            className="text-muted-foreground py-8 text-center"
+          >
             제안서를 불러올 수 없어요
           </Text>
         ) : (
           <div className="flex flex-col gap-5">
             {/* 의뢰 정보 */}
             {data.ticketInfo && (
-              <div className="bg-muted rounded-lg p-4">
-                <Text typography="caption1-medium" className="text-muted-foreground mb-1">
+              <div className="bg-muted flex flex-col gap-1 rounded-xl p-4">
+                <Text
+                  as="p"
+                  typography="caption2-medium"
+                  className="text-muted-foreground"
+                >
                   의뢰
                 </Text>
-                <Text typography="body1-bold" className="text-foreground">
+                <Text
+                  as="p"
+                  typography="body2-bold"
+                  className="text-foreground line-clamp-2 leading-snug"
+                >
                   {data.ticketInfo.title ?? "(제목 없음)"}
                 </Text>
-                {data.ticketInfo.subCategoryName && (
-                  <Text typography="caption1-medium" className="text-muted-foreground mt-1">
-                    {data.ticketInfo.subCategoryName}
-                    {data.ticketInfo.clientNickname ? ` · ${data.ticketInfo.clientNickname}` : ""}
+                {(data.ticketInfo.subCategoryName ||
+                  data.ticketInfo.clientNickname) && (
+                  <Text
+                    as="p"
+                    typography="caption1-medium"
+                    className="text-muted-foreground"
+                  >
+                    {[data.ticketInfo.subCategoryName, data.ticketInfo.clientNickname]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </Text>
                 )}
               </div>
             )}
 
-            {/* 상태 + 가격 */}
-            <div className="flex items-center justify-between">
-              {statusLabel && (
-                <Badge variant={data.status === "PENDING" ? "default" : "secondary"}>
-                  {statusLabel}
-                </Badge>
-              )}
-              <Text typography="subtitle1-bold" className="text-foreground tabular-nums">
+            {/* 상태 + 제안 금액 */}
+            <div className="flex items-end justify-between">
+              <div className="flex flex-col gap-1.5">
+                {data.status && (
+                  <span
+                    className={cn(
+                      "inline-flex w-fit items-center rounded-full px-2.5 py-1",
+                      STATUS_PILL_CLASS[data.status] ??
+                        "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    <Text typography="caption2-bold" className="text-current">
+                      {PROPOSAL_STATUS_LABEL[data.status] ?? data.status}
+                    </Text>
+                  </span>
+                )}
+                <Text
+                  as="span"
+                  typography="caption2-medium"
+                  className="text-muted-foreground"
+                >
+                  제안 금액
+                </Text>
+              </div>
+              <Text
+                as="span"
+                typography="h3-bold"
+                className="text-foreground tabular-nums"
+              >
                 {data.price != null ? `${formatPrice(data.price)}원` : "-"}
               </Text>
             </div>
 
-            <Separator />
-
             {/* 상세 */}
-            <div className="flex flex-col gap-2.5">
+            <dl className="border-border flex flex-col gap-3 border-t pt-4">
               {data.proposedDuration && (
                 <InfoRow
                   label="소요 시간"
-                  value={PROPOSED_DURATION_LABEL[data.proposedDuration] ?? data.proposedDuration}
+                  value={
+                    PROPOSED_DURATION_LABEL[data.proposedDuration] ??
+                    data.proposedDuration
+                  }
                 />
               )}
-              {data.method && <InfoRow label="진행 방식" value={METHOD_LABEL[data.method]} />}
+              {data.method && (
+                <InfoRow label="진행 방식" value={METHOD_LABEL[data.method]} />
+              )}
               {data.locationProposal && (
                 <InfoRow label="장소 제안" value={data.locationProposal} />
               )}
-              {data.onlineTool && <InfoRow label="온라인 도구" value={data.onlineTool} />}
-            </div>
+              {data.onlineTool && (
+                <InfoRow label="온라인 도구" value={data.onlineTool} />
+              )}
+            </dl>
 
             {data.appeal && (
-              <>
-                <Separator />
-                <div className="flex flex-col gap-1.5">
-                  <Text typography="caption1-medium" className="text-muted-foreground">
-                    자기 어필
-                  </Text>
-                  <Text typography="body2-regular" className="text-foreground whitespace-pre-wrap">
-                    {data.appeal}
-                  </Text>
-                </div>
-              </>
+              <div className="bg-muted/50 flex flex-col gap-1.5 rounded-xl p-4">
+                <Text
+                  as="p"
+                  typography="caption2-medium"
+                  className="text-muted-foreground"
+                >
+                  자기 어필
+                </Text>
+                <Text
+                  as="p"
+                  typography="body3-regular"
+                  className="text-foreground leading-relaxed whitespace-pre-wrap"
+                >
+                  {data.appeal}
+                </Text>
+              </div>
             )}
 
             {data.availableDates && data.availableDates.length > 0 && (
-              <>
-                <Separator />
-                <div className="flex flex-col gap-1.5">
-                  <Text typography="caption1-medium" className="text-muted-foreground">
-                    가능 날짜
-                  </Text>
-                  <ul className="flex flex-col gap-1">
-                    {data.availableDates.map((d, i) => (
-                      <li key={i}>
-                        <Text typography="body2-regular" className="text-foreground">
-                          {d.availableDate}
-                          {d.timeSlot ? ` · ${d.timeSlot}` : ""}
+              <div className="border-border flex flex-col gap-2 border-t pt-4">
+                <Text
+                  as="p"
+                  typography="caption2-medium"
+                  className="text-muted-foreground"
+                >
+                  가능 날짜
+                </Text>
+                <ul className="flex flex-col gap-1.5">
+                  {data.availableDates.map((d, i) => (
+                    <li
+                      key={`${d.availableDate}-${i}`}
+                      className="bg-muted flex items-center justify-between rounded-lg px-3 py-2"
+                    >
+                      <Text
+                        typography="body3-medium"
+                        className="text-foreground tabular-nums"
+                      >
+                        {formatDate(d.availableDate)}
+                      </Text>
+                      {d.timeSlot && (
+                        <Text
+                          typography="caption1-medium"
+                          className="text-muted-foreground tabular-nums"
+                        >
+                          {d.timeSlot}
                         </Text>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
         )}
@@ -175,15 +245,25 @@ export function MyProposalDetailDialog({ isOpen, proposalId, onClose }: Props) {
   )
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({
+  label,
+  value,
+}: {
+  label: string
+  value: string
+}) {
   return (
-    <div className="flex items-center justify-between">
-      <Text as="span" typography="body3-regular" className="text-muted-foreground">
-        {label}
-      </Text>
-      <Text as="span" typography="body3-medium" className="text-foreground">
-        {value}
-      </Text>
+    <div className="flex items-start justify-between gap-4">
+      <dt className="shrink-0">
+        <Text typography="body3-regular" className="text-muted-foreground">
+          {label}
+        </Text>
+      </dt>
+      <dd className="min-w-0 text-right">
+        <Text typography="body3-medium" className="text-foreground">
+          {value}
+        </Text>
+      </dd>
     </div>
   )
 }
