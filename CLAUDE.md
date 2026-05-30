@@ -85,3 +85,12 @@ export function openFooForm(initial?: Foo): Promise<FooFormData | null> {
 - [`features/mypage/lib/open-expert-register-prompt.tsx`](src/features/mypage/lib/open-expert-register-prompt.tsx)
 - [`features/region/select/lib/open-region-picker.tsx`](src/features/region/select/lib/open-region-picker.tsx)
 - [`features/auth/guard/lib/open-login-prompt.tsx`](src/features/auth/guard/lib/open-login-prompt.tsx)
+
+## 작업 완료 후 절차 (커밋/배포)
+
+하나의 작업(기능·수정·리디자인 등)을 끝내면 **항상 사용자에게 "커밋 → push → PR → main 머지 → 최신화"를 진행할지 물어본다.** 동의 없이 자동으로 커밋/푸시/머지하지 않는다.
+
+- 진행 동의 시 `ship` 스킬(`/ship`)의 절차를 따른다 (브랜치 생성 → 커밋 → push → `gh` PR → 충돌 없으면 머지 → `git pull` 최신화).
+- 그 전에 항상 `tsc` / `eslint` 로 검증한다.
+- **dev 서버는 직접 켜거나 localhost 로 접속해 확인하지 않는다.** 런타임 확인은 사용자가 직접 한다.
+- 충돌(`CONFLICTING`)·CI 실패 등 예외는 임의 해결하지 말고 보고 후 지시를 받는다.
