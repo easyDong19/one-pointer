@@ -40,7 +40,8 @@ const TICKET_DETAIL_TYPES: ReadonlySet<NotificationType> = new Set([
   "DIRECT_REQUEST_RECEIVED",
   "DIRECT_REQUEST_REJECTED",
   "DIRECT_REQUEST_EXPIRED",
-  "PROPOSAL_RECEIVED",
+  // PROPOSAL_RECEIVED 는 targetType 이 PROPOSAL 이고 targetId 가 proposalId 라
+  // /tickets 가 아닌 /proposals 로 보낸다 (아래 PROPOSAL 분기에서 처리).
 ])
 
 const REVIEW_TYPES: ReadonlySet<NotificationType> = new Set([
@@ -60,6 +61,11 @@ const DISPUTE_TYPES: ReadonlySet<NotificationType> = new Set([
 ])
 
 export function getNotificationHref(n: Notification): string | null {
+  // 제안 알림: targetId 는 proposalId → 제안 상세 페이지로 이동
+  if (n.targetType === "PROPOSAL") {
+    return n.targetId ? `/proposals/${n.targetId}` : null
+  }
+
   if (CHAT_ROOM_TYPES.has(n.type)) {
     if (n.roomId) return `/chat/${n.roomId}`
     return null
