@@ -17,7 +17,9 @@ export function useUpdateExpertProfileMutation() {
         detailIntroduction: values.detailIntroduction || undefined,
         careerPeriod: values.careerPeriod || undefined,
         activityMethod: values.activityMethod,
-        bannerImageUrl: values.bannerImageUrl ?? undefined,
+        // 배너 제거 시 null 이 들어오는데, 백엔드는 null 을 "변경 없음"으로 무시하므로
+        // 빈 문자열을 보내 실제로 비운다. (URL 이 있으면 그대로 전송)
+        bannerImageUrl: values.bannerImageUrl ?? "",
         subCategoryIds: values.subCategoryIds,
         availableTimes: formSlotsToApi(values.availableTimes),
         availableRegions: values.availableRegions,
