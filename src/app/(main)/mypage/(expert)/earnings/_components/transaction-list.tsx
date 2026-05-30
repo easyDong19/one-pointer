@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2 } from "lucide-react"
+import { Loader2, Receipt } from "lucide-react"
 
 import type { TransactionStatus } from "@/entities/earnings/api/earnings.schema"
 import { useEarningsTransactionsQuery } from "@/features/mypage/earnings"
@@ -30,17 +30,17 @@ export function TransactionList() {
         거래 내역
       </Text>
 
-      <div className="flex gap-1.5">
+      <div className="bg-muted inline-flex gap-1 self-start rounded-full p-1">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
             type="button"
             onClick={() => setStatus(tab.value)}
             className={cn(
-              "rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
+              "rounded-full px-4 py-1.5 text-sm font-medium transition-all",
               status === tab.value
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-accent",
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {tab.label}
@@ -53,14 +53,17 @@ export function TransactionList() {
           <Loader2 className="text-primary h-6 w-6 animate-spin" />
         </div>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12">
+        <div className="border-border bg-card flex flex-col items-center justify-center rounded-2xl border border-dashed py-16">
+          <div className="bg-muted mb-3 flex h-12 w-12 items-center justify-center rounded-full">
+            <Receipt className="text-muted-foreground h-5 w-5" />
+          </div>
           <Text typography="body2-medium" className="text-muted-foreground">
             거래 내역이 없어요
           </Text>
         </div>
       ) : (
         <>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2.5">
             {items.map((item) => (
               <TransactionItemCard key={item.paymentId} item={item} />
             ))}
