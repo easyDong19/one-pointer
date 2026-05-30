@@ -2,6 +2,7 @@
 
 import { Pencil, Share2 } from "lucide-react"
 import { MobileHeader } from "@/shared/ui/mobile-header"
+import { useShare } from "@/shared/hooks/use-share"
 
 type Props = {
   /** 본인 + 편집 가능 상태일 때 전달. 없으면 수정 버튼 미노출 */
@@ -9,13 +10,7 @@ type Props = {
 }
 
 export function TicketDetailHeader({ onEdit }: Props = {}) {
-  const handleShare = async () => {
-    if (navigator.share) {
-      await navigator.share({ url: window.location.href })
-    } else {
-      await navigator.clipboard.writeText(window.location.href)
-    }
-  }
+  const share = useShare()
 
   return (
     <MobileHeader>
@@ -33,7 +28,7 @@ export function TicketDetailHeader({ onEdit }: Props = {}) {
             </button>
           )}
           <button
-            onClick={handleShare}
+            onClick={() => share()}
             aria-label="공유"
             className="flex h-9 w-9 items-center justify-center"
           >
