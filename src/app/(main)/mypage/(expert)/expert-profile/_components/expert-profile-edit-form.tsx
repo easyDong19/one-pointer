@@ -303,9 +303,6 @@ export function ExpertProfileEditForm() {
             <Text as="label" typography="body3-medium">
               활동 가능 시간대
             </Text>
-            <Text typography="caption2-medium" className="text-muted-foreground">
-              시간대 또는 지역 중 1개 이상 선택해주세요
-            </Text>
             <TimeSlotGrid
               selectedSlots={availableTimes}
               onChange={(slots) =>
@@ -323,9 +320,6 @@ export function ExpertProfileEditForm() {
           <div className="flex flex-col gap-2">
             <Text as="label" typography="body3-medium">
               활동 지역
-              {activityMethod !== "ONLINE" && (
-                <span className="text-destructive"> *</span>
-              )}
             </Text>
             <RegionMultiSelect
               selected={availableRegions}
