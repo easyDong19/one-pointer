@@ -20,10 +20,12 @@ export function MyProposalsList({ tab }: Props) {
   const inProgress = useMyInProgressProposalsQuery(tab === "in-progress")
   const completed = useMyCompletedProposalsQuery(tab === "completed")
   const list = tab === "in-progress" ? inProgress : completed
+  // 멤버 표현식 대신 지역 변수로 구조분해해야 메모이제이션이 보존된다.
+  const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = list
 
   const proposals = useMemo(
-    () => list.data?.pages.flatMap((p) => p.content) ?? [],
-    [list.data],
+    () => data?.pages.flatMap((p) => p.content) ?? [],
+    [data],
   )
 
   const observerRef = useRef<IntersectionObserver | null>(null)
@@ -32,17 +34,13 @@ export function MyProposalsList({ tab }: Props) {
       if (observerRef.current) observerRef.current.disconnect()
       if (!node) return
       observerRef.current = new IntersectionObserver((entries) => {
-        if (
-          entries[0]?.isIntersecting &&
-          list.hasNextPage &&
-          !list.isFetchingNextPage
-        ) {
-          list.fetchNextPage()
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
         }
       })
       observerRef.current.observe(node)
     },
-    [list.hasNextPage, list.isFetchingNextPage, list.fetchNextPage],
+    [hasNextPage, isFetchingNextPage, fetchNextPage],
   )
 
   if (list.isLoading) {

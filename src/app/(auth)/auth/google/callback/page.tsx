@@ -12,60 +12,61 @@ import { resolveSocialErrorMessage } from "@/features/auth/social/lib/resolve-so
 export default function GoogleCallbackPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [error, setError] = useState<string | null>(null)
+  const [asyncError, setAsyncError] = useState<string | null>(null)
   const processedRef = useRef(false)
+
+  // 파라미터 검증 에러는 searchParams 로부터 렌더 중 파생 (effect 에서 동기 setState 회피)
+  const code = searchParams.get("code")
+  const errorParam = searchParams.get("error")
+  const paramError = errorParam
+    ? "Google 로그인이 취소되었습니다."
+    : !code
+      ? "Google 인가 코드가 없습니다."
+      : null
+  const error = paramError ?? asyncError
 
   useEffect(() => {
     if (processedRef.current) return
     processedRef.current = true
 
-    const code = searchParams.get("code")
-    const errorParam = searchParams.get("error")
-
-    if (errorParam) {
-      setError("Google 로그인이 취소되었습니다.")
+    if (paramError) {
       setTimeout(() => router.replace("/login"), 2000)
       return
     }
+    if (!code) return // paramError 로 이미 보장됨 — 타입 좁히기용
 
-    if (!code) {
-      setError("Google 인가 코드가 없습니다.")
-      setTimeout(() => router.replace("/login"), 2000)
-      return
+    const handleGoogleCallback = async (authCode: string) => {
+      try {
+        const redirectUri = `${window.location.origin}/auth/google/callback`
+        const response = await googleLogin({ code: authCode, redirectUri })
+
+        if (response.data.newUser) {
+          // 신규 유저: googleAccessToken 을 sessionStorage 에 저장 후 가입 페이지로
+          // (인가 code 는 1회용이므로 회원가입 API 호출 시 accessToken 을 사용해야 함)
+          const googleAccessToken = response.data.googleAccessToken
+          if (!googleAccessToken) {
+            setAsyncError("Google 인증 정보를 받지 못했어요. 다시 시도해주세요.")
+            setTimeout(() => router.replace("/login"), 2000)
+            return
+          }
+
+          const googleInfo = response.data.googleUserInfo
+          saveSocialAuth("google", googleAccessToken, googleInfo)
+          router.replace("/signup/google")
+        } else {
+          await useAuthStore.getState().reload()
+          const nextPath = sessionStorage.getItem("auth_next_path") || "/"
+          sessionStorage.removeItem("auth_next_path")
+          router.replace(resolveNextPath(nextPath))
+        }
+      } catch (err) {
+        setAsyncError(resolveSocialErrorMessage(err))
+        setTimeout(() => router.replace("/login"), 3000)
+      }
     }
 
     handleGoogleCallback(code)
-  }, [searchParams, router])
-
-  async function handleGoogleCallback(code: string) {
-    try {
-      const redirectUri = `${window.location.origin}/auth/google/callback`
-      const response = await googleLogin({ code, redirectUri })
-
-      if (response.data.newUser) {
-        // 신규 유저: googleAccessToken 을 sessionStorage 에 저장 후 가입 페이지로
-        // (인가 code 는 1회용이므로 회원가입 API 호출 시 accessToken 을 사용해야 함)
-        const googleAccessToken = response.data.googleAccessToken
-        if (!googleAccessToken) {
-          setError("Google 인증 정보를 받지 못했어요. 다시 시도해주세요.")
-          setTimeout(() => router.replace("/login"), 2000)
-          return
-        }
-
-        const googleInfo = response.data.googleUserInfo
-        saveSocialAuth("google", googleAccessToken, googleInfo)
-        router.replace("/signup/google")
-      } else {
-        await useAuthStore.getState().reload()
-        const nextPath = sessionStorage.getItem("auth_next_path") || "/"
-        sessionStorage.removeItem("auth_next_path")
-        router.replace(resolveNextPath(nextPath))
-      }
-    } catch (err) {
-      setError(resolveSocialErrorMessage(err))
-      setTimeout(() => router.replace("/login"), 3000)
-    }
-  }
+  }, [paramError, code, router])
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-background">

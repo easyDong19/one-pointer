@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react"
+import { useRef, useState, type FormEvent, type ReactNode } from "react"
 import { ArrowLeft, Search, Trash2 } from "lucide-react"
 import {
   Dialog,
@@ -37,9 +37,11 @@ export function HeaderSearchModal({ trigger, initialKeyword = "" }: Props = {}) 
   const [keyword, setKeyword] = useState(initialKeyword)
   const isComposingRef = useRef(false)
 
-  useEffect(() => {
-    if (open) setKeyword(initialKeyword)
-  }, [open, initialKeyword])
+  // 모달이 열릴 때 Input 을 initialKeyword 로 prefill (effect 대신 이벤트 핸들러에서 처리).
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next)
+    if (next) setKeyword(initialKeyword)
+  }
 
   const navigate = (kw: string) => {
     const trimmed = kw.trim()
@@ -57,7 +59,7 @@ export function HeaderSearchModal({ trigger, initialKeyword = "" }: Props = {}) 
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger ?? (
           <button

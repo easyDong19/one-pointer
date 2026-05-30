@@ -5,7 +5,7 @@ import { OverlayProvider } from "overlay-kit"
 import { useEffect, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { getQueryClient } from "@/shared/lib/query-client"
-import { useAuthStore } from "@/entities/auth/model/auth-store"
+import { syncAuthStateFromError, useAuthStore } from "@/entities/auth/model/auth-store"
 import { authQueryKeys } from "@/entities/auth/model/auth.query-keys"
 import type { AuthUser } from "@/entities/auth/api/auth.schema"
 import { setOnRefreshSuccess } from "@/shared/api/http/client-fetch"
@@ -17,7 +17,7 @@ export default function Providers({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const [queryClient] = useState(() => getQueryClient())
+  const [queryClient] = useState(() => getQueryClient(syncAuthStateFromError))
 
   useEffect(() => {
     useAuthStore.getState().bootstrap().catch(console.error)

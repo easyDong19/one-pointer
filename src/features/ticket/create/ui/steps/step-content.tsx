@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { ImagePlus, X } from "lucide-react"
 
 import { Input } from "@/shared/ui/input"
@@ -183,13 +183,9 @@ function ExistingImageTile({ url, onRemove }: { url: string; onRemove: () => voi
 }
 
 function ImageTile({ file, onRemove }: { file: File; onRemove: () => void }) {
-  const [url, setUrl] = useState<string>("")
-
-  useEffect(() => {
-    const next = URL.createObjectURL(file)
-    setUrl(next)
-    return () => URL.revokeObjectURL(next)
-  }, [file])
+  // 파일에서 파생되는 blob URL — useMemo 로 생성하고 effect 는 cleanup(revoke)만 담당.
+  const url = useMemo(() => URL.createObjectURL(file), [file])
+  useEffect(() => () => URL.revokeObjectURL(url), [url])
 
   return (
     <div className="border-border relative size-20 overflow-hidden rounded-md border">

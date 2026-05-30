@@ -35,7 +35,7 @@ export function SettingsSection() {
     } else if (item.href) {
       if (item.href === "#") return // placeholder 미구현 항목 — 클릭 무시
       if (item.sameTab) {
-        window.location.href = item.href
+        window.location.assign(item.href)
       } else {
         window.open(item.href, "_blank", "noopener,noreferrer")
       }

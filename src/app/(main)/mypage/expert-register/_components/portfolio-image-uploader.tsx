@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { ImagePlus, X } from "lucide-react"
 import { Text } from "@/shared/ui/text"
 import { cn } from "@/shared/lib/utils"
@@ -22,41 +22,19 @@ export function PortfolioImageUploader({
 }: PortfolioImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // images 와 동기화되는 File → blob URL 매핑.
-  // ref 로 들고 setState 로도 트리거 (unmount cleanup 시 setState 부작용 회피).
-  const previewsRef = useRef<Map<File, string>>(new Map())
-  const [previews, setPreviews] = useState<Map<File, string>>(new Map())
-
-  useEffect(() => {
-    const next = new Map<File, string>()
-    let changed = false
-    images.forEach((file) => {
-      const existing = previewsRef.current.get(file)
-      if (existing) {
-        next.set(file, existing)
-      } else {
-        next.set(file, URL.createObjectURL(file))
-        changed = true
-      }
-    })
-    previewsRef.current.forEach((url, file) => {
-      if (!next.has(file)) {
-        URL.revokeObjectURL(url)
-        changed = true
-      }
-    })
-    if (changed) {
-      previewsRef.current = next
-      setPreviews(next)
-    }
+  // images 로부터 파생되는 File → blob URL 매핑.
+  // useMemo 로 생성하고, 매핑이 바뀌거나 언마운트될 때 effect cleanup 에서 revoke.
+  const previews = useMemo(() => {
+    const map = new Map<File, string>()
+    images.forEach((file) => map.set(file, URL.createObjectURL(file)))
+    return map
   }, [images])
 
   useEffect(() => {
     return () => {
-      previewsRef.current.forEach((url) => URL.revokeObjectURL(url))
-      previewsRef.current = new Map()
+      previews.forEach((url) => URL.revokeObjectURL(url))
     }
-  }, [])
+  }, [previews])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? [])

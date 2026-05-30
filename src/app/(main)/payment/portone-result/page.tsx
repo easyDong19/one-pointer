@@ -15,46 +15,43 @@ export default function PortoneResultPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
-  const [state, setState] = useState<ResultState>("loading")
-  const [errorMessage, setErrorMessage] = useState("")
+  // 파라미터 검증은 searchParams 로부터 렌더 중 파생 (effect 에서 동기 setState 회피).
+  const paymentId = searchParams.get("paymentId")
+  const code = searchParams.get("code")
+  const message = searchParams.get("message")
+  const parts = paymentId ? paymentId.split("_") : []
+  const ticketId = parts[1] ? Number(parts[1]) : NaN
+
+  const validationError =
+    code && code !== "SUCCESS"
+      ? (message ?? "결제에 실패했습니다.")
+      : !paymentId
+        ? "결제 정보를 찾을 수 없습니다."
+        : Number.isNaN(ticketId)
+          ? "잘못된 결제 정보입니다."
+          : null
+
+  // 비동기 결제 확인 결과만 state 로 관리 (setState 는 async 콜백에서만 호출됨).
+  const [asyncState, setAsyncState] = useState<ResultState>("loading")
+  const [asyncErrorMessage, setAsyncErrorMessage] = useState("")
+
+  const state: ResultState = validationError ? "error" : asyncState
+  const errorMessage = validationError ?? asyncErrorMessage
 
   useEffect(() => {
-    const paymentId = searchParams.get("paymentId")
-    const code = searchParams.get("code")
-    const message = searchParams.get("message")
-
-    if (code && code !== "SUCCESS") {
-      setState("error")
-      setErrorMessage(message ?? "결제에 실패했습니다.")
-      return
-    }
-
-    if (!paymentId) {
-      setState("error")
-      setErrorMessage("결제 정보를 찾을 수 없습니다.")
-      return
-    }
-
-    const parts = paymentId.split("_")
-    const ticketId = parts[1] ? Number(parts[1]) : NaN
-
-    if (Number.isNaN(ticketId)) {
-      setState("error")
-      setErrorMessage("잘못된 결제 정보입니다.")
-      return
-    }
+    if (validationError || !paymentId) return
 
     payEscrow({
       ticketId,
       paymentMethod: "CARD",
       paymentKey: paymentId,
     })
-      .then(() => setState("success"))
+      .then(() => setAsyncState("success"))
       .catch((err) => {
-        setState("error")
-        setErrorMessage(err instanceof Error ? err.message : "결제 확인에 실패했습니다.")
+        setAsyncState("error")
+        setAsyncErrorMessage(err instanceof Error ? err.message : "결제 확인에 실패했습니다.")
       })
-  }, [searchParams])
+  }, [validationError, paymentId, ticketId])
 
   return (
     <PageShell tier="form">

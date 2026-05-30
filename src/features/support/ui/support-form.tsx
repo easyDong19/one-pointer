@@ -39,7 +39,9 @@ export function SupportForm() {
 
   // 언마운트 시 잔여 blob URL revoke (memory leak 방지)
   const imagesRef = useRef<PendingImage[]>(images)
-  imagesRef.current = images
+  useEffect(() => {
+    imagesRef.current = images
+  }, [images])
   useEffect(() => {
     return () => {
       imagesRef.current.forEach((img) => URL.revokeObjectURL(img.previewUrl))

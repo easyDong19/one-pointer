@@ -16,10 +16,12 @@ type Props = {
 
 export function ExpertReviewsList({ expertProfileId, reviewCount }: Props) {
   const query = useExpertReviewsQuery(expertProfileId, reviewCount > 0)
+  // 멤버 표현식 대신 지역 변수로 구조분해해야 메모이제이션이 보존된다.
+  const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = query
 
   const reviews = useMemo(
-    () => query.data?.pages.flatMap((p) => p.content) ?? [],
-    [query.data],
+    () => data?.pages.flatMap((p) => p.content) ?? [],
+    [data],
   )
 
   const observerRef = useRef<IntersectionObserver | null>(null)
@@ -28,17 +30,13 @@ export function ExpertReviewsList({ expertProfileId, reviewCount }: Props) {
       if (observerRef.current) observerRef.current.disconnect()
       if (!node) return
       observerRef.current = new IntersectionObserver((entries) => {
-        if (
-          entries[0]?.isIntersecting &&
-          query.hasNextPage &&
-          !query.isFetchingNextPage
-        ) {
-          query.fetchNextPage()
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
         }
       })
       observerRef.current.observe(node)
     },
-    [query.hasNextPage, query.isFetchingNextPage, query.fetchNextPage],
+    [hasNextPage, isFetchingNextPage, fetchNextPage],
   )
 
   if (reviewCount === 0) {

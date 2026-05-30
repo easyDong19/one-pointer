@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { CalendarIcon } from "lucide-react"
 import { useParams } from "next/navigation"
 
@@ -72,17 +72,17 @@ export function AgreementFormDialog({
   const [deliveryFormat, setDeliveryFormat] = useState("")
   const [isPrefilled, setIsPrefilled] = useState(false)
 
-  useEffect(() => {
-    if (mode !== "repropose" || isPrefilled) return
+  // repropose 모드에서 기존 합의서 데이터 도착 시 폼을 1회 prefill.
+  // effect 대신 렌더 중 가드 패턴 사용 — isPrefilled 로 1회만 실행되며 즉시 수렴한다.
+  if (mode === "repropose" && !isPrefilled && prefillQuery.data) {
     const data = prefillQuery.data
-    if (!data) return
     if (data.finalPrice != null) setPriceText(formatPrice(data.finalPrice))
     if (data.workDeadline) setDeadline(parseServerDeadline(data.workDeadline))
     if (data.scope) setScope(data.scope)
     if (data.maxRevisions != null) setMaxRevisions(String(data.maxRevisions))
     if (data.deliveryFormat) setDeliveryFormat(data.deliveryFormat)
     setIsPrefilled(true)
-  }, [mode, isPrefilled, prefillQuery.data])
+  }
 
   const finalPrice = parsePrice(priceText)
   const isSubmitting = createMutation.isPending || reproposeMutation.isPending

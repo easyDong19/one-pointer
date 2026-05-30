@@ -28,11 +28,19 @@ export function MyTicketsList({ tab }: Props) {
   const completed = useMyCompletedTicketsQuery(tab === "completed")
 
   const paginatedQuery = tab === "in-progress" ? inProgress : completed
+  // 멤버 표현식 대신 지역 변수로 구조분해해야 메모이제이션이 보존된다.
+  const recruitingData = recruiting.data
+  const {
+    data: paginatedData,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = paginatedQuery
 
   const tickets = useMemo(() => {
-    if (tab === "recruiting") return recruiting.data ?? []
-    return paginatedQuery.data?.pages.flatMap((p) => p.content) ?? []
-  }, [tab, recruiting.data, paginatedQuery.data])
+    if (tab === "recruiting") return recruitingData ?? []
+    return paginatedData?.pages.flatMap((p) => p.content) ?? []
+  }, [tab, recruitingData, paginatedData])
 
   const isLoading = tab === "recruiting" ? recruiting.isLoading : paginatedQuery.isLoading
   const isError = tab === "recruiting" ? recruiting.isError : paginatedQuery.isError
@@ -43,17 +51,13 @@ export function MyTicketsList({ tab }: Props) {
       if (observerRef.current) observerRef.current.disconnect()
       if (!node) return
       observerRef.current = new IntersectionObserver((entries) => {
-        if (
-          entries[0]?.isIntersecting &&
-          paginatedQuery.hasNextPage &&
-          !paginatedQuery.isFetchingNextPage
-        ) {
-          paginatedQuery.fetchNextPage()
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
         }
       })
       observerRef.current.observe(node)
     },
-    [paginatedQuery.hasNextPage, paginatedQuery.isFetchingNextPage, paginatedQuery.fetchNextPage],
+    [hasNextPage, isFetchingNextPage, fetchNextPage],
   )
 
   if (isLoading) {

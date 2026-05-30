@@ -4,6 +4,7 @@ import { Suspense, use } from "react"
 import { notFound } from "next/navigation"
 
 import { AuthGuard } from "@/features/auth/guard"
+import { RouteLoading } from "@/shared/ui/route-loading"
 
 import { TicketEditContent } from "./_components/ticket-edit-content"
 
@@ -23,7 +24,7 @@ export default function TicketEditPage({ params }: Props) {
 
   return (
     <AuthGuard>
-      <Suspense>
+      <Suspense fallback={<RouteLoading label="의뢰 수정 화면을 불러오는 중" />}>
         <TicketEditContent ticketId={id} />
       </Suspense>
     </AuthGuard>

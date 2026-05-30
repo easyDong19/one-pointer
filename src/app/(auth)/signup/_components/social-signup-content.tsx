@@ -73,6 +73,10 @@ export function SocialSignupContent({ provider, onSignup }: Props) {
   const [isPending, setIsPending] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
+  // sessionStorage(클라이언트 전용)에서 소셜 인증 정보를 마운트 시 1회 읽는다.
+  // 렌더 중 읽으면 SSR(서버)에 sessionStorage 가 없어 크래시하고 하이드레이션도 어긋나므로
+  // effect 가 이 경우의 올바른 패턴이다 — set-state-in-effect 규칙의 false positive 라 비활성화.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const saved = loadSocialAuth(provider)
     if (!saved) {
@@ -83,6 +87,7 @@ export function SocialSignupContent({ provider, onSignup }: Props) {
     setAccessToken(saved.accessToken)
     setUserInfo(saved.userInfo)
   }, [provider, router])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const allChecked = Object.values(terms).every(Boolean)
   const requiredChecked = TERMS_ITEMS.filter((t) => t.required).every((t) => terms[t.key])

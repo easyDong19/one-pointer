@@ -14,19 +14,20 @@ import type { TicketImage } from "@/entities/ticket/api/ticket.schema"
 export function TicketImageCarousel({ images }: { images: TicketImage[] }) {
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
-  const [count, setCount] = useState(0)
+
+  const sortedImages = [...images].sort((a, b) => a.displayOrder - b.displayOrder)
+  // count 는 슬라이드 수 = 이미지 수로 파생 (effect 에서 동기 setState 회피).
+  const count = sortedImages.length
 
   useEffect(() => {
     if (!api) return
-    setCount(api.scrollSnapList().length)
-    setCurrent(api.selectedScrollSnap())
-
-    api.on("select", () => {
-      setCurrent(api.selectedScrollSnap())
-    })
+    // current 는 외부 시스템(embla)의 select 이벤트로만 갱신.
+    const onSelect = () => setCurrent(api.selectedScrollSnap())
+    api.on("select", onSelect)
+    return () => {
+      api.off("select", onSelect)
+    }
   }, [api])
-
-  const sortedImages = [...images].sort((a, b) => a.displayOrder - b.displayOrder)
 
   if (sortedImages.length === 0) {
     return (

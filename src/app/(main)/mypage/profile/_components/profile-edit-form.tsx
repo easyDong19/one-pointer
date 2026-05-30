@@ -26,7 +26,9 @@ export function ProfileEditForm() {
   // preview blob URL 메모리 누수 방지: 새 파일 선택/제거 시 이전 URL revoke,
   // 언마운트 시에도 revoke.
   const previewUrlRef = useRef<string | null>(null)
-  previewUrlRef.current = previewUrl
+  useEffect(() => {
+    previewUrlRef.current = previewUrl
+  }, [previewUrl])
   useEffect(() => {
     return () => {
       if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)

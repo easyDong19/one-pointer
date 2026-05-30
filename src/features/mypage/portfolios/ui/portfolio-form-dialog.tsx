@@ -60,7 +60,9 @@ export function PortfolioFormDialog({
   // 언마운트 시 남아있는 blob URL 모두 revoke (메모리 누수 방지).
   // newImages 의 변경에 따라 ref 갱신해 cleanup 시 최신값 참조.
   const newImagesRef = useRef<PendingImage[]>(newImages)
-  newImagesRef.current = newImages
+  useEffect(() => {
+    newImagesRef.current = newImages
+  }, [newImages])
   useEffect(() => {
     return () => {
       newImagesRef.current.forEach((img) => URL.revokeObjectURL(img.previewUrl))

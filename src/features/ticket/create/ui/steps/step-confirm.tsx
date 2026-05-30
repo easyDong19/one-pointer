@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo } from "react"
 import { CalendarIcon, Laptop, MapPin } from "lucide-react"
 
 import { Text } from "@/shared/ui/text"
@@ -180,13 +180,9 @@ function TypeValue({ type }: { type: string | null }) {
 }
 
 function ImagePreview({ file }: { file: File }) {
-  const [url, setUrl] = useState("")
-  useEffect(() => {
-    const next = URL.createObjectURL(file)
-    setUrl(next)
-    return () => URL.revokeObjectURL(next)
-  }, [file])
-  if (!url) return null
+  // 파일에서 파생되는 blob URL — useMemo 로 생성하고 effect 는 cleanup(revoke)만 담당.
+  const url = useMemo(() => URL.createObjectURL(file), [file])
+  useEffect(() => () => URL.revokeObjectURL(url), [url])
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
