@@ -1,8 +1,8 @@
 "use client"
 
 import type { TransactionItem } from "@/entities/earnings/api/earnings.schema"
-import { Badge } from "@/shared/ui/badge"
 import { Text } from "@/shared/ui/text"
+import { cn } from "@/shared/lib/utils"
 
 type Props = {
   item: TransactionItem
@@ -21,12 +21,18 @@ export function TransactionItemCard({ item }: Props) {
   const isSettled = item.status === "SETTLED"
 
   return (
-    <div className="border-border flex flex-col gap-2 rounded-lg border p-4">
-      <div className="flex items-start justify-between gap-2">
-        <Text typography="body3-medium" className="text-foreground line-clamp-1 flex-1">
+    <div className="border-border bg-card hover:border-primary/30 flex flex-col gap-2.5 rounded-xl border p-4 transition-colors">
+      <div className="flex items-start justify-between gap-3">
+        <Text
+          typography="body3-medium"
+          className="text-foreground line-clamp-1 flex-1"
+        >
           {item.ticketTitle}
         </Text>
-        <Text typography="body2-bold" className="text-foreground shrink-0 tabular-nums">
+        <Text
+          typography="body2-bold"
+          className="text-foreground shrink-0 tabular-nums"
+        >
           {formatAmount(item.netAmount ?? item.originalAmount)}
         </Text>
       </div>
@@ -35,23 +41,47 @@ export function TransactionItemCard({ item }: Props) {
         <Text typography="caption2-medium" className="text-muted-foreground">
           {item.clientNickname}
         </Text>
-        <span className="text-border">·</span>
-        <Text typography="caption2-medium" className="text-muted-foreground tabular-nums">
+        <span className="bg-border h-2.5 w-px" />
+        <Text
+          typography="caption2-medium"
+          className="text-muted-foreground tabular-nums"
+        >
           {formatDate(item.paidAt)}
         </Text>
       </div>
 
-      <div className="flex items-center justify-between">
-        <Text typography="caption2-medium" className="text-muted-foreground tabular-nums">
+      <div className="border-border/60 flex items-center justify-between border-t pt-2.5">
+        <Text
+          typography="caption2-medium"
+          className="text-muted-foreground tabular-nums"
+        >
           수수료 {formatAmount(item.fee ?? 0)}
         </Text>
-        <Badge variant={isSettled ? "secondary" : "outline"}>
-          {isSettled ? "정산완료" : "정산대기"}
-        </Badge>
+        <div
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
+            isSettled
+              ? "bg-emerald-50 text-emerald-700"
+              : "bg-amber-50 text-amber-700",
+          )}
+        >
+          <span
+            className={cn(
+              "h-1.5 w-1.5 rounded-full",
+              isSettled ? "bg-emerald-500" : "bg-amber-500",
+            )}
+          />
+          <Text typography="caption2-medium" className="text-current">
+            {isSettled ? "정산완료" : "정산대기"}
+          </Text>
+        </div>
       </div>
 
       {!isSettled && item.estimatedSettlementDate && (
-        <Text typography="caption2-medium" className="text-muted-foreground tabular-nums">
+        <Text
+          typography="caption2-medium"
+          className="text-muted-foreground tabular-nums"
+        >
           예상 정산일: {formatDate(item.estimatedSettlementDate)}
         </Text>
       )}

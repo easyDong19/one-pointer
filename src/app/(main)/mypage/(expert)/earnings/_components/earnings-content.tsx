@@ -56,19 +56,21 @@ export function EarningsContent() {
     )
   }
 
+  const hasChart = (summary?.earningsGraph.length ?? 0) > 0
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex gap-1.5">
+    <div className="flex flex-col gap-8">
+      <div className="bg-muted inline-flex gap-1 self-start rounded-full p-1">
         {PERIOD_TABS.map((tab) => (
           <button
             key={tab.value}
             type="button"
             onClick={() => setPeriod(tab.value)}
             className={cn(
-              "rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
+              "rounded-full px-4 py-1.5 text-sm font-medium transition-all",
               period === tab.value
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-accent",
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {tab.label}
@@ -77,12 +79,17 @@ export function EarningsContent() {
       </div>
 
       {summary ? (
-        <>
+        <div
+          className={cn(
+            "grid items-stretch gap-5",
+            hasChart && "lg:grid-cols-2",
+          )}
+        >
           <EarningsSummaryCard summary={summary} />
           <EarningsChart data={summary.earningsGraph} />
-        </>
+        </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-12">
+        <div className="border-border bg-card flex flex-col items-center justify-center rounded-2xl border border-dashed py-16">
           <Text typography="body2-medium" className="text-muted-foreground">
             수익 데이터가 없어요
           </Text>
