@@ -27,6 +27,12 @@ type Props = {
   myRole?: SenderType | null
   /** ChatRoomDetail.ticketProgress.currentStatus — NONE §5.4 안내 분기에 사용 */
   ticketStatus?: TicketStatus | null
+  /**
+   * ChatRoomDetail.ticketProgress.ticketId — 배너 응답의 `ticketId` 가 null 로
+   * 내려올 때의 fallback. 모바일(ChatRoomController.ticketId)과 동일하게
+   * 배너 액션은 배너가 아닌 ticketProgress 의 ticketId 를 신뢰한다.
+   */
+  fallbackTicketId?: number | null
 }
 
 /**
@@ -41,8 +47,20 @@ type Props = {
  *
  * default 의 `_exhaustive: never` 로 enum 추가 시 컴파일 에러로 누락을 알린다.
  */
-export function BannerDispatcher({ banner, roomId, myRole, ticketStatus }: Props) {
-  if (!banner) return null
+export function BannerDispatcher({
+  banner: rawBanner,
+  roomId,
+  myRole,
+  ticketStatus,
+  fallbackTicketId,
+}: Props) {
+  if (!rawBanner) return null
+  // 배너 응답의 ticketId 가 null 이면 ticketProgress 의 ticketId 로 보정해
+  // 하위 배너들이 일관되게 banner.ticketId 만 보고도 동작하도록 한다.
+  const banner: ChatBannerResponse = {
+    ...rawBanner,
+    ticketId: rawBanner.ticketId ?? fallbackTicketId ?? null,
+  }
   const type = banner.type
 
   if (!type || type === "NONE") {

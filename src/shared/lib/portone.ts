@@ -23,6 +23,10 @@ export async function requestEscrowPayment(
 ): Promise<PaymentResult> {
   const paymentId = `escrow_${params.ticketId}_${Date.now()}`
 
+  // PortOne V2 의 PaymentRequest 는 결제수단별 union 이라, 결제수단 전용 옵션
+  // (alipayPlus 등)을 안 넘기면 타입 추론이 마지막 변형으로 떨어져 required 로 잡힌다.
+  // 런타임상 payMethod=TRANSFER 일 때 transfer 외 옵션을 넘기면 거부되므로
+  // (앱과 동일하게) 전용 옵션은 생략하고 타입만 캐스팅으로 맞춘다.
   const response = await PortOne.requestPayment({
     storeId: PORTONE_STORE_ID,
     channelKey: PORTONE_CHANNEL_KEY,
@@ -46,8 +50,7 @@ export async function requestEscrowPayment(
         quantity: 1,
       },
     ],
-    alipayPlus: {},
-  })
+  } as Parameters<typeof PortOne.requestPayment>[0])
 
   if (!response) {
     throw new Error("결제 응답을 받지 못했습니다.")
