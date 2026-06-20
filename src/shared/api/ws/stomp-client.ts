@@ -1,4 +1,5 @@
 import { Client, type IFrame, type StompConfig } from "@stomp/stompjs"
+import { env } from "@/shared/config/env"
 
 /**
  * STOMP / WebSocket 연결 팩토리.
@@ -35,10 +36,10 @@ export type CreateChatSocketOptions = ChatSocketHandlers & {
  * 예) BASE_URL = "https://api-dev.one-pointer.store/v1" → "wss://api-dev.one-pointer.store/ws"
  */
 export function resolveWsUrl(): string {
-  const explicit = process.env.NEXT_PUBLIC_WS_URL
+  const explicit = env.NEXT_PUBLIC_WS_URL
   if (explicit) return explicit
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+  const baseUrl = env.NEXT_PUBLIC_BASE_URL
   if (!baseUrl) {
     throw new Error("[stomp-client] NEXT_PUBLIC_BASE_URL is not configured")
   }

@@ -18,6 +18,7 @@ import {
   type SocialUserInfo,
 } from "@/features/auth/social/lib/social-auth-storage"
 import { resolveSocialErrorMessage } from "@/features/auth/social/lib/resolve-social-error"
+import { resolveNextPath } from "@/shared/lib/redirect"
 import { SignupBrandPanel } from "@/app/(auth)/_components/signup-brand-panel"
 
 type Props = {
@@ -174,7 +175,8 @@ export function SocialSignupContent({ provider, onSignup }: Props) {
       await useAuthStore.getState().reload()
       const nextPath = sessionStorage.getItem("auth_next_path") || "/"
       sessionStorage.removeItem("auth_next_path")
-      router.replace(nextPath)
+      // OAuth 콜백과 동일하게 검증 후 이동 (오픈 리다이렉트 일관성 / 회귀 방지)
+      router.replace(resolveNextPath(nextPath))
     } catch (err) {
       setSubmitError(resolveSocialErrorMessage(err))
       setIsPending(false)
