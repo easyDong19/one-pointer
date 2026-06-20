@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { CheckCircle, XCircle, Loader2 } from "lucide-react"
 
@@ -11,7 +11,7 @@ import { Text } from "@/shared/ui/text"
 
 type ResultState = "loading" | "success" | "error"
 
-export default function PortoneResultPage() {
+function PortoneResultContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -98,5 +98,25 @@ export default function PortoneResultPage() {
         )}
       </PageShell.Content>
     </PageShell>
+  )
+}
+
+export default function PortoneResultPage() {
+  return (
+    <Suspense
+      fallback={
+        <PageShell tier="form">
+          <PageShell.Content className="flex flex-col items-center justify-center gap-op-xl py-op-5xl">
+            <Loader2 className="size-12 animate-spin text-primary" />
+            <Text typography="subtitle1-bold">결제 확인 중...</Text>
+            <Text typography="body3-regular" className="text-muted-foreground">
+              잠시만 기다려주세요.
+            </Text>
+          </PageShell.Content>
+        </PageShell>
+      }
+    >
+      <PortoneResultContent />
+    </Suspense>
   )
 }

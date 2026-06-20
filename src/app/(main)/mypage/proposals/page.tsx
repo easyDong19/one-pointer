@@ -1,14 +1,16 @@
 "use client"
 
+import { Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs"
 import { Text } from "@/shared/ui/text"
+import { RouteLoading } from "@/shared/ui/route-loading"
 import { MyProposalsList } from "@/features/proposal/ui/my-proposals-list"
 
 type Tab = "in-progress" | "completed"
 
-export default function MyProposalsPage() {
+function MyProposalsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const rawTab = searchParams.get("tab")
@@ -40,5 +42,13 @@ export default function MyProposalsPage() {
 
       <MyProposalsList tab={tab} />
     </section>
+  )
+}
+
+export default function MyProposalsPage() {
+  return (
+    <Suspense fallback={<RouteLoading label="보낸 제안을 불러오는 중" />}>
+      <MyProposalsContent />
+    </Suspense>
   )
 }

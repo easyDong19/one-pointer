@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { Suspense, useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Text } from "@/shared/ui/text"
 import { googleLogin } from "@/entities/auth/api/auth.service"
@@ -9,7 +9,7 @@ import { resolveNextPath } from "@/shared/lib/redirect"
 import { saveSocialAuth } from "@/features/auth/social/lib/social-auth-storage"
 import { resolveSocialErrorMessage } from "@/features/auth/social/lib/resolve-social-error"
 
-export default function GoogleCallbackPage() {
+function GoogleCallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [asyncError, setAsyncError] = useState<string | null>(null)
@@ -90,5 +90,26 @@ export default function GoogleCallbackPage() {
         )}
       </div>
     </main>
+  )
+}
+
+function GoogleCallbackFallback() {
+  return (
+    <main className="flex min-h-dvh items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-op-lg">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <Text as="p" typography="body2-medium" className="text-foreground">
+          Google 로그인 처리 중...
+        </Text>
+      </div>
+    </main>
+  )
+}
+
+export default function GoogleCallbackPage() {
+  return (
+    <Suspense fallback={<GoogleCallbackFallback />}>
+      <GoogleCallbackContent />
+    </Suspense>
   )
 }

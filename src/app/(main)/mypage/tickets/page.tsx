@@ -1,9 +1,11 @@
 "use client"
 
+import { Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs"
 import { Text } from "@/shared/ui/text"
+import { RouteLoading } from "@/shared/ui/route-loading"
 import { MyTicketsList, type Tab } from "@/features/ticket/my-list/ui/my-tickets-list"
 
 const TABS: { value: Tab; label: string }[] = [
@@ -12,7 +14,7 @@ const TABS: { value: Tab; label: string }[] = [
   { value: "completed", label: "완료" },
 ]
 
-export default function MyTicketsPage() {
+function MyTicketsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const rawTab = searchParams.get("tab")
@@ -48,5 +50,13 @@ export default function MyTicketsPage() {
 
       <MyTicketsList tab={tab} />
     </section>
+  )
+}
+
+export default function MyTicketsPage() {
+  return (
+    <Suspense fallback={<RouteLoading label="나의 의뢰를 불러오는 중" />}>
+      <MyTicketsContent />
+    </Suspense>
   )
 }
