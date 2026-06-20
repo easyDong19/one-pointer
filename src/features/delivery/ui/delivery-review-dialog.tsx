@@ -124,7 +124,11 @@ export function DeliveryReviewDialog({
               <InfoChip label="제출일" value={formatDate(delivery.submittedAt)} />
               <InfoChip
                 label="수정"
-                value={`${delivery.revisionCount}회 (최대 ${delivery.maxRevisions}회)`}
+                value={
+                  delivery.maxRevisions != null
+                    ? `${delivery.revisionCount}회 (최대 ${delivery.maxRevisions}회)`
+                    : `${delivery.revisionCount}회`
+                }
               />
             </div>
 
@@ -211,10 +215,10 @@ export function DeliveryReviewDialog({
                 <Button
                   variant="outline"
                   onClick={() => setActionMode("revision")}
-                  disabled={delivery.remainingRevisions <= 0}
+                  disabled={delivery.remainingRevisions != null && delivery.remainingRevisions <= 0}
                 >
                   수정 요청
-                  {delivery.remainingRevisions <= 0 && " (소진)"}
+                  {delivery.remainingRevisions != null && delivery.remainingRevisions <= 0 && " (소진)"}
                 </Button>
                 <Button onClick={handleApprove} disabled={isActing}>
                   {approveMutation.isPending ? "처리 중..." : "승인"}

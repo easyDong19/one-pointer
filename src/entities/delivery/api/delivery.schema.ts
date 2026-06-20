@@ -30,9 +30,10 @@ export const deliverySchema = z.object({
   submittedAt: z.string(),
   approvedAt: z.string().nullable(),
   attachments: z.array(attachmentSchema),
-  maxRevisions: z.number(),
-  remainingRevisions: z.number(),
-  workDeadline: z.string(),
+  // 제출 직후(SUBMITTED) 응답에서는 합의(agreement) 기반 값들이 아직 null 로 내려온다 — 실측 기준
+  maxRevisions: z.number().nullable(),
+  remainingRevisions: z.number().nullable(),
+  workDeadline: z.string().nullable(),
   // FE-only fields
   updatedAt: z.string().optional(),
 })
