@@ -11,6 +11,12 @@ export function resolveNextPath(nextPath: string | null | undefined, fallback = 
     return fallback
   }
 
+  // 백슬래시 거부: WHATWG URL 파서는 `\` 를 `/` 로 정규화하므로
+  // `/\evil.com` 이 `//evil.com`(protocol-relative 외부 origin)으로 새는 것을 차단.
+  if (nextPath.includes("\\")) {
+    return fallback
+  }
+
   if (!nextPath.startsWith("/") || nextPath.startsWith("//")) {
     return fallback
   }
