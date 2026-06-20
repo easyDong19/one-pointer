@@ -102,6 +102,7 @@ export function ChatRoomLayout({
         roomId={roomId}
         myRole={detail.myRole}
         ticketStatus={detail.ticketProgress?.currentStatus}
+        fallbackTicketId={ticketId}
       />
       <MessageList
         messages={detail.messages ?? []}
