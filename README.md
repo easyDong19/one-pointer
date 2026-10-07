@@ -16,6 +16,47 @@
 
 ---
 
+## 📸 주요 화면
+
+> 실제 백엔드 없이 **독립 MSW 목업 서버**로 띄운 화면. `pnpm capture` 한 번으로 데스크톱·모바일 스크린샷 전체를 재생성 ([동작 방식](docs/mock-and-capture.md)).
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/features/01-explore-and-ticket.md"><img src="docs/screenshots/explore/home-top.desktop.png" alt="홈" /></a>
+      <br /><b><a href="docs/features/01-explore-and-ticket.md">01. 탐색 + 의뢰</a></b>
+      <br />홈 · 카테고리/검색 · 전문가 프로필 · 5단계 의뢰 등록 · 제안서 비교·수락
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/features/02-chat-flow.md"><img src="docs/screenshots/chat/chat-room-top.desktop.png" alt="채팅방" /></a>
+      <br /><b><a href="docs/features/02-chat-flow.md">02. 채팅 상담 플로우</a></b>
+      <br />진행 스테퍼 · 서버 드리븐 배너 · 합의서 → 에스크로 결제 → 작업물 검수
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="docs/features/03-review.md"><img src="docs/screenshots/review/review-detail-top.desktop.png" alt="리뷰 상세" /></a>
+      <br /><b><a href="docs/features/03-review.md">03. 리뷰 — 채팅 스냅샷 공개</a></b>
+      <br />거래 대화 원문을 리뷰로 공개 · 공개 전 양측 필터링 · 전문가 답변
+    </td>
+    <td width="50%" valign="top">
+      <a href="docs/features/04-mypage.md"><img src="docs/screenshots/mypage/mypage-expert.desktop.png" alt="마이페이지" /></a>
+      <br /><b><a href="docs/features/04-mypage.md">04. 마이페이지 + 알림</a></b>
+      <br />의뢰인/전문가 모드 전환 · 수익 관리 · 포트폴리오 · 알림
+    </td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/screenshots/explore/home.mobile.png" width="19%" alt="홈 - 모바일" />
+  <img src="docs/screenshots/chat/chat-room.mobile.png" width="19%" alt="채팅방 - 모바일" />
+  <img src="docs/screenshots/chat/delivery-review-dialog.mobile.png" width="19%" alt="작업물 검수 - 모바일" />
+  <img src="docs/screenshots/review/review-detail.mobile.png" width="19%" alt="리뷰 - 모바일" />
+  <img src="docs/screenshots/mypage/mypage-client.mobile.png" width="19%" alt="마이페이지 - 모바일" />
+</p>
+
+---
+
 ## 🧪 프로젝트 목적 — 바이브 코딩 실험
 
 이 저장소의 핵심은 **결과물 자체가 아니라 만든 방식**.
@@ -91,6 +132,7 @@
 
 - **Vitest + Testing Library + Playwright 브라우저 러너 + MSW(API 목킹) + v8 커버리지** 로 테스트 환경 구성.
 - **Storybook 10 + a11y 애드온 + Chromatic** 으로 컴포넌트 문서화·비주얼 회귀 테스트 병행.
+- **독립 MSW 목업 서버 + Playwright 캡처 파이프라인** — RSC(`serverFetch`)·브라우저(`clientFetch`) 요청을 같은 목업 서버로 돌려 백엔드 없이 전 화면 재현. 목업 응답은 앱의 Zod 응답 스키마로 타입·런타임 이중 검증 ([상세](docs/mock-and-capture.md)).
 
 ### 보안 하드닝
 
@@ -122,6 +164,10 @@ src/
 ├─ features/    # 기능 단위 슬라이스 (chat, payment, ticket, proposal, review, dispute ... 19개 도메인)
 ├─ entities/    # 도메인 엔티티 — api(schema/service) · model(query-keys) · lib (18개 도메인)
 └─ shared/      # 공용 — api(http/ws), ui, config(env), hooks, lib
+
+mocks/          # 독립 MSW 목업 서버 — handlers · fixtures · 공유 시나리오(world.ts)
+scripts/        # dev-mock 런처 · Playwright 스크린샷 캡처(capture/)
+docs/           # 기능별 화면 문서(features/) · 스크린샷(screenshots/)
 ```
 
 - `app/(auth)` — 로그인/회원가입 (Google·Kakao OAuth)
@@ -181,6 +227,16 @@ pnpm dev:https            # https://localhost:3000
 
 백엔드 연동 시: CORS Origin 에 `https://localhost:3000` 추가, `credentials: true` 허용, 크로스사이트 쿠키면 `SameSite=None; Secure`.
 
+### 목업 모드 (백엔드 없이 실행)
+
+```bash
+pnpm mock           # MSW 목업 서버 — http://localhost:9090
+pnpm dev:mock       # 목업 서버를 바라보는 Next dev — http://localhost:3000
+pnpm capture        # 위 두 서버를 띄워 docs/screenshots/ 전체 재캡처
+```
+
+환경 변수 파일 없이 동작. 구조와 시나리오 추가 방법은 [docs/mock-and-capture.md](docs/mock-and-capture.md).
+
 ### Storybook
 
 ```bash
@@ -201,6 +257,8 @@ pnpm storybook      # http://localhost:6006
 | `pnpm format` / `pnpm format:check` | Prettier 정렬 / 검사 |
 | `pnpm test` | Vitest |
 | `pnpm storybook` / `pnpm build-storybook` | Storybook 개발 / 정적 빌드 |
+| `pnpm mock` / `pnpm dev:mock` | MSW 목업 서버 / 목업 서버를 바라보는 개발 서버 |
+| `pnpm capture [이름...]` | 목업 데이터로 주요 화면 스크린샷 캡처 (`docs/screenshots/`) |
 
 ### 테스트 참고
 
