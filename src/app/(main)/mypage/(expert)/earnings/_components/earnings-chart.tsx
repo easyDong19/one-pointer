@@ -32,7 +32,8 @@ export function EarningsChart({ data }: Props) {
         </Text>
       </div>
 
-      <div className="mt-6 flex flex-1 items-end gap-2" style={{ minHeight: 140 }}>
+      {/* 막대 height(%) 가 해석되려면 컨테이너 높이가 확정돼야 한다 — minHeight + items-end 로는 0px 로 계산됨 */}
+      <div className="mt-6 flex h-[140px] gap-2">
         {data.map((point) => {
           const total = point.settledAmount + point.pendingAmount
           const heightPercent = (total / maxAmount) * 100
